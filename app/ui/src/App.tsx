@@ -368,7 +368,7 @@ function SolverPage({
             disabled={previousPositionIndex < 0}
             onClick={() => onGoToPosition(previousPositionIndex)}
           >
-            &#9664;
+            &#8249;
           </button>
           <button
             className="position-arrow-button"
@@ -378,7 +378,7 @@ function SolverPage({
             disabled={nextPositionIndex >= deck.fens.length}
             onClick={() => onGoToPosition(nextPositionIndex)}
           >
-            &#9654;
+            &#8250;
           </button>
         </div>
         <div className="play-layout">

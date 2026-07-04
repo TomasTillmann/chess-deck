@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const appUrl = "/";
 const firstFen = "r6r/1pp3k1/1b6/p2P1p2/P1N1pn2/2P2PP1/BP5P/4RR1K b - - 0 1";
+const secondFen = "rnb3kr/ppp4p/3b3B/3Pp2n/2BP4/3K1Rp1/PPP3q1/RN1Q4 w - - 0 1";
 
 type MutableSolutionPosition = {
   fen?: string;
@@ -28,6 +29,7 @@ function squarePoint(box: { x: number; y: number; width: number }, square: strin
 }
 
 async function openWoodpeckerDeck(page: Page) {
+  await mockCollections(page);
   await page.goto(appUrl);
   await page.getByRole("button", { name: /Woodpecker/ }).click();
 }
@@ -94,7 +96,27 @@ async function mockSolution(page: Page, lines: string[][]) {
   );
 }
 
+async function mockCollections(page: Page) {
+  await page.route("**/v1/collections", route =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        collections: [
+          {
+            slug: "woodpecker",
+            name: "Woodpecker",
+            description: "2 positions loaded from the Woodpecker deck.",
+            fens: [firstFen, secondFen],
+          },
+        ],
+      }),
+    }),
+  );
+}
+
 test("renders the deck grid and opens a deck", async ({ page }) => {
+  await mockCollections(page);
   await page.goto(appUrl);
 
   await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
@@ -103,7 +125,7 @@ test("renders the deck grid and opens a deck", async ({ page }) => {
   await page.getByRole("button", { name: /Woodpecker/ }).click();
 
   await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
-  await expect(page.getByText("1128 positions available")).toBeVisible();
+  await expect(page.getByText("2 positions available")).toBeVisible();
   await expect(page.getByRole("button", { name: "Position 1", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Position 2", exact: true })).toBeVisible();
   await expect(page.getByLabel("Chess position")).toHaveCount(0);
