@@ -225,6 +225,7 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
+  await expect(notation.getByRole("button", { name: "Nd3" })).toBeVisible();
   await dragMove(page, "e1", "e2", "black");
 
   const mainlineMove = notation.getByRole("button", { name: "Nd3" });
@@ -255,6 +256,7 @@ test("resetting a move removes its user-entered continuation", async ({ page }) 
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
+  await expect(notation.getByRole("button", { name: "Nd3" })).toBeVisible();
   await dragMove(page, "e1", "e2", "black");
   await expect(notation.locator(".notation-move")).toHaveCount(2);
 
@@ -290,6 +292,66 @@ test("submits a correct line and shows a 100 percent review", async ({ page }) =
   await expect(notation.getByRole("button", { name: "Re2" })).toBeVisible();
   await expect(notation.locator(".notation-move.is-review-solution-missing")).toHaveCount(0);
   await expect(notation.locator(".notation-move.is-review-user-extra")).toHaveCount(0);
+});
+
+test("updates the stored solution from the edited move tree after submit", async ({ page }) => {
+  await mockSolution(page, [["f4d3", "e1e2"]]);
+
+  let updatePayload:
+    | {
+        collection?: string;
+        solutions?: Array<{
+          fen?: string;
+          tree?: {
+            fen?: string;
+            sideToSolve?: string;
+            status?: string;
+            root?: MutableSolutionPosition;
+          };
+        }>;
+      }
+    | undefined;
+
+  await page.route("**/v1/solver/solutions", async route => {
+    updatePayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ stored: 1 }),
+    });
+  });
+
+  await openWoodpeckerPosition(page);
+
+  await expect(page.getByRole("button", { name: "Update" })).toHaveCount(0);
+
+  await dragMove(page, "f4", "d3", "black");
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Nd3" })).toBeVisible();
+  await dragMove(page, "e1", "e3", "black");
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Re3" })).toBeVisible();
+  await page.getByRole("button", { name: "Submit" }).click();
+
+  const updateButton = page.getByRole("button", { name: "Update" });
+  await expect(updateButton).toBeVisible();
+
+  await page.getByLabel("Move notation").getByRole("button", { name: "Nd3" }).click();
+  await dragMove(page, "e1", "e2", "black");
+  await updateButton.click();
+
+  await expect(page.getByText("Saved")).toBeVisible();
+  await expect.poll(() => updatePayload).toBeTruthy();
+
+  const solution = updatePayload?.solutions?.[0];
+  const rootMove = solution?.tree?.root?.moves[0];
+  const replyMoves = rootMove?.children[0]?.moves.map(move => move.uci);
+
+  expect(updatePayload?.collection).toBe("woodpecker");
+  expect(solution?.fen).toBe(firstFen);
+  expect(solution?.tree?.fen).toBe(firstFen);
+  expect(solution?.tree?.sideToSolve).toBe("b");
+  expect(solution?.tree?.status).toBe("solved");
+  expect(rootMove?.uci).toBe("f4d3");
+  expect(replyMoves).toContain("e1e2");
 });
 
 test("submits a wrong continuation and shows salmon user move plus blue solution move", async ({ page }) => {

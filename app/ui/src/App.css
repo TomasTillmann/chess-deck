@@ -298,13 +298,34 @@ body {
   cursor: pointer;
 }
 
+.solution-update-button {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 1px solid #1f65bb;
+  border-radius: 6px;
+  background: #2f80ed;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
 .solution-submit-button:hover:not(:disabled),
 .solution-submit-button:focus-visible:not(:disabled) {
   background: #247f50;
   outline: none;
 }
 
-.solution-submit-button:disabled {
+.solution-update-button:hover:not(:disabled),
+.solution-update-button:focus-visible:not(:disabled) {
+  background: #236dcc;
+  outline: none;
+}
+
+.solution-submit-button:disabled,
+.solution-update-button:disabled {
   opacity: 0.66;
   cursor: default;
 }
@@ -319,6 +340,10 @@ body {
   color: #8a453f;
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.solution-status.is-success {
+  color: #1f4734;
 }
 
 .notation-panel {

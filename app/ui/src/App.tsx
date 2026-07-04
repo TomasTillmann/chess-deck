@@ -29,7 +29,7 @@ import {
   type MovePath,
   type MoveTreeNode,
 } from "./gameTree";
-import { fetchSolution, SolutionFetchError } from "./solutionClient";
+import { fetchSolution, SolutionFetchError, updateSolution } from "./solutionClient";
 import { compareSolutionTree } from "./solutionComparison";
 
 const emptyDests = new Map() as Dests;
@@ -43,6 +43,12 @@ type SubmitState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success"; score: number }
+  | { status: "error"; message: string };
+
+type UpdateState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success" }
   | { status: "error"; message: string };
 
 type Route =
@@ -172,6 +178,8 @@ function SolverPage({
   });
   const [reviewRoot, setReviewRoot] = useState<MoveTreeNode>();
   const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
+  const [updateState, setUpdateState] = useState<UpdateState>({ status: "idle" });
+  const [canUpdateSolution, setCanUpdateSolution] = useState(false);
   const visibleRoot = reviewRoot ?? game.root;
   const currentEntry = nodeAtPath(visibleRoot, game.currentPath);
   const currentFen = currentEntry.fen;
@@ -202,6 +210,8 @@ function SolverPage({
     setReviewRoot(undefined);
     reviewRootRef.current = undefined;
     setSubmitState({ status: "idle" });
+    setUpdateState({ status: "idle" });
+    setCanUpdateSolution(false);
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
@@ -223,6 +233,7 @@ function SolverPage({
     setReviewRoot(undefined);
     reviewRootRef.current = undefined;
     setSubmitState({ status: "idle" });
+    setUpdateState({ status: "idle" });
 
     return editPath;
   }, []);
@@ -336,6 +347,7 @@ function SolverPage({
       setReviewRoot(result.reviewRoot);
       reviewRootRef.current = result.reviewRoot;
       setSubmitState({ status: "success", score: result.score });
+      setCanUpdateSolution(true);
       currentFenRef.current = nodeAtPath(result.reviewRoot, gameRef.current.currentPath).fen;
     } catch (error) {
       setReviewRoot(undefined);
@@ -349,6 +361,20 @@ function SolverPage({
       });
     }
   }, [initialFen]);
+
+  const handleUpdateSolution = useCallback(async () => {
+    setUpdateState({ status: "loading" });
+
+    try {
+      await updateSolution(deck.slug, initialFen, gameRef.current.root);
+      setUpdateState({ status: "success" });
+    } catch {
+      setUpdateState({
+        status: "error",
+        message: "Could not update the solution. Check that the server is running.",
+      });
+    }
+  }, [deck.slug, initialFen]);
 
   const previousPositionIndex = positionIndex - 1;
   const nextPositionIndex = positionIndex + 1;
@@ -407,6 +433,16 @@ function SolverPage({
               >
                 Submit
               </button>
+              {canUpdateSolution ? (
+                <button
+                  className="solution-update-button"
+                  type="button"
+                  onClick={handleUpdateSolution}
+                  disabled={submitState.status === "loading" || updateState.status === "loading"}
+                >
+                  {updateState.status === "loading" ? "Updating" : "Update"}
+                </button>
+              ) : null}
               {submitState.status === "success" ? (
                 <span className="solution-score" aria-live="polite">
                   {submitState.score}%
@@ -415,6 +451,16 @@ function SolverPage({
               {submitState.status === "error" ? (
                 <span className="solution-status" role="status">
                   {submitState.message}
+                </span>
+              ) : null}
+              {updateState.status === "success" ? (
+                <span className="solution-status is-success" role="status">
+                  Saved
+                </span>
+              ) : null}
+              {updateState.status === "error" ? (
+                <span className="solution-status" role="status">
+                  {updateState.message}
                 </span>
               ) : null}
             </div>
