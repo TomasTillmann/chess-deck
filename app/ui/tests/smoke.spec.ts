@@ -116,18 +116,18 @@ test("opens a position from a deck and moves between position views", async ({ p
   await page.getByRole("button", { name: "Position 1", exact: true }).click();
 
   await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/1$/);
-  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Woodpecker - 1" })).toBeVisible();
   await expect(page.getByLabel("Chess position")).toBeVisible();
   await expect(page.locator("piece")).not.toHaveCount(0);
 
   await expect(page.getByRole("button", { name: "Previous position" })).toBeDisabled();
   await page.getByRole("button", { name: "Next position" }).click();
   await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/2$/);
-  await expect(page.getByRole("heading", { name: "Woodpecker - Position 2" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Woodpecker - 2" })).toBeVisible();
 
   await page.getByRole("button", { name: "Previous position" }).click();
   await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/1$/);
-  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Woodpecker - 1" })).toBeVisible();
 });
 
 test("navigates between decks and solver", async ({ page }) => {
@@ -146,7 +146,7 @@ test("navigates between decks and solver", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Position 1", exact: true })).toBeVisible();
 
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Woodpecker - 1" })).toBeVisible();
 
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
@@ -158,37 +158,32 @@ test("navigates between decks and solver", async ({ page }) => {
 test("lets the user play both sides without flipping the board", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
-  const status = page.locator(".position-header p");
   const board = page.getByLabel("Chess position");
-  await expect(status).toHaveText("Black to move");
   await expect(board).toHaveClass(/orientation-black/);
 
   await dragMove(page, "f4", "d3", "black");
 
-  await expect(status).toHaveText("White to move");
   await expect(board).toHaveClass(/orientation-black/);
 
   await dragMove(page, "e1", "e2", "black");
 
-  await expect(status).toHaveText("Black to move");
   await expect(board).toHaveClass(/orientation-black/);
 });
 
 test("syncs notation with board moves, arrows, and clicks", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
-  const status = page.locator(".position-header p");
   const notation = page.getByLabel("Move notation");
   await expect(notation).toContainText("No moves yet");
 
   await dragMove(page, "f4", "d3", "black");
+  const humanMove = notation.getByRole("button", { name: "Nd3" });
+  await expect(humanMove).toBeVisible();
+
   await dragMove(page, "e1", "e2", "black");
 
-  const humanMove = notation.getByRole("button", { name: "Nd3" });
   const replyMove = notation.getByRole("button", { name: "Re2" });
-  await expect(humanMove).toBeVisible();
   await expect(replyMove).toBeVisible();
-  await expect(status).toHaveText("Black to move");
 
   await page.keyboard.press("ArrowLeft");
   await expect(humanMove).toHaveAttribute("aria-current", "step");
@@ -205,12 +200,10 @@ test("syncs notation with board moves, arrows, and clicks", async ({ page }) => 
 test("keeps the mainline when a sideline starts from an earlier position", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
-  const status = page.locator(".position-header p");
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
   await dragMove(page, "e1", "e2", "black");
-  await expect(status).toHaveText("Black to move");
 
   const mainlineMove = notation.getByRole("button", { name: "Nd3" });
   const mainlineReply = notation.getByRole("button", { name: "Re2" });
@@ -218,10 +211,8 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   await expect(mainlineReply).toBeVisible();
 
   await page.getByRole("button", { name: "First move" }).click();
-  await expect(status).toHaveText("Viewing start");
 
   await dragMove(page, "f4", "e2", "black");
-  await expect(status).toHaveText("White to move");
 
   const sidelineMove = notation.getByRole("button", { name: "Ne2" });
   await expect(mainlineMove).toBeVisible();
@@ -239,12 +230,10 @@ test("keeps the mainline when a sideline starts from an earlier position", async
 test("resetting a move removes its user-entered continuation", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
-  const status = page.locator(".position-header p");
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
   await dragMove(page, "e1", "e2", "black");
-  await expect(status).toHaveText("Black to move");
   await expect(notation.locator(".notation-move")).toHaveCount(2);
 
   const humanMove = notation.getByRole("button", { name: "Nd3" });
@@ -253,13 +242,11 @@ test("resetting a move removes its user-entered continuation", async ({ page }) 
 
   await page.getByRole("menuitem", { name: "Reset here" }).click();
 
-  await expect(status).toHaveText("White to move");
   await expect(notation.locator(".notation-move")).toHaveCount(1);
   await expect(humanMove).toHaveAttribute("aria-current", "step");
 
   await dragMove(page, "e1", "e3", "black");
 
-  await expect(status).toHaveText("Black to move");
   await expect(notation.getByRole("button", { name: "Re3" })).toBeVisible();
   await expect(notation.locator(".notation-move")).toHaveCount(2);
 });
@@ -271,7 +258,9 @@ test("submits a correct line and shows a 100 percent review", async ({ page }) =
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
+  await expect(notation.getByRole("button", { name: "Nd3" })).toBeVisible();
   await dragMove(page, "e1", "e2", "black");
+  await expect(notation.getByRole("button", { name: "Re2" })).toBeVisible();
   await page.getByRole("button", { name: "Submit" }).click();
 
   await expect(page.getByText("100%")).toBeVisible();
@@ -288,7 +277,9 @@ test("submits a wrong continuation and shows salmon user move plus blue solution
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
+  await expect(notation.getByRole("button", { name: "Nd3" })).toBeVisible();
   await dragMove(page, "e1", "e3", "black");
+  await expect(notation.getByRole("button", { name: "Re3" })).toBeVisible();
   await page.getByRole("button", { name: "Submit" }).click();
 
   const wrongMove = notation.getByRole("button", { name: "Re3" });

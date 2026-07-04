@@ -252,12 +252,6 @@ body {
   letter-spacing: 0;
 }
 
-.position-header p {
-  margin: 0;
-  color: #6f675c;
-  font-size: 0.95rem;
-}
-
 .chess-board {
   width: min(100%, calc(100vh - 150px));
   min-width: 280px;

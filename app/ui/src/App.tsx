@@ -350,15 +350,8 @@ function SolverPage({
     }
   }, [initialFen]);
 
-  const isAtLatestPly = currentEntry.children.length === 0;
-  const currentMoveLabel = game.currentPath.length === 0 ? "start" : `move ${game.currentPath.length}`;
   const previousPositionIndex = positionIndex - 1;
   const nextPositionIndex = positionIndex + 1;
-  const statusText = position.isEnd()
-      ? "Game over"
-      : !isAtLatestPly
-        ? `Viewing ${currentMoveLabel}`
-        : `${position.turn === "white" ? "White" : "Black"} to move`;
 
   return (
     <main className="app-shell solver-shell">
@@ -392,9 +385,8 @@ function SolverPage({
           <section className="board-stage" aria-labelledby="position-title">
             <div className="position-header">
               <h1 id="position-title">
-                {deck.name} - Position {positionIndex + 1}
+                {deck.name} - {positionIndex + 1}
               </h1>
-              <p>{statusText}</p>
             </div>
             <ChessBoard
               fen={currentFen}
@@ -411,9 +403,9 @@ function SolverPage({
                 className="solution-submit-button"
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitState.status === "loading"}
+                disabled={submitState.status === "loading" || submitState.status === "success"}
               >
-                {submitState.status === "loading" ? "Submitting" : "Submit"}
+                Submit
               </button>
               {submitState.status === "success" ? (
                 <span className="solution-score" aria-live="polite">
