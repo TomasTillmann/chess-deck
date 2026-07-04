@@ -377,6 +377,47 @@ body {
   color: #f8fffb;
 }
 
+.notation-context-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 142px;
+  padding: 4px;
+  border: 1px solid #b8c8c8;
+  border-radius: 6px;
+  background: #f8fafb;
+  box-shadow:
+    0 16px 36px rgba(37, 33, 27, 0.18),
+    0 2px 8px rgba(37, 33, 27, 0.1);
+}
+
+.notation-context-menu button {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #25313a;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notation-context-menu button:hover:not(:disabled),
+.notation-context-menu button:focus-visible:not(:disabled) {
+  background: #dce8e4;
+  outline: none;
+}
+
+.notation-context-menu button:disabled {
+  color: #96a0a8;
+  cursor: default;
+}
+
 .notation-controls {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

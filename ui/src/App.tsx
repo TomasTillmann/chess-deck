@@ -23,8 +23,10 @@ import { decks, type Deck } from "./decks";
 import { bestMove as stockfishBestMove, dispose as disposeStockfish } from "./engine/stockfishClient";
 import {
   createMoveRoot,
+  moveNodeAmongSiblings,
   nodeAtPath,
   pathsEqual,
+  resetNodeChildren,
   updateNodeAtPath,
   type MovePath,
   type MoveTreeNode,
@@ -196,10 +198,34 @@ function SolverPage({
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
-    setGame(current => ({
-      ...current,
+    const nextGame = {
+      ...gameRef.current,
       currentPath: path,
-    }));
+    };
+
+    setGame(nextGame);
+    gameRef.current = nextGame;
+    currentFenRef.current = nodeAtPath(nextGame.root, path).fen;
+  }, []);
+
+  const movePathUp = useCallback((path: MovePath) => {
+    const nextGame = {
+      ...gameRef.current,
+      root: moveNodeAmongSiblings(gameRef.current.root, path, -1),
+    };
+
+    setGame(nextGame);
+    gameRef.current = nextGame;
+  }, []);
+
+  const movePathDown = useCallback((path: MovePath) => {
+    const nextGame = {
+      ...gameRef.current,
+      root: moveNodeAmongSiblings(gameRef.current.root, path, 1),
+    };
+
+    setGame(nextGame);
+    gameRef.current = nextGame;
   }, []);
 
   useEffect(() => {
@@ -254,6 +280,27 @@ function SolverPage({
       setEngineThinking(false);
     }
   }, []);
+
+  const resetMoveTreeAtPath = useCallback(
+    (path: MovePath) => {
+      const nextRoot = resetNodeChildren(gameRef.current.root, path);
+      const resetNode = nodeAtPath(nextRoot, path);
+      const resetPosition = positionFromFen(resetNode.fen);
+      const nextGame = {
+        root: nextRoot,
+        currentPath: path,
+      };
+
+      setGame(nextGame);
+      gameRef.current = nextGame;
+      currentFenRef.current = resetNode.fen;
+
+      if (resetPosition.turn !== humanColor && !resetPosition.isEnd()) {
+        void playEngineMove(resetNode.fen, path);
+      }
+    },
+    [humanColor, playEngineMove],
+  );
 
   const handleMove = useCallback(
     (orig: Key, dest: Key) => {
@@ -348,7 +395,14 @@ function SolverPage({
               onMove={handleMove}
             />
           </section>
-          <MoveNotationPanel root={game.root} currentPath={game.currentPath} onSelectPath={goToPath} />
+          <MoveNotationPanel
+            root={game.root}
+            currentPath={game.currentPath}
+            onSelectPath={goToPath}
+            onResetPath={resetMoveTreeAtPath}
+            onMovePathUp={movePathUp}
+            onMovePathDown={movePathDown}
+          />
         </div>
       </div>
     </main>

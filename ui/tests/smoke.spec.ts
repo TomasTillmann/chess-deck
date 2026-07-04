@@ -169,3 +169,26 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   await expect(mainlineMove).toHaveAttribute("aria-current", "step");
   await expect(sidelineMove).not.toHaveAttribute("aria-current", "step");
 });
+
+test("resetting to an engine-to-move leaf asks Stockfish for a fresh reply", async ({ page }) => {
+  await openWoodpeckerPosition(page);
+
+  const status = page.locator(".position-header p");
+  const notation = page.getByLabel("Move notation");
+
+  await dragMove(page, "f4", "d3", "black");
+  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
+  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(notation.locator(".notation-move")).toHaveCount(2);
+
+  const humanMove = notation.getByRole("button", { name: "Nd3" });
+  await humanMove.click({ button: "right" });
+  await expect(page.getByRole("menu")).toBeVisible();
+
+  await page.getByRole("menuitem", { name: "Reset here" }).click();
+
+  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
+  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(notation.locator(".notation-move")).toHaveCount(2);
+  await expect(notation.locator(".notation-move").nth(1)).toHaveAttribute("aria-current", "step");
+});

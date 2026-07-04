@@ -62,6 +62,47 @@ export function updateNodeAtPath(
   };
 }
 
+export function isPathDescendantOf(path: MovePath, ancestorPath: MovePath): boolean {
+  return path.length > ancestorPath.length && ancestorPath.every((part, index) => part === path[index]);
+}
+
+export function siblingIndexAtPath(root: MoveTreeNode, path: MovePath): number {
+  if (path.length === 0) return -1;
+
+  const parent = nodeAtPath(root, path.slice(0, -1));
+  return parent.children.findIndex(child => child.id === path[path.length - 1]);
+}
+
+export function resetNodeChildren(root: MoveTreeNode, path: MovePath): MoveTreeNode {
+  return updateNodeAtPath(root, path, node => ({
+    ...node,
+    children: [],
+  }));
+}
+
+export function moveNodeAmongSiblings(root: MoveTreeNode, path: MovePath, direction: -1 | 1): MoveTreeNode {
+  if (path.length === 0) return root;
+
+  const parentPath = path.slice(0, -1);
+  const childId = path[path.length - 1];
+
+  return updateNodeAtPath(root, parentPath, parent => {
+    const fromIndex = parent.children.findIndex(child => child.id === childId);
+    const toIndex = fromIndex + direction;
+
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= parent.children.length) return parent;
+
+    const children = [...parent.children];
+    const [child] = children.splice(fromIndex, 1);
+    children.splice(toIndex, 0, child);
+
+    return {
+      ...parent,
+      children,
+    };
+  });
+}
+
 export function firstChildPath(root: MoveTreeNode, path: MovePath): MovePath | undefined {
   const child = nodeAtPath(root, path).children[0];
   return child ? [...path, child.id] : undefined;
