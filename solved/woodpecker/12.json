@@ -136,61 +136,6 @@
                             ]
                           }
                         ]
-                      },
-                      {
-                        "uci": "h3f3",
-                        "eval": 99995,
-                        "children": [
-                          {
-                            "fen": "r1n4k/pp2q2p/2ppr1pQ/4p3/8/2N2R2/PPP3PP/5RK1 b - - 3 2",
-                            "turn": "b",
-                            "eval": 99996,
-                            "terminal": null,
-                            "moves": [
-                              {
-                                "uci": "e6f6",
-                                "eval": 99996,
-                                "children": [
-                                  {
-                                    "fen": "r1n4k/pp2q2p/2pp1rpQ/4p3/8/2N2R2/PPP3PP/5RK1 w - - 4 3",
-                                    "turn": "w",
-                                    "eval": 99996,
-                                    "terminal": null,
-                                    "moves": [
-                                      {
-                                        "uci": "f3f6",
-                                        "eval": 99996,
-                                        "children": [
-                                          {
-                                            "fen": "r1n4k/pp2q2p/2pp1RpQ/4p3/8/2N5/PPP3PP/5RK1 b - - 0 3",
-                                            "turn": "b",
-                                            "eval": 99997,
-                                            "terminal": null,
-                                            "moves": [
-                                              {
-                                                "uci": "e7g7",
-                                                "eval": 99997,
-                                                "children": [
-                                                  {
-                                                    "fen": "r1n4k/pp4qp/2pp1RpQ/4p3/8/2N5/PPP3PP/5RK1 w - - 1 4",
-                                                    "turn": "w",
-                                                    "eval": 99997,
-                                                    "terminal": "robust_win",
-                                                    "moves": []
-                                                  }
-                                                ]
-                                              }
-                                            ]
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
                       }
                     ]
                   }

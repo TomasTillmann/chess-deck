@@ -1,0 +1,54 @@
+{
+  "fen": "7r/3b1pk1/2p2qp1/8/1P1bNP2/r2B4/3Q2PP/2R2R1K b - - 0 1",
+  "sideToSolve": "b",
+  "status": "solved",
+  "root": {
+    "fen": "7r/3b1pk1/2p2qp1/8/1P1bNP2/r2B4/3Q2PP/2R2R1K b - - 0 1",
+    "turn": "b",
+    "eval": 99998,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "h8h2",
+        "eval": 99998,
+        "children": [
+          {
+            "fen": "8/3b1pk1/2p2qp1/8/1P1bNP2/r2B4/3Q2Pr/2R2R1K w - - 0 2",
+            "turn": "w",
+            "eval": 99999,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "h1h2",
+                "eval": 99999,
+                "children": [
+                  {
+                    "fen": "8/3b1pk1/2p2qp1/8/1P1bNP2/r2B4/3Q2PK/2R2R2 b - - 0 2",
+                    "turn": "b",
+                    "eval": 99999,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "f6h4",
+                        "eval": 99999,
+                        "children": [
+                          {
+                            "fen": "8/3b1pk1/2p3p1/8/1P1bNP1q/r2B4/3Q2PK/2R2R2 w - - 1 3",
+                            "turn": "w",
+                            "eval": 100000,
+                            "terminal": "checkmate",
+                            "moves": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "fen": "5rnr/pp2kpp1/1b1p3p/nBpP2N1/4PN2/8/P4PPP/4RRK1 w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "5rnr/pp2kpp1/1b1p3p/nBpP2N1/4PN2/8/P4PPP/4RRK1 w - - 0 1",
+    "turn": "w",
+    "eval": 83,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "g5e6",
+        "eval": 83,
+        "children": [
+          {
+            "fen": "5rnr/pp2kpp1/1b1pN2p/nBpP4/4PN2/8/P4PPP/4RRK1 b - - 1 1",
+            "turn": "b",
+            "eval": 88,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g8f6",
+                "eval": 88,
+                "children": [
+                  {
+                    "fen": "5r1r/pp2kpp1/1b1pNn1p/nBpP4/4PN2/8/P4PPP/4RRK1 w - - 2 2",
+                    "turn": "w",
+                    "eval": 75,
+                    "terminal": "no_clear_gap",
+                    "moves": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "uci": "g5f3",
+        "eval": 37,
+        "children": [
+          {
+            "fen": "5rnr/pp2kpp1/1b1p3p/nBpP4/4PN2/5N2/P4PPP/4RRK1 b - - 1 1",
+            "turn": "b",
+            "eval": -101,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g8f6",
+                "eval": -101,
+                "children": [
+                  {
+                    "fen": "5r1r/pp2kpp1/1b1p1n1p/nBpP4/4PN2/5N2/P4PPP/4RRK1 w - - 2 2",
+                    "turn": "w",
+                    "eval": -89,
+                    "terminal": "no_clear_gap",
+                    "moves": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

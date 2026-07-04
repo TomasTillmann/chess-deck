@@ -5,27 +5,27 @@
   "root": {
     "fen": "6k1/2p3pp/q3pn2/1pp1p3/4P3/1P1P1P2/rNP2P1P/1Q3RK1 w - - 0 1",
     "turn": "w",
-    "eval": 53,
+    "eval": 123,
     "terminal": null,
     "moves": [
       {
         "uci": "b2a4",
-        "eval": 53,
+        "eval": 123,
         "children": [
           {
             "fen": "6k1/2p3pp/q3pn2/1pp1p3/N3P3/1P1P1P2/r1P2P1P/1Q3RK1 b - - 1 1",
             "turn": "b",
-            "eval": 126,
+            "eval": 123,
             "terminal": null,
             "moves": [
               {
                 "uci": "a2a3",
-                "eval": 126,
+                "eval": 123,
                 "children": [
                   {
                     "fen": "6k1/2p3pp/q3pn2/1pp1p3/N3P3/rP1P1P2/2P2P1P/1Q3RK1 w - - 2 2",
                     "turn": "w",
-                    "eval": 128,
+                    "eval": 123,
                     "terminal": "no_clear_gap",
                     "moves": []
                   }

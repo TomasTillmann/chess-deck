@@ -1,17 +1,42 @@
 from __future__ import annotations
 
+import atexit
 import json
+import time
+from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, wait
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
 
 import chess
 import typer
 
-from woodpecker_solver.config import load_settings
+from woodpecker_solver.config import AppSettings, load_settings
 from woodpecker_solver.engine import StockfishAnalyzer
 from woodpecker_solver.solver import FenSolver
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
+
+_worker_settings: AppSettings | None = None
+_worker_analyzer: StockfishAnalyzer | None = None
+
+
+@dataclass(frozen=True)
+class WorkItem:
+    index: int
+    fen: str
+    target: Path
+
+
+@dataclass(frozen=True)
+class WorkResult:
+    item: WorkItem
+    status: str
+    document: dict[str, Any] | None = None
+    reason: str | None = None
+    error_type: str | None = None
+    error_message: str | None = None
+    elapsed_seconds: float | None = None
 
 
 @app.command()
@@ -22,6 +47,7 @@ def solve_fens(
     config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False, help="Path to appsettings.json.")] = Path("appsettings.json"),
     limit: Annotated[int | None, typer.Option("--limit", min=1, help="Maximum number of FEN lines to process.")] = None,
     overwrite: Annotated[bool, typer.Option("--overwrite", help="Regenerate existing output files.")] = False,
+    parallel: Annotated[int, typer.Option("--parallel", min=1, help="Number of FENs to solve concurrently.")] = 4,
 ) -> None:
     settings = load_settings(config)
     fen_file = input_dir / name / f"{name}.fen"
@@ -42,39 +68,129 @@ def solve_fens(
     skipped_count = 0
     error_count = 0
 
-    with StockfishAnalyzer(settings) as analyzer:
-        solver = FenSolver(settings, analyzer)
-        for index, fen in lines:
-            target = collection_output / f"{index}.json"
-            if target.exists() and not overwrite:
-                skipped_count += 1
-                typer.echo(f"skip existing {target}")
-                continue
+    work_items: list[WorkItem] = []
+    for index, fen in lines:
+        target = collection_output / f"{index}.json"
+        if target.exists() and not overwrite:
+            skipped_count += 1
+            typer.echo(f"skip existing {target}")
+            continue
+        work_items.append(WorkItem(index=index, fen=fen, target=target))
 
-            try:
-                _validate_fen(fen)
-                result = solver.solve(fen)
-            except Exception as exc:
-                error_count += 1
-                if overwrite and target.exists():
-                    target.unlink()
-                _append_error(error_log, {"index": index, "fen": fen, "error": type(exc).__name__, "message": str(exc)})
-                typer.echo(f"error {index}: {exc}", err=True)
-                continue
+    if work_items:
+        run_start = time.perf_counter()
+        with ProcessPoolExecutor(max_workers=parallel, initializer=_init_worker, initargs=(settings,)) as executor:
+            pending_items = iter(work_items)
+            futures: dict[Future[WorkResult], WorkItem] = {}
 
-            if result.document is None:
-                skipped_count += 1
-                if overwrite and target.exists():
-                    target.unlink()
-                _append_error(error_log, {"index": index, "fen": fen, "status": result.status, "reason": result.reason})
-                typer.echo(f"skip {index}: {result.reason}")
-                continue
+            def submit_next() -> bool:
+                try:
+                    item = next(pending_items)
+                except StopIteration:
+                    return False
+                futures[executor.submit(_solve_work_item, item)] = item
+                return True
 
-            _write_json(target, result.document, pretty=settings.output.pretty_json)
-            solved_count += 1
-            typer.echo(f"solved {target}")
+            for _ in range(min(parallel, len(work_items))):
+                submit_next()
+
+            while futures:
+                done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                for future in done:
+                    item = futures.pop(future)
+                    try:
+                        result = future.result()
+                    except Exception as exc:
+                        result = WorkResult(
+                            item=item,
+                            status="error",
+                            error_type=type(exc).__name__,
+                            error_message=str(exc),
+                        )
+                    elapsed = _format_duration(result.elapsed_seconds)
+                    if result.status == "error":
+                        error_count += 1
+                        if overwrite and result.item.target.exists():
+                            result.item.target.unlink()
+                        _append_error(
+                            error_log,
+                            {
+                                "index": result.item.index,
+                                "fen": result.item.fen,
+                                "error": result.error_type,
+                                "message": result.error_message,
+                            },
+                        )
+                        typer.echo(f"error {result.item.index} in {elapsed}: {result.error_message}", err=True)
+                        submit_next()
+                        continue
+
+                    if result.document is None:
+                        skipped_count += 1
+                        if overwrite and result.item.target.exists():
+                            result.item.target.unlink()
+                        _append_error(
+                            error_log,
+                            {
+                                "index": result.item.index,
+                                "fen": result.item.fen,
+                                "status": result.status,
+                                "reason": result.reason,
+                            },
+                        )
+                        typer.echo(f"skip {result.item.index} in {elapsed}: {result.reason}")
+                        submit_next()
+                        continue
+
+                    _write_json(result.item.target, result.document, pretty=settings.output.pretty_json)
+                    solved_count += 1
+                    typer.echo(f"solved {result.item.target} in {elapsed}")
+                    submit_next()
+        typer.echo(f"run done in {_format_duration(time.perf_counter() - run_start)}")
 
     typer.echo(f"done: solved={solved_count} skipped={skipped_count} errors={error_count}")
+
+
+def _init_worker(settings: AppSettings) -> None:
+    global _worker_analyzer, _worker_settings
+    _worker_settings = settings
+    _worker_analyzer = StockfishAnalyzer(settings)
+    atexit.register(_close_worker_analyzer)
+
+
+def _close_worker_analyzer() -> None:
+    global _worker_analyzer
+    if _worker_analyzer is None:
+        return
+    analyzer = _worker_analyzer
+    _worker_analyzer = None
+    analyzer.close()
+
+
+def _solve_work_item(item: WorkItem) -> WorkResult:
+    print(f"solving {item.index}: {item.fen}", flush=True)
+    start = time.perf_counter()
+    try:
+        _validate_fen(item.fen)
+        if _worker_settings is None or _worker_analyzer is None:
+            raise RuntimeError("Worker Stockfish analyzer is not initialized")
+        result = FenSolver(_worker_settings, _worker_analyzer).solve(item.fen)
+    except Exception as exc:
+        return WorkResult(
+            item=item,
+            status="error",
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+            elapsed_seconds=time.perf_counter() - start,
+        )
+
+    return WorkResult(
+        item=item,
+        status=result.status,
+        document=result.document,
+        reason=result.reason,
+        elapsed_seconds=time.perf_counter() - start,
+    )
 
 
 def _read_fens(path: Path) -> list[tuple[int, str]]:
@@ -84,6 +200,12 @@ def _read_fens(path: Path) -> list[tuple[int, str]]:
         if fen:
             fens.append((len(fens) + 1, fen))
     return fens
+
+
+def _format_duration(seconds: float | None) -> str:
+    if seconds is None:
+        return "unknown"
+    return f"{seconds:.2f}s"
 
 
 def _validate_fen(fen: str) -> None:

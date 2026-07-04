@@ -5,47 +5,47 @@
   "root": {
     "fen": "4q1k1/2r3pp/1p6/8/1b2N3/4R1P1/PP3P1P/R5K1 w - - 0 1",
     "turn": "w",
-    "eval": 528,
+    "eval": 513,
     "terminal": null,
     "moves": [
       {
         "uci": "e4f6",
-        "eval": 528,
+        "eval": 513,
         "children": [
           {
             "fen": "4q1k1/2r3pp/1p3N2/8/1b6/4R1P1/PP3P1P/R5K1 b - - 1 1",
             "turn": "b",
-            "eval": 524,
+            "eval": 525,
             "terminal": null,
             "moves": [
               {
                 "uci": "g7f6",
-                "eval": 524,
+                "eval": 525,
                 "children": [
                   {
                     "fen": "4q1k1/2r4p/1p3p2/8/1b6/4R1P1/PP3P1P/R5K1 w - - 0 2",
                     "turn": "w",
-                    "eval": 521,
+                    "eval": 525,
                     "terminal": null,
                     "moves": [
                       {
                         "uci": "e3e8",
-                        "eval": 521,
+                        "eval": 525,
                         "children": [
                           {
                             "fen": "4R1k1/2r4p/1p3p2/8/1b6/6P1/PP3P1P/R5K1 b - - 0 2",
                             "turn": "b",
-                            "eval": 522,
+                            "eval": 519,
                             "terminal": null,
                             "moves": [
                               {
                                 "uci": "g8f7",
-                                "eval": 522,
+                                "eval": 519,
                                 "children": [
                                   {
                                     "fen": "4R3/2r2k1p/1p3p2/8/1b6/6P1/PP3P1P/R5K1 w - - 1 3",
                                     "turn": "w",
-                                    "eval": 519,
+                                    "eval": 528,
                                     "terminal": "no_clear_gap",
                                     "moves": []
                                   }

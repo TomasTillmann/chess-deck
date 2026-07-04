@@ -15,7 +15,7 @@ Common verification runs:
 
 ```bash
 uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 1
-uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --overwrite
+uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --parallel 2
 ```
 
 CLI options:
@@ -27,6 +27,7 @@ CLI options:
 - `--config`: path to settings JSON. Defaults to `appsettings.json`.
 - `--limit`: optional maximum number of FENs to process from the start.
 - `--overwrite`: regenerate existing `N.json` files and clear the run's error log.
+- `--parallel`: number of FENs to solve concurrently. Defaults to 4.
 
 Do not add CLI flags for Stockfish path, threads, depth, movetime, MultiPV, or
 solver tuning. Those belong in `appsettings.json`.
@@ -63,8 +64,8 @@ Output moves are UCI only. Do not emit SAN.
 
 Main files:
 
-- `src/woodpecker_solver/cli.py`: Typer CLI, file discovery, output writing,
-  overwrite behavior, and error logging.
+- `src/woodpecker_solver/cli.py`: Typer CLI, file discovery, rolling parallel
+  orchestration, output writing, overwrite behavior, and error logging.
 - `src/woodpecker_solver/config.py`: typed dataclasses for `appsettings.json`.
 - `src/woodpecker_solver/engine.py`: sequential Stockfish wrapper using
   `python-chess`.
@@ -73,8 +74,11 @@ Main files:
 - `appsettings.json`: Stockfish settings, solver thresholds, output formatting,
   and log filename.
 
-The solver runs one Stockfish process sequentially. It processes FENs one by
-one and does not parallelize.
+The solver keeps up to `--parallel` FENs in flight at once. The default
+`--parallel 4` solves up to 4 FENs concurrently; as soon as one finishes, the
+next pending FEN starts. Each worker keeps one Stockfish process alive and
+reuses it for every FEN it solves. The parent process performs all JSON and
+error-log writes.
 
 ## Stockfish Settings
 
@@ -221,7 +225,7 @@ After changing solver code, run:
 
 ```bash
 uv run python -m py_compile src/woodpecker_solver/*.py
-uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --overwrite
+uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --parallel 2
 ```
 
 Keep the CLI simple. Solver behavior should be changed through

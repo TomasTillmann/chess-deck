@@ -155,12 +155,12 @@
                                   {
                                     "fen": "rnb3kr/ppp3bp/7B/3Pp2n/2BP2Q1/3K2p1/PPP3q1/RN6 w - - 2 3",
                                     "turn": "w",
-                                    "eval": 99996,
+                                    "eval": 99994,
                                     "terminal": null,
                                     "moves": [
                                       {
                                         "uci": "d5d6",
-                                        "eval": 99996,
+                                        "eval": 99994,
                                         "children": [
                                           {
                                             "fen": "rnb3kr/ppp3bp/3P3B/4p2n/2BP2Q1/3K2p1/PPP3q1/RN6 b - - 0 3",

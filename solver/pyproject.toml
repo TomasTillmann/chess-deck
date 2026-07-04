@@ -1,7 +1,7 @@
 [project]
 name = "woodpecker-solver"
 version = "0.1.0"
-description = "Sequential Stockfish solver for Woodpecker FEN collections."
+description = "Parallel Stockfish solver for Woodpecker FEN collections."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

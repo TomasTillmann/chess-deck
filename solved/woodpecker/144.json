@@ -1,0 +1,329 @@
+{
+  "fen": "4rbk1/3Q1ppp/3p4/3P4/5q2/B7/P5PP/5RK1 b - - 0 1",
+  "sideToSolve": "b",
+  "status": "solved",
+  "root": {
+    "fen": "4rbk1/3Q1ppp/3p4/3P4/5q2/B7/P5PP/5RK1 b - - 0 1",
+    "turn": "b",
+    "eval": 132,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "f4e3",
+        "eval": 132,
+        "children": [
+          {
+            "fen": "4rbk1/3Q1ppp/3p4/3P4/8/B3q3/P5PP/5RK1 w - - 1 2",
+            "turn": "w",
+            "eval": 131,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g1h1",
+                "eval": 131,
+                "children": [
+                  {
+                    "fen": "4rbk1/3Q1ppp/3p4/3P4/8/B3q3/P5PP/5R1K b - - 2 2",
+                    "turn": "b",
+                    "eval": 541,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "e3f2",
+                        "eval": 541,
+                        "children": [
+                          {
+                            "fen": "4rbk1/3Q1ppp/3p4/3P4/8/B7/P4qPP/5R1K w - - 3 3",
+                            "turn": "w",
+                            "eval": 617,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "a3c5",
+                                "eval": 617,
+                                "children": [
+                                  {
+                                    "fen": "4rbk1/3Q1ppp/3p4/2BP4/8/8/P4qPP/5R1K b - - 4 3",
+                                    "turn": "b",
+                                    "eval": 770,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              },
+                              {
+                                "uci": "d7f7",
+                                "eval": 641,
+                                "children": [
+                                  {
+                                    "fen": "4rbk1/5Qpp/3p4/3P4/8/B7/P4qPP/5R1K b - - 0 3",
+                                    "turn": "b",
+                                    "eval": 707,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "f2f7",
+                                        "eval": 707,
+                                        "children": [
+                                          {
+                                            "fen": "4rbk1/5qpp/3p4/3P4/8/B7/P5PP/5R1K w - - 0 4",
+                                            "turn": "w",
+                                            "eval": 732,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "f1g1",
+                                                "eval": 732,
+                                                "children": [
+                                                  {
+                                                    "fen": "4rbk1/5qpp/3p4/3P4/8/B7/P5PP/6RK b - - 1 4",
+                                                    "turn": "b",
+                                                    "eval": 769,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "uci": "f1a1",
+                                                "eval": 739,
+                                                "children": [
+                                                  {
+                                                    "fen": "4rbk1/5qpp/3p4/3P4/8/B7/P5PP/R6K b - - 1 4",
+                                                    "turn": "b",
+                                                    "eval": 99990,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "uci": "d7b5",
+                                "eval": 645,
+                                "children": [
+                                  {
+                                    "fen": "4rbk1/5ppp/3p4/1Q1P4/8/B7/P4qPP/5R1K b - - 4 3",
+                                    "turn": "b",
+                                    "eval": 707,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "e8e1",
+                                        "eval": 707,
+                                        "children": [
+                                          {
+                                            "fen": "5bk1/5ppp/3p4/1Q1P4/8/B7/P4qPP/4rR1K w - - 5 4",
+                                            "turn": "w",
+                                            "eval": 787,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "h2h3",
+                                                "eval": 787,
+                                                "children": [
+                                                  {
+                                                    "fen": "5bk1/5ppp/3p4/1Q1P4/8/B6P/P4qP1/4rR1K b - - 0 4",
+                                                    "turn": "b",
+                                                    "eval": 792,
+                                                    "terminal": null,
+                                                    "moves": [
+                                                      {
+                                                        "uci": "e1f1",
+                                                        "eval": 792,
+                                                        "children": [
+                                                          {
+                                                            "fen": "5bk1/5ppp/3p4/1Q1P4/8/B6P/P4qP1/5r1K w - - 0 5",
+                                                            "turn": "w",
+                                                            "eval": 837,
+                                                            "terminal": null,
+                                                            "moves": [
+                                                              {
+                                                                "uci": "b5f1",
+                                                                "eval": 837,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "5bk1/5ppp/3p4/3P4/8/B6P/P4qP1/5Q1K b - - 0 5",
+                                                                    "turn": "b",
+                                                                    "eval": 829,
+                                                                    "terminal": null,
+                                                                    "moves": [
+                                                                      {
+                                                                        "uci": "f2f1",
+                                                                        "eval": 829,
+                                                                        "children": [
+                                                                          {
+                                                                            "fen": "5bk1/5ppp/3p4/3P4/8/B6P/P5P1/5q1K w - - 0 6",
+                                                                            "turn": "w",
+                                                                            "eval": 836,
+                                                                            "terminal": null,
+                                                                            "moves": [
+                                                                              {
+                                                                                "uci": "h1h2",
+                                                                                "eval": 836,
+                                                                                "children": [
+                                                                                  {
+                                                                                    "fen": "5bk1/5ppp/3p4/3P4/8/B6P/P5PK/5q2 b - - 1 6",
+                                                                                    "turn": "b",
+                                                                                    "eval": 850,
+                                                                                    "terminal": "max_depth",
+                                                                                    "moves": []
+                                                                                  }
+                                                                                ]
+                                                                              }
+                                                                            ]
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                                    ]
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "uci": "h2h4",
+                                                "eval": 794,
+                                                "children": [
+                                                  {
+                                                    "fen": "5bk1/5ppp/3p4/1Q1P4/7P/B7/P4qP1/4rR1K b - - 0 4",
+                                                    "turn": "b",
+                                                    "eval": 825,
+                                                    "terminal": null,
+                                                    "moves": [
+                                                      {
+                                                        "uci": "e1f1",
+                                                        "eval": 825,
+                                                        "children": [
+                                                          {
+                                                            "fen": "5bk1/5ppp/3p4/1Q1P4/7P/B7/P4qP1/5r1K w - - 0 5",
+                                                            "turn": "w",
+                                                            "eval": 858,
+                                                            "terminal": null,
+                                                            "moves": [
+                                                              {
+                                                                "uci": "b5f1",
+                                                                "eval": 858,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "5bk1/5ppp/3p4/3P4/7P/B7/P4qP1/5Q1K b - - 0 5",
+                                                                    "turn": "b",
+                                                                    "eval": 852,
+                                                                    "terminal": null,
+                                                                    "moves": [
+                                                                      {
+                                                                        "uci": "f2f1",
+                                                                        "eval": 852,
+                                                                        "children": [
+                                                                          {
+                                                                            "fen": "5bk1/5ppp/3p4/3P4/7P/B7/P5P1/5q1K w - - 0 6",
+                                                                            "turn": "w",
+                                                                            "eval": 859,
+                                                                            "terminal": null,
+                                                                            "moves": [
+                                                                              {
+                                                                                "uci": "h1h2",
+                                                                                "eval": 859,
+                                                                                "children": [
+                                                                                  {
+                                                                                    "fen": "5bk1/5ppp/3p4/3P4/7P/B7/P5PK/5q2 b - - 1 6",
+                                                                                    "turn": "b",
+                                                                                    "eval": 863,
+                                                                                    "terminal": "max_depth",
+                                                                                    "moves": []
+                                                                                  }
+                                                                                ]
+                                                                              }
+                                                                            ]
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                                    ]
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "uci": "d7f5",
+                                "eval": 668,
+                                "children": [
+                                  {
+                                    "fen": "4rbk1/5ppp/3p4/3P1Q2/8/B7/P4qPP/5R1K b - - 4 3",
+                                    "turn": "b",
+                                    "eval": 706,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "f2f5",
+                                        "eval": 706,
+                                        "children": [
+                                          {
+                                            "fen": "4rbk1/5ppp/3p4/3P1q2/8/B7/P5PP/5R1K w - - 0 4",
+                                            "turn": "w",
+                                            "eval": 750,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "h1g1",
+                                                "eval": 750,
+                                                "children": [
+                                                  {
+                                                    "fen": "4rbk1/5ppp/3p4/3P1q2/8/B7/P5PP/5RK1 b - - 1 4",
+                                                    "turn": "b",
+                                                    "eval": 802,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

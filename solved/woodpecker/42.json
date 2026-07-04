@@ -5,47 +5,47 @@
   "root": {
     "fen": "r3k2r/pbp2qb1/1pn1p2p/3nP1pQ/3PNp2/2PB4/PP1N1BPP/R4RK1 w - - 0 1",
     "turn": "w",
-    "eval": 427,
+    "eval": 381,
     "terminal": null,
     "moves": [
       {
         "uci": "e4d6",
-        "eval": 427,
+        "eval": 381,
         "children": [
           {
             "fen": "r3k2r/pbp2qb1/1pnNp2p/3nP1pQ/3P1p2/2PB4/PP1N1BPP/R4RK1 b - - 1 1",
             "turn": "b",
-            "eval": 431,
+            "eval": 388,
             "terminal": null,
             "moves": [
               {
                 "uci": "c7d6",
-                "eval": 431,
+                "eval": 388,
                 "children": [
                   {
                     "fen": "r3k2r/pb3qb1/1pnpp2p/3nP1pQ/3P1p2/2PB4/PP1N1BPP/R4RK1 w - - 0 2",
                     "turn": "w",
-                    "eval": 446,
+                    "eval": 418,
                     "terminal": null,
                     "moves": [
                       {
                         "uci": "d3g6",
-                        "eval": 446,
+                        "eval": 418,
                         "children": [
                           {
                             "fen": "r3k2r/pb3qb1/1pnpp1Bp/3nP1pQ/3P1p2/2P5/PP1N1BPP/R4RK1 b - - 1 2",
                             "turn": "b",
-                            "eval": 451,
+                            "eval": 404,
                             "terminal": null,
                             "moves": [
                               {
-                                "uci": "h8f8",
-                                "eval": 451,
+                                "uci": "c6d8",
+                                "eval": 404,
                                 "children": [
                                   {
-                                    "fen": "r3kr2/pb3qb1/1pnpp1Bp/3nP1pQ/3P1p2/2P5/PP1N1BPP/R4RK1 w - - 2 3",
+                                    "fen": "r2nk2r/pb3qb1/1p1pp1Bp/3nP1pQ/3P1p2/2P5/PP1N1BPP/R4RK1 w - - 2 3",
                                     "turn": "w",
-                                    "eval": 470,
+                                    "eval": 418,
                                     "terminal": "robust_win",
                                     "moves": []
                                   }

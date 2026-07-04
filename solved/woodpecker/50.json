@@ -1,0 +1,82 @@
+{
+  "fen": "r3br1k/pp5p/4B1p1/4NpP1/P2Pn3/q1PQ3R/7P/3R2K1 w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "r3br1k/pp5p/4B1p1/4NpP1/P2Pn3/q1PQ3R/7P/3R2K1 w - - 0 1",
+    "turn": "w",
+    "eval": 99997,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "h3h7",
+        "eval": 99997,
+        "children": [
+          {
+            "fen": "r3br1k/pp5R/4B1p1/4NpP1/P2Pn3/q1PQ4/7P/3R2K1 b - - 0 1",
+            "turn": "b",
+            "eval": 99998,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "h8h7",
+                "eval": 99998,
+                "children": [
+                  {
+                    "fen": "r3br2/pp5k/4B1p1/4NpP1/P2Pn3/q1PQ4/7P/3R2K1 w - - 0 2",
+                    "turn": "w",
+                    "eval": 99998,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "d3h3",
+                        "eval": 99998,
+                        "children": [
+                          {
+                            "fen": "r3br2/pp5k/4B1p1/4NpP1/P2Pn3/q1P4Q/7P/3R2K1 b - - 1 2",
+                            "turn": "b",
+                            "eval": 99999,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "h7g7",
+                                "eval": 99999,
+                                "children": [
+                                  {
+                                    "fen": "r3br2/pp4k1/4B1p1/4NpP1/P2Pn3/q1P4Q/7P/3R2K1 w - - 2 3",
+                                    "turn": "w",
+                                    "eval": 99999,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "h3h6",
+                                        "eval": 99999,
+                                        "children": [
+                                          {
+                                            "fen": "r3br2/pp4k1/4B1pQ/4NpP1/P2Pn3/q1P5/7P/3R2K1 b - - 3 3",
+                                            "turn": "b",
+                                            "eval": 100000,
+                                            "terminal": "checkmate",
+                                            "moves": []
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
