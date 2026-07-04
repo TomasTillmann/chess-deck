@@ -12,6 +12,7 @@ type ChessBoardProps = {
   fen: FEN;
   orientation: Color;
   turnColor: Color;
+  movableColor?: Color;
   movableDests: Dests;
   check: boolean;
   lastMove?: Key[];
@@ -22,6 +23,7 @@ export function ChessBoard({
   fen,
   orientation,
   turnColor,
+  movableColor,
   movableDests,
   check,
   lastMove,
@@ -40,14 +42,14 @@ export function ChessBoard({
       coordinates: true,
       viewOnly: false,
       draggable: {
-        enabled: true,
+        enabled: movableColor !== undefined,
       },
       selectable: {
-        enabled: true,
+        enabled: movableColor !== undefined,
       },
       movable: {
         free: false,
-        color: turnColor,
+        color: movableColor,
         dests: movableDests,
         showDests: true,
         events: {
@@ -62,7 +64,7 @@ export function ChessBoard({
         visible: true,
       },
     }),
-    [check, fen, lastMove, movableDests, onMove, orientation, turnColor],
+    [check, fen, lastMove, movableColor, movableDests, onMove, orientation, turnColor],
   );
 
   useEffect(() => {
