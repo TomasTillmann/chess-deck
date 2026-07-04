@@ -27,7 +27,7 @@ CLI options:
 - `--server-url`: Woodpecker server base URL. Defaults to
   `http://127.0.0.1:3001`.
 - `--server-dir`: Woodpecker server project directory used for auto-start.
-  Defaults to `../server`.
+  Defaults to `../app/server`.
 - `--no-start-server`: require an already-running server instead of auto-starting
   one.
 - `--config`: path to settings JSON. Defaults to `appsettings.json`.

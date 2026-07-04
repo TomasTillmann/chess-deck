@@ -48,7 +48,7 @@ def solve_fens(
     input_dir: Annotated[Path, typer.Option("--input", file_okay=False, dir_okay=True, help="Base FEN input directory.")],
     name: Annotated[str, typer.Option("--name", help="Collection name.")],
     server_url: Annotated[str, typer.Option("--server-url", help="Base URL for the Woodpecker server.")] = "http://127.0.0.1:3001",
-    server_dir: Annotated[Path, typer.Option("--server-dir", file_okay=False, dir_okay=True, help="Woodpecker server project directory.")] = Path("../server"),
+    server_dir: Annotated[Path, typer.Option("--server-dir", file_okay=False, dir_okay=True, help="Woodpecker server project directory.")] = Path("../app/server"),
     no_start_server: Annotated[bool, typer.Option("--no-start-server", help="Require an already-running server instead of starting one.")] = False,
     config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False, help="Path to appsettings.json.")] = Path("appsettings.json"),
     limit: Annotated[int | None, typer.Option("--limit", min=1, help="Maximum number of FEN lines to process.")] = None,

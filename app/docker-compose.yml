@@ -1,0 +1,37 @@
+services:
+  server:
+    build:
+      context: ./server
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3001
+      DATABASE_URL: /data/woodpecker.sqlite
+    ports:
+      - "3001:3001"
+    volumes:
+      - woodpecker-db:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3001/healthcheck').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+  ui:
+    build:
+      context: ./ui
+      args:
+        VITE_SERVER_URL: http://localhost:3001
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+
+volumes:
+  woodpecker-db:
+    name: woodpecker-db
