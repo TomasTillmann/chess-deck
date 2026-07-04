@@ -27,5 +27,15 @@ function migrate(db: Db): void {
 
     CREATE INDEX IF NOT EXISTS records_collection_idx
       ON records (collection);
+
+    CREATE TABLE IF NOT EXISTS solutions (
+      id TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      tree TEXT NOT NULL CHECK (json_valid(tree)),
+      PRIMARY KEY (collection, id)
+    );
+
+    CREATE INDEX IF NOT EXISTS solutions_collection_idx
+      ON solutions (collection);
   `);
 }

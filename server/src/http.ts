@@ -1,7 +1,7 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
-import { RecordRepository } from "./repository.js";
+import { RecordRepository, SolutionRepository } from "./repository.js";
 import { RequestValidationError } from "./validation.js";
 
 type JsonValue =
@@ -20,6 +20,7 @@ export type AppContext = {
   readonly config: ServerConfig;
   readonly db: Db;
   readonly records: RecordRepository;
+  readonly solutions: SolutionRepository;
 };
 
 export function createApp(config: ServerConfig, db: Db): http.Server {
@@ -27,6 +28,7 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
     config,
     db,
     records: new RecordRepository(db),
+    solutions: new SolutionRepository(db),
   };
 
   return http.createServer((request, response) => {
@@ -55,6 +57,20 @@ async function handleRequest(
         server: { ok: true },
         database,
       });
+      return;
+    }
+
+    const solutionPrefix = "/v1/solution/";
+    if (request.method === "GET" && url.pathname.startsWith(solutionPrefix)) {
+      const fen = decodeURIComponent(url.pathname.slice(solutionPrefix.length));
+      const solution = context.solutions.findById("woodpecker", fen);
+
+      if (!solution) {
+        sendJson(response, 404, { error: "Solution not found" });
+        return;
+      }
+
+      sendJson(response, 200, solution.tree as JsonValue);
       return;
     }
 

@@ -17,6 +17,18 @@ type RecordRow = {
   updated_at: string;
 };
 
+export type StoredSolution = {
+  readonly id: string;
+  readonly collection: string;
+  readonly tree: unknown;
+};
+
+type SolutionRow = {
+  id: string;
+  collection: string;
+  tree: string;
+};
+
 export class RecordRepository {
   constructor(private readonly db: Db) {}
 
@@ -116,6 +128,50 @@ export class RecordRepository {
   }
 }
 
+export class SolutionRepository {
+  constructor(private readonly db: Db) {}
+
+  upsert(collection: string, id: string, tree: unknown): StoredSolution {
+    const compactTree = JSON.stringify(tree);
+
+    this.db
+      .prepare(
+        `
+          INSERT INTO solutions (id, collection, tree)
+          VALUES (@id, @collection, @tree)
+          ON CONFLICT(collection, id) DO UPDATE SET
+            tree = excluded.tree
+        `,
+      )
+      .run({
+        id,
+        collection,
+        tree: compactTree,
+      });
+
+    const stored = this.findById(collection, id);
+    if (!stored) throw new Error(`Failed to store solution for ${collection}/${id}`);
+
+    return stored;
+  }
+
+  findById(collection: string, id: string): StoredSolution | null {
+    const row = this.db
+      .prepare("SELECT * FROM solutions WHERE collection = ? AND id = ?")
+      .get(collection, id) as SolutionRow | undefined;
+
+    return row ? mapSolutionRow(row) : null;
+  }
+
+  count(collection: string): number {
+    const row = this.db
+      .prepare("SELECT COUNT(*) AS count FROM solutions WHERE collection = ?")
+      .get(collection) as { readonly count: number };
+
+    return row.count;
+  }
+}
+
 function mapRow<TPayload extends Record<string, unknown>>(row: RecordRow): StoredRecord<TPayload> {
   return {
     id: row.id,
@@ -123,5 +179,13 @@ function mapRow<TPayload extends Record<string, unknown>>(row: RecordRow): Store
     payload: JSON.parse(row.payload) as TPayload,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function mapSolutionRow(row: SolutionRow): StoredSolution {
+  return {
+    id: row.id,
+    collection: row.collection,
+    tree: JSON.parse(row.tree) as unknown,
   };
 }
