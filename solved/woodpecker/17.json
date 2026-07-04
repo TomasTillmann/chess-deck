@@ -1,0 +1,327 @@
+{
+  "fen": "2kr1bnr/p1ppqp1p/bpn5/1N4p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "2kr1bnr/p1ppqp1p/bpn5/1N4p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R w - - 0 1",
+    "turn": "w",
+    "eval": 136,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "b5a7",
+        "eval": 136,
+        "children": [
+          {
+            "fen": "2kr1bnr/N1ppqp1p/bpn5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R b - - 0 1",
+            "turn": "b",
+            "eval": 104,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "c8b7",
+                "eval": 104,
+                "children": [
+                  {
+                    "fen": "3r1bnr/Nkppqp1p/bpn5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R w - - 1 2",
+                    "turn": "w",
+                    "eval": 122,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "a4a5",
+                        "eval": 122,
+                        "children": [
+                          {
+                            "fen": "3r1bnr/Nkppqp1p/bpn5/P5p1/3PPp2/5N2/1PP2KPP/R1BQ1B1R b - - 0 2",
+                            "turn": "b",
+                            "eval": 121,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "a6f1",
+                                "eval": 121,
+                                "children": [
+                                  {
+                                    "fen": "3r1bnr/Nkppqp1p/1pn5/P5p1/3PPp2/5N2/1PP2KPP/R1BQ1b1R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 125,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "uci": "a7c6",
+                        "eval": 119,
+                        "children": [
+                          {
+                            "fen": "3r1bnr/1kppqp1p/bpN5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R b - - 0 2",
+                            "turn": "b",
+                            "eval": 108,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "d7c6",
+                                "eval": 108,
+                                "children": [
+                                  {
+                                    "fen": "3r1bnr/1kp1qp1p/bpp5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 117,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "f1a6",
+                                        "eval": 117,
+                                        "children": [
+                                          {
+                                            "fen": "3r1bnr/1kp1qp1p/Bpp5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 125,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "b7a6",
+                                                "eval": 125,
+                                                "children": [
+                                                  {
+                                                    "fen": "3r1bnr/2p1qp1p/kpp5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 127,
+                                                    "terminal": "no_clear_gap",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "uci": "f1a6",
+                        "eval": 96,
+                        "children": [
+                          {
+                            "fen": "3r1bnr/Nkppqp1p/Bpn5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 2",
+                            "turn": "b",
+                            "eval": 77,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "b7a7",
+                                "eval": 77,
+                                "children": [
+                                  {
+                                    "fen": "3r1bnr/k1ppqp1p/Bpn5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 88,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              },
+                              {
+                                "uci": "b7a6",
+                                "eval": 110,
+                                "children": [
+                                  {
+                                    "fen": "3r1bnr/N1ppqp1p/kpn5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 115,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "a7c6",
+                                        "eval": 115,
+                                        "children": [
+                                          {
+                                            "fen": "3r1bnr/2ppqp1p/kpN5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 116,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "d7c6",
+                                                "eval": 116,
+                                                "children": [
+                                                  {
+                                                    "fen": "3r1bnr/2p1qp1p/kpp5/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 122,
+                                                    "terminal": "no_clear_gap",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "uci": "a7b5",
+                                        "eval": 98,
+                                        "children": [
+                                          {
+                                            "fen": "3r1bnr/2ppqp1p/kpn5/1N4p1/P2PPp2/5N2/1PP2KPP/R1BQ3R b - - 1 3",
+                                            "turn": "b",
+                                            "eval": 99,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "g8f6",
+                                                "eval": 99,
+                                                "children": [
+                                                  {
+                                                    "fen": "3r1b1r/2ppqp1p/kpn2n2/1N4p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 2 4",
+                                                    "turn": "w",
+                                                    "eval": 88,
+                                                    "terminal": "no_clear_gap",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "uci": "a4a5",
+                                        "eval": 59,
+                                        "children": [
+                                          {
+                                            "fen": "3r1bnr/N1ppqp1p/kpn5/P5p1/3PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 61,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "a6a7",
+                                                "eval": 61,
+                                                "children": [
+                                                  {
+                                                    "fen": "3r1bnr/k1ppqp1p/1pn5/P5p1/3PPp2/5N2/1PP2KPP/R1BQ3R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 65,
+                                                    "terminal": null,
+                                                    "moves": [
+                                                      {
+                                                        "uci": "a5b6",
+                                                        "eval": 65,
+                                                        "children": [
+                                                          {
+                                                            "fen": "3r1bnr/k1ppqp1p/1Pn5/6p1/3PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 4",
+                                                            "turn": "b",
+                                                            "eval": 48,
+                                                            "terminal": null,
+                                                            "moves": [
+                                                              {
+                                                                "uci": "a7b7",
+                                                                "eval": 48,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "3r1bnr/1kppqp1p/1Pn5/6p1/3PPp2/5N2/1PP2KPP/R1BQ3R w - - 1 5",
+                                                                    "turn": "w",
+                                                                    "eval": 45,
+                                                                    "terminal": "no_clear_gap",
+                                                                    "moves": []
+                                                                  }
+                                                                ]
+                                                              },
+                                                              {
+                                                                "uci": "a7b8",
+                                                                "eval": 95,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "1k1r1bnr/2ppqp1p/1Pn5/6p1/3PPp2/5N2/1PP2KPP/R1BQ3R w - - 1 5",
+                                                                    "turn": "w",
+                                                                    "eval": 111,
+                                                                    "terminal": "no_clear_gap",
+                                                                    "moves": []
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "uci": "c6a7",
+                "eval": 164,
+                "children": [
+                  {
+                    "fen": "2kr1bnr/n1ppqp1p/bp6/6p1/P2PPp2/5N2/1PP2KPP/R1BQ1B1R w - - 0 2",
+                    "turn": "w",
+                    "eval": 174,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "f1a6",
+                        "eval": 174,
+                        "children": [
+                          {
+                            "fen": "2kr1bnr/n1ppqp1p/Bp6/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R b - - 0 2",
+                            "turn": "b",
+                            "eval": 171,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "c8b8",
+                                "eval": 171,
+                                "children": [
+                                  {
+                                    "fen": "1k1r1bnr/n1ppqp1p/Bp6/6p1/P2PPp2/5N2/1PP2KPP/R1BQ3R w - - 1 3",
+                                    "turn": "w",
+                                    "eval": 184,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
