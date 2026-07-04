@@ -250,7 +250,7 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   await expect(sidelineMove).not.toHaveAttribute("aria-current", "step");
 });
 
-test("resetting a move removes its user-entered continuation", async ({ page }) => {
+test("deleting a move removes it and its user-entered continuation", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
   const notation = page.getByLabel("Move notation");
@@ -261,10 +261,11 @@ test("resetting a move removes its user-entered continuation", async ({ page }) 
   await expect(notation.locator(".notation-move")).toHaveCount(2);
 
   const humanMove = notation.getByRole("button", { name: "Nd3" });
-  await humanMove.click({ button: "right" });
+  const replyMove = notation.getByRole("button", { name: "Re2" });
+  await replyMove.click({ button: "right" });
   await expect(page.getByRole("menu")).toBeVisible();
 
-  await page.getByRole("menuitem", { name: "Reset here" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
 
   await expect(notation.locator(".notation-move")).toHaveCount(1);
   await expect(humanMove).toHaveAttribute("aria-current", "step");

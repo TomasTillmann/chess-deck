@@ -50,20 +50,6 @@ export function nodeAtPath(root: MoveTreeNode, path: MovePath): MoveTreeNode {
   return node;
 }
 
-export function existingPath(root: MoveTreeNode, path: MovePath): MovePath {
-  const result: MovePath = [];
-  let node = root;
-
-  for (const id of path) {
-    const child = node.children.find(candidate => candidate.id === id);
-    if (!child) return result;
-    result.push(id);
-    node = child;
-  }
-
-  return result;
-}
-
 export function updateNodeAtPath(
   root: MoveTreeNode,
   path: MovePath,
@@ -90,11 +76,31 @@ export function siblingIndexAtPath(root: MoveTreeNode, path: MovePath): number {
   return parent.children.findIndex(child => child.id === path[path.length - 1]);
 }
 
-export function resetNodeChildren(root: MoveTreeNode, path: MovePath): MoveTreeNode {
-  return updateNodeAtPath(root, path, node => ({
-    ...node,
-    children: [],
-  }));
+export function deleteNodeAtPath(root: MoveTreeNode, path: MovePath): MoveTreeNode {
+  if (path.length === 0) return root;
+
+  const [nextId, ...rest] = path;
+  const childIndex = root.children.findIndex(child => child.id === nextId);
+
+  if (childIndex < 0) return root;
+
+  if (rest.length === 0) {
+    const children = [...root.children];
+    children.splice(childIndex, 1);
+
+    return {
+      ...root,
+      children,
+    };
+  }
+
+  const children = [...root.children];
+  children[childIndex] = deleteNodeAtPath(children[childIndex], rest);
+
+  return {
+    ...root,
+    children,
+  };
 }
 
 export function moveNodeAmongSiblings(root: MoveTreeNode, path: MovePath, direction: -1 | 1): MoveTreeNode {

@@ -15,7 +15,7 @@ type MoveNotationPanelProps = {
   root: MoveTreeNode;
   currentPath: MovePath;
   onSelectPath: (path: MovePath) => void;
-  onResetPath: (path: MovePath) => void;
+  onDeletePath: (path: MovePath) => void;
   onMovePathUp: (path: MovePath) => void;
   onMovePathDown: (path: MovePath) => void;
 };
@@ -178,7 +178,7 @@ export function MoveNotationPanel({
   root,
   currentPath,
   onSelectPath,
-  onResetPath,
+  onDeletePath,
   onMovePathUp,
   onMovePathDown,
 }: MoveNotationPanelProps) {
@@ -295,8 +295,8 @@ export function MoveNotationPanel({
           role="menu"
           onPointerDown={event => event.stopPropagation()}
         >
-          <button type="button" role="menuitem" onClick={() => handleMenuAction(onResetPath)}>
-            Reset here
+          <button type="button" role="menuitem" onClick={() => handleMenuAction(onDeletePath)}>
+            Delete
           </button>
           <button type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathUp)} disabled={!canMoveMenuUp}>
             Up

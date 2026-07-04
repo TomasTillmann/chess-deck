@@ -21,10 +21,9 @@ import { MoveNotationPanel } from "./components/MoveNotationPanel";
 import { fetchDecks, type Deck } from "./decks";
 import {
   createMoveRoot,
-  existingPath,
+  deleteNodeAtPath,
   moveNodeAmongSiblings,
   nodeAtPath,
-  resetNodeChildren,
   updateNodeAtPath,
   type MovePath,
   type MoveTreeNode,
@@ -176,17 +175,13 @@ function SolverPage({
     root: createMoveRoot(initialFen),
     currentPath: [],
   });
-  const [reviewRoot, setReviewRoot] = useState<MoveTreeNode>();
   const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
   const [updateState, setUpdateState] = useState<UpdateState>({ status: "idle" });
   const [canUpdateSolution, setCanUpdateSolution] = useState(false);
-  const visibleRoot = reviewRoot ?? game.root;
-  const currentEntry = nodeAtPath(visibleRoot, game.currentPath);
+  const currentEntry = nodeAtPath(game.root, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
-  const currentFenRef = useRef(currentFen);
   const gameRef = useRef(game);
-  const reviewRootRef = useRef(reviewRoot);
 
   const boardOrientation = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
@@ -197,18 +192,14 @@ function SolverPage({
   );
 
   useEffect(() => {
-    currentFenRef.current = currentFen;
     gameRef.current = game;
-    reviewRootRef.current = reviewRoot;
-  }, [currentFen, game, reviewRoot]);
+  }, [game]);
 
   useEffect(() => {
     setGame({
       root: createMoveRoot(initialFen),
       currentPath: [],
     });
-    setReviewRoot(undefined);
-    reviewRootRef.current = undefined;
     setSubmitState({ status: "idle" });
     setUpdateState({ status: "idle" });
     setCanUpdateSolution(false);
@@ -219,50 +210,39 @@ function SolverPage({
       ...gameRef.current,
       currentPath: path,
     };
-    const root = reviewRootRef.current ?? nextGame.root;
 
     setGame(nextGame);
     gameRef.current = nextGame;
-    currentFenRef.current = nodeAtPath(root, path).fen;
   }, []);
 
-  const clearReviewForEdit = useCallback((path: MovePath): MovePath => {
-    if (!reviewRootRef.current) return path;
-
-    const editPath = existingPath(gameRef.current.root, path);
-    setReviewRoot(undefined);
-    reviewRootRef.current = undefined;
+  const markTreeEdited = useCallback(() => {
     setSubmitState({ status: "idle" });
     setUpdateState({ status: "idle" });
-
-    return editPath;
   }, []);
 
   const movePathUp = useCallback((path: MovePath) => {
-    const editPath = clearReviewForEdit(path);
+    markTreeEdited();
     const nextGame = {
       ...gameRef.current,
-      root: moveNodeAmongSiblings(gameRef.current.root, editPath, -1),
-      currentPath: editPath,
+      root: moveNodeAmongSiblings(gameRef.current.root, path, -1),
+      currentPath: path,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
-    currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
-  }, [clearReviewForEdit]);
+  }, [markTreeEdited]);
 
   const movePathDown = useCallback((path: MovePath) => {
-    const editPath = clearReviewForEdit(path);
+    markTreeEdited();
     const nextGame = {
       ...gameRef.current,
-      root: moveNodeAmongSiblings(gameRef.current.root, editPath, 1),
-      currentPath: editPath,
+      root: moveNodeAmongSiblings(gameRef.current.root, path, 1),
+      currentPath: path,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
-    currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
-  }, [clearReviewForEdit]);
+  }, [markTreeEdited]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -284,25 +264,24 @@ function SolverPage({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goToPath]);
 
-  const resetMoveTreeAtPath = useCallback((path: MovePath) => {
-    const editPath = clearReviewForEdit(path);
-    const nextRoot = resetNodeChildren(gameRef.current.root, editPath);
-    const resetNode = nodeAtPath(nextRoot, editPath);
+  const deleteMoveTreeAtPath = useCallback((path: MovePath) => {
+    const nextPath = path.slice(0, -1);
+    const nextRoot = deleteNodeAtPath(gameRef.current.root, path);
     const nextGame = {
       root: nextRoot,
-      currentPath: editPath,
+      currentPath: nextPath,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
-    currentFenRef.current = resetNode.fen;
-  }, [clearReviewForEdit]);
+  }, []);
 
   const handleMove = useCallback(
     (orig: Key, dest: Key) => {
       if (!canMove) return;
 
-      const editPath = clearReviewForEdit(gameRef.current.currentPath);
+      markTreeEdited();
+      const editPath = gameRef.current.currentPath;
       const editPosition = positionFromFen(nodeAtPath(gameRef.current.root, editPath).fen);
       const from = parseSquare(orig);
       const to = parseSquare(dest);
@@ -320,7 +299,6 @@ function SolverPage({
 
         setGame(nextGame);
         gameRef.current = nextGame;
-        currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
         return;
       }
 
@@ -332,9 +310,8 @@ function SolverPage({
 
       setGame(nextGame);
       gameRef.current = nextGame;
-      currentFenRef.current = result.node.fen;
     },
-    [canMove, clearReviewForEdit],
+    [canMove, markTreeEdited],
   );
 
   const handleSubmit = useCallback(async () => {
@@ -343,15 +320,16 @@ function SolverPage({
     try {
       const solution = await fetchSolution(initialFen);
       const result = compareSolutionTree(initialFen, gameRef.current.root, solution);
+      const nextGame = {
+        root: result.reviewRoot,
+        currentPath: gameRef.current.currentPath,
+      };
 
-      setReviewRoot(result.reviewRoot);
-      reviewRootRef.current = result.reviewRoot;
+      setGame(nextGame);
+      gameRef.current = nextGame;
       setSubmitState({ status: "success", score: result.score });
       setCanUpdateSolution(true);
-      currentFenRef.current = nodeAtPath(result.reviewRoot, gameRef.current.currentPath).fen;
     } catch (error) {
-      setReviewRoot(undefined);
-      reviewRootRef.current = undefined;
       setSubmitState({
         status: "error",
         message:
@@ -466,10 +444,10 @@ function SolverPage({
             </div>
           </section>
           <MoveNotationPanel
-            root={visibleRoot}
+            root={game.root}
             currentPath={game.currentPath}
             onSelectPath={goToPath}
-            onResetPath={resetMoveTreeAtPath}
+            onDeletePath={deleteMoveTreeAtPath}
             onMovePathUp={movePathUp}
             onMovePathDown={movePathDown}
           />
