@@ -1,0 +1,151 @@
+{
+  "fen": "2brq1k1/1pRn1r1p/p3p1p1/3nP1P1/4NP2/BP2Q1P1/P2R2B1/6K1 w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "2brq1k1/1pRn1r1p/p3p1p1/3nP1P1/4NP2/BP2Q1P1/P2R2B1/6K1 w - - 0 1",
+    "turn": "w",
+    "eval": 535,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "d2d5",
+        "eval": 535,
+        "children": [
+          {
+            "fen": "2brq1k1/1pRn1r1p/p3p1p1/3RP1P1/4NP2/BP2Q1P1/P5B1/6K1 b - - 0 1",
+            "turn": "b",
+            "eval": 502,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "e6d5",
+                "eval": 502,
+                "children": [
+                  {
+                    "fen": "2brq1k1/1pRn1r1p/p5p1/3pP1P1/4NP2/BP2Q1P1/P5B1/6K1 w - - 0 2",
+                    "turn": "w",
+                    "eval": 500,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "e4d6",
+                        "eval": 500,
+                        "children": [
+                          {
+                            "fen": "2brq1k1/1pRn1r1p/p2N2p1/3pP1P1/5P2/BP2Q1P1/P5B1/6K1 b - - 1 2",
+                            "turn": "b",
+                            "eval": 539,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "e8e6",
+                                "eval": 539,
+                                "children": [
+                                  {
+                                    "fen": "2br2k1/1pRn1r1p/p2Nq1p1/3pP1P1/5P2/BP2Q1P1/P5B1/6K1 w - - 2 3",
+                                    "turn": "w",
+                                    "eval": 591,
+                                    "terminal": "robust_win",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "uci": "c7c8",
+                        "eval": 460,
+                        "children": [
+                          {
+                            "fen": "2Rrq1k1/1p1n1r1p/p5p1/3pP1P1/4NP2/BP2Q1P1/P5B1/6K1 b - - 0 2",
+                            "turn": "b",
+                            "eval": 478,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "d8c8",
+                                "eval": 478,
+                                "children": [
+                                  {
+                                    "fen": "2r1q1k1/1p1n1r1p/p5p1/3pP1P1/4NP2/BP2Q1P1/P5B1/6K1 w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 485,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "e4d6",
+                                        "eval": 485,
+                                        "children": [
+                                          {
+                                            "fen": "2r1q1k1/1p1n1r1p/p2N2p1/3pP1P1/5P2/BP2Q1P1/P5B1/6K1 b - - 1 3",
+                                            "turn": "b",
+                                            "eval": 523,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "e8e6",
+                                                "eval": 523,
+                                                "children": [
+                                                  {
+                                                    "fen": "2r3k1/1p1n1r1p/p2Nq1p1/3pP1P1/5P2/BP2Q1P1/P5B1/6K1 w - - 2 4",
+                                                    "turn": "w",
+                                                    "eval": 536,
+                                                    "terminal": null,
+                                                    "moves": [
+                                                      {
+                                                        "uci": "d6c8",
+                                                        "eval": 536,
+                                                        "children": [
+                                                          {
+                                                            "fen": "2N3k1/1p1n1r1p/p3q1p1/3pP1P1/5P2/BP2Q1P1/P5B1/6K1 b - - 0 4",
+                                                            "turn": "b",
+                                                            "eval": 495,
+                                                            "terminal": null,
+                                                            "moves": [
+                                                              {
+                                                                "uci": "h7h5",
+                                                                "eval": 495,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "2N3k1/1p1n1r2/p3q1p1/3pP1Pp/5P2/BP2Q1P1/P5B1/6K1 w - h6 0 5",
+                                                                    "turn": "w",
+                                                                    "eval": 530,
+                                                                    "terminal": "robust_win",
+                                                                    "moves": []
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

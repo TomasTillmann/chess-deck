@@ -1,0 +1,68 @@
+{
+  "fen": "r4rk1/p1p2ppp/2Q1pq2/3P4/3Pn1b1/2P1PP2/P5PP/R1B1KB1R b - - 0 1",
+  "sideToSolve": "b",
+  "status": "solved",
+  "root": {
+    "fen": "r4rk1/p1p2ppp/2Q1pq2/3P4/3Pn1b1/2P1PP2/P5PP/R1B1KB1R b - - 0 1",
+    "turn": "b",
+    "eval": 366,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "g4f3",
+        "eval": 366,
+        "children": [
+          {
+            "fen": "r4rk1/p1p2ppp/2Q1pq2/3P4/3Pn3/2P1Pb2/P5PP/R1B1KB1R w - - 0 2",
+            "turn": "w",
+            "eval": 346,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g2f3",
+                "eval": 346,
+                "children": [
+                  {
+                    "fen": "r4rk1/p1p2ppp/2Q1pq2/3P4/3Pn3/2P1PP2/P6P/R1B1KB1R b - - 0 2",
+                    "turn": "b",
+                    "eval": 375,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "f6f3",
+                        "eval": 375,
+                        "children": [
+                          {
+                            "fen": "r4rk1/p1p2ppp/2Q1p3/3P4/3Pn3/2P1Pq2/P6P/R1B1KB1R w - - 0 3",
+                            "turn": "w",
+                            "eval": 359,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "a1b1",
+                                "eval": 359,
+                                "children": [
+                                  {
+                                    "fen": "r4rk1/p1p2ppp/2Q1p3/3P4/3Pn3/2P1Pq2/P6P/1RB1KB1R b - - 1 3",
+                                    "turn": "b",
+                                    "eval": 399,
+                                    "terminal": "robust_win",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

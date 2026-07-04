@@ -1,0 +1,81 @@
+{
+  "fen": "3rr3/5pkp/p1b3p1/4p3/p2nPn2/N6P/2P2PP1/R1N1RBK1 b - - 0 1",
+  "sideToSolve": "b",
+  "status": "solved",
+  "root": {
+    "fen": "3rr3/5pkp/p1b3p1/4p3/p2nPn2/N6P/2P2PP1/R1N1RBK1 b - - 0 1",
+    "turn": "b",
+    "eval": 402,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "f4h3",
+        "eval": 402,
+        "children": [
+          {
+            "fen": "3rr3/5pkp/p1b3p1/4p3/p2nP3/N6n/2P2PP1/R1N1RBK1 w - - 0 2",
+            "turn": "w",
+            "eval": 428,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g1h2",
+                "eval": 428,
+                "children": [
+                  {
+                    "fen": "3rr3/5pkp/p1b3p1/4p3/p2nP3/N6n/2P2PPK/R1N1RB2 b - - 1 2",
+                    "turn": "b",
+                    "eval": 433,
+                    "terminal": "no_clear_gap",
+                    "moves": []
+                  }
+                ]
+              },
+              {
+                "uci": "g1h1",
+                "eval": 451,
+                "children": [
+                  {
+                    "fen": "3rr3/5pkp/p1b3p1/4p3/p2nP3/N6n/2P2PP1/R1N1RB1K b - - 1 2",
+                    "turn": "b",
+                    "eval": 448,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "h3f2",
+                        "eval": 448,
+                        "children": [
+                          {
+                            "fen": "3rr3/5pkp/p1b3p1/4p3/p2nP3/N7/2P2nP1/R1N1RB1K w - - 0 3",
+                            "turn": "w",
+                            "eval": 451,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "h1g1",
+                                "eval": 451,
+                                "children": [
+                                  {
+                                    "fen": "3rr3/5pkp/p1b3p1/4p3/p2nP3/N7/2P2nP1/R1N1RBK1 b - - 1 3",
+                                    "turn": "b",
+                                    "eval": 444,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

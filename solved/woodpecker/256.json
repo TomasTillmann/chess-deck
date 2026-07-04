@@ -1,0 +1,108 @@
+{
+  "fen": "r2qkb1r/2p2p1p/p2p4/1p2p1p1/3nP1b1/1BNP1N2/PPP2P1K/R1BQ1R2 w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "r2qkb1r/2p2p1p/p2p4/1p2p1p1/3nP1b1/1BNP1N2/PPP2P1K/R1BQ1R2 w - - 0 1",
+    "turn": "w",
+    "eval": 148,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "f3e5",
+        "eval": 148,
+        "children": [
+          {
+            "fen": "r2qkb1r/2p2p1p/p2p4/1p2N1p1/3nP1b1/1BNP4/PPP2P1K/R1BQ1R2 b - - 0 1",
+            "turn": "b",
+            "eval": 146,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "d4b3",
+                "eval": 146,
+                "children": [
+                  {
+                    "fen": "r2qkb1r/2p2p1p/p2p4/1p2N1p1/4P1b1/1nNP4/PPP2P1K/R1BQ1R2 w - - 0 2",
+                    "turn": "w",
+                    "eval": 187,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "d1g4",
+                        "eval": 187,
+                        "children": [
+                          {
+                            "fen": "r2qkb1r/2p2p1p/p2p4/1p2N1p1/4P1Q1/1nNP4/PPP2P1K/R1B2R2 b - - 0 2",
+                            "turn": "b",
+                            "eval": 160,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "b3a1",
+                                "eval": 160,
+                                "children": [
+                                  {
+                                    "fen": "r2qkb1r/2p2p1p/p2p4/1p2N1p1/4P1Q1/2NP4/PPP2P1K/n1B2R2 w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 166,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              },
+                              {
+                                "uci": "b3c1",
+                                "eval": 183,
+                                "children": [
+                                  {
+                                    "fen": "r2qkb1r/2p2p1p/p2p4/1p2N1p1/4P1Q1/2NP4/PPP2P1K/R1n2R2 w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 190,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "uci": "e5g4",
+                        "eval": 164,
+                        "children": [
+                          {
+                            "fen": "r2qkb1r/2p2p1p/p2p4/1p4p1/4P1N1/1nNP4/PPP2P1K/R1BQ1R2 b - - 0 2",
+                            "turn": "b",
+                            "eval": 197,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "b3a1",
+                                "eval": 197,
+                                "children": [
+                                  {
+                                    "fen": "r2qkb1r/2p2p1p/p2p4/1p4p1/4P1N1/2NP4/PPP2P1K/n1BQ1R2 w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 208,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

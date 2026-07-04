@@ -1,0 +1,96 @@
+{
+  "fen": "N5k1/pp2r1bp/3p4/3P4/7q/4Q2b/PP3N1P/2R1K1R1 w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "N5k1/pp2r1bp/3p4/3P4/7q/4Q2b/PP3N1P/2R1K1R1 w - - 0 1",
+    "turn": "w",
+    "eval": -65,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "g1g7",
+        "eval": -65,
+        "children": [
+          {
+            "fen": "N5k1/pp2r1Rp/3p4/3P4/7q/4Q2b/PP3N1P/2R1K3 b - - 0 1",
+            "turn": "b",
+            "eval": -63,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "g8g7",
+                "eval": -63,
+                "children": [
+                  {
+                    "fen": "N7/pp2r1kp/3p4/3P4/7q/4Q2b/PP3N1P/2R1K3 w - - 0 2",
+                    "turn": "w",
+                    "eval": -66,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "c1c7",
+                        "eval": -66,
+                        "children": [
+                          {
+                            "fen": "N7/ppR1r1kp/3p4/3P4/7q/4Q2b/PP3N1P/4K3 b - - 1 2",
+                            "turn": "b",
+                            "eval": -94,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "h3d7",
+                                "eval": -94,
+                                "children": [
+                                  {
+                                    "fen": "N7/ppRbr1kp/3p4/3P4/7q/4Q3/PP3N1P/4K3 w - - 2 3",
+                                    "turn": "w",
+                                    "eval": -69,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "c7d7",
+                                        "eval": -69,
+                                        "children": [
+                                          {
+                                            "fen": "N7/pp1Rr1kp/3p4/3P4/7q/4Q3/PP3N1P/4K3 b - - 0 3",
+                                            "turn": "b",
+                                            "eval": -99,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "e7d7",
+                                                "eval": -99,
+                                                "children": [
+                                                  {
+                                                    "fen": "N7/pp1r2kp/3p4/3P4/7q/4Q3/PP3N1P/4K3 w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": -73,
+                                                    "terminal": "no_clear_gap",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

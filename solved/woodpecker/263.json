@@ -1,0 +1,179 @@
+{
+  "fen": "2krr3/1pp1qpp1/p1pb2np/8/3NP3/4B1PP/bPPNQP2/2KR3R w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "2krr3/1pp1qpp1/p1pb2np/8/3NP3/4B1PP/bPPNQP2/2KR3R w - - 0 1",
+    "turn": "w",
+    "eval": 208,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "d4c6",
+        "eval": 208,
+        "children": [
+          {
+            "fen": "2krr3/1pp1qpp1/p1Nb2np/8/4P3/4B1PP/bPPNQP2/2KR3R b - - 0 1",
+            "turn": "b",
+            "eval": 69,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "b7c6",
+                "eval": 69,
+                "children": [
+                  {
+                    "fen": "2krr3/2p1qpp1/p1pb2np/8/4P3/4B1PP/bPPNQP2/2KR3R w - - 0 2",
+                    "turn": "w",
+                    "eval": 57,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "e2a6",
+                        "eval": 57,
+                        "children": [
+                          {
+                            "fen": "2krr3/2p1qpp1/Q1pb2np/8/4P3/4B1PP/bPPN1P2/2KR3R b - - 0 2",
+                            "turn": "b",
+                            "eval": 60,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "c8d7",
+                                "eval": 60,
+                                "children": [
+                                  {
+                                    "fen": "3rr3/2pkqpp1/Q1pb2np/8/4P3/4B1PP/bPPN1P2/2KR3R w - - 1 3",
+                                    "turn": "w",
+                                    "eval": 63,
+                                    "terminal": "no_clear_gap",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "uci": "e4e5",
+                        "eval": 13,
+                        "children": [
+                          {
+                            "fen": "2krr3/2p1qpp1/p1pb2np/4P3/8/4B1PP/bPPNQP2/2KR3R b - - 0 2",
+                            "turn": "b",
+                            "eval": 4,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "g6e5",
+                                "eval": 4,
+                                "children": [
+                                  {
+                                    "fen": "2krr3/2p1qpp1/p1pb3p/4n3/8/4B1PP/bPPNQP2/2KR3R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 4,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "e2a6",
+                                        "eval": 4,
+                                        "children": [
+                                          {
+                                            "fen": "2krr3/2p1qpp1/Q1pb3p/4n3/8/4B1PP/bPPN1P2/2KR3R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": -2,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "c8d7",
+                                                "eval": -2,
+                                                "children": [
+                                                  {
+                                                    "fen": "3rr3/2pkqpp1/Q1pb3p/4n3/8/4B1PP/bPPN1P2/2KR3R w - - 1 4",
+                                                    "turn": "w",
+                                                    "eval": -2,
+                                                    "terminal": null,
+                                                    "moves": [
+                                                      {
+                                                        "uci": "a6a2",
+                                                        "eval": -2,
+                                                        "children": [
+                                                          {
+                                                            "fen": "3rr3/2pkqpp1/2pb3p/4n3/8/4B1PP/QPPN1P2/2KR3R b - - 0 4",
+                                                            "turn": "b",
+                                                            "eval": 0,
+                                                            "terminal": null,
+                                                            "moves": [
+                                                              {
+                                                                "uci": "d8a8",
+                                                                "eval": 0,
+                                                                "children": [
+                                                                  {
+                                                                    "fen": "r3r3/2pkqpp1/2pb3p/4n3/8/4B1PP/QPPN1P2/2KR3R w - - 1 5",
+                                                                    "turn": "w",
+                                                                    "eval": 0,
+                                                                    "terminal": null,
+                                                                    "moves": [
+                                                                      {
+                                                                        "uci": "e3a7",
+                                                                        "eval": 0,
+                                                                        "children": [
+                                                                          {
+                                                                            "fen": "r3r3/B1pkqpp1/2pb3p/4n3/8/6PP/QPPN1P2/2KR3R b - - 2 5",
+                                                                            "turn": "b",
+                                                                            "eval": -1,
+                                                                            "terminal": null,
+                                                                            "moves": [
+                                                                              {
+                                                                                "uci": "e7e6",
+                                                                                "eval": -1,
+                                                                                "children": [
+                                                                                  {
+                                                                                    "fen": "r3r3/B1pk1pp1/2pbq2p/4n3/8/6PP/QPPN1P2/2KR3R w - - 3 6",
+                                                                                    "turn": "w",
+                                                                                    "eval": 5,
+                                                                                    "terminal": "max_depth",
+                                                                                    "moves": []
+                                                                                  }
+                                                                                ]
+                                                                              }
+                                                                            ]
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                                    ]
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "fen": "r2q1rk1/ppp2ppp/5n2/2b1P1B1/Q3P1b1/2P5/PP4PP/RN2KB1R b - - 0 1",
+  "sideToSolve": "b",
+  "status": "solved",
+  "root": {
+    "fen": "r2q1rk1/ppp2ppp/5n2/2b1P1B1/Q3P1b1/2P5/PP4PP/RN2KB1R b - - 0 1",
+    "turn": "b",
+    "eval": 881,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "f6e4",
+        "eval": 881,
+        "children": [
+          {
+            "fen": "r2q1rk1/ppp2ppp/8/2b1P1B1/Q3n1b1/2P5/PP4PP/RN2KB1R w - - 0 2",
+            "turn": "w",
+            "eval": 838,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "f1e2",
+                "eval": 838,
+                "children": [
+                  {
+                    "fen": "r2q1rk1/ppp2ppp/8/2b1P1B1/Q3n1b1/2P5/PP2B1PP/RN2K2R b - - 1 2",
+                    "turn": "b",
+                    "eval": 844,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "d8g5",
+                        "eval": 844,
+                        "children": [
+                          {
+                            "fen": "r4rk1/ppp2ppp/8/2b1P1q1/Q3n1b1/2P5/PP2B1PP/RN2K2R w - - 0 3",
+                            "turn": "w",
+                            "eval": 989,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "c3c4",
+                                "eval": 989,
+                                "children": [
+                                  {
+                                    "fen": "r4rk1/ppp2ppp/8/2b1P1q1/Q1P1n1b1/8/PP2B1PP/RN2K2R b - - 0 3",
+                                    "turn": "b",
+                                    "eval": 99995,
+                                    "terminal": "robust_win",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "uci": "g5e3",
+                "eval": 864,
+                "children": [
+                  {
+                    "fen": "r2q1rk1/ppp2ppp/8/2b1P3/Q3n1b1/2P1B3/PP4PP/RN2KB1R b - - 1 2",
+                    "turn": "b",
+                    "eval": 864,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "c5e3",
+                        "eval": 864,
+                        "children": [
+                          {
+                            "fen": "r2q1rk1/ppp2ppp/8/4P3/Q3n1b1/2P1b3/PP4PP/RN2KB1R w - - 0 3",
+                            "turn": "w",
+                            "eval": 899,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "f1e2",
+                                "eval": 899,
+                                "children": [
+                                  {
+                                    "fen": "r2q1rk1/ppp2ppp/8/4P3/Q3n1b1/2P1b3/PP2B1PP/RN2K2R b - - 1 3",
+                                    "turn": "b",
+                                    "eval": 912,
+                                    "terminal": "robust_win",
+                                    "moves": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

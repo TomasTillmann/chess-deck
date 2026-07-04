@@ -1,0 +1,106 @@
+import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import type { ServerConfig } from "./config.js";
+import type { Db } from "./database.js";
+import { RecordRepository } from "./repository.js";
+import { RequestValidationError } from "./validation.js";
+
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
+type DatabaseHealth =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly error: string };
+
+export type AppContext = {
+  readonly config: ServerConfig;
+  readonly db: Db;
+  readonly records: RecordRepository;
+};
+
+export function createApp(config: ServerConfig, db: Db): http.Server {
+  const context: AppContext = {
+    config,
+    db,
+    records: new RecordRepository(db),
+  };
+
+  return http.createServer((request, response) => {
+    void handleRequest(context, request, response);
+  });
+}
+
+async function handleRequest(
+  context: AppContext,
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
+  try {
+    if (request.method === "OPTIONS") {
+      sendJson(response, 204, null);
+      return;
+    }
+
+    const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
+
+    if (request.method === "GET" && (url.pathname === "/health" || url.pathname === "/healthcheck")) {
+      const database = checkDatabaseHealth(context.db);
+      sendJson(response, database.ok ? 200 : 503, {
+        ok: database.ok,
+        status: database.ok ? "OK" : "UNHEALTHY",
+        server: { ok: true },
+        database,
+      });
+      return;
+    }
+
+    sendJson(response, 404, { error: "Not found" });
+  } catch (error) {
+    if (error instanceof RequestValidationError) {
+      sendJson(response, 400, { error: error.message, issues: error.issues });
+      return;
+    }
+
+    console.error(error);
+    sendJson(response, 500, { error: "Internal server error" });
+  }
+}
+
+function checkDatabaseHealth(db: Db): DatabaseHealth {
+  try {
+    db.prepare("SELECT 1").get();
+
+    const quickCheck = db.prepare("PRAGMA quick_check(1)").get() as
+      | { readonly quick_check?: unknown }
+      | undefined;
+    const result = quickCheck?.quick_check;
+
+    if (result !== "ok") {
+      return {
+        ok: false,
+        error: `SQLite quick_check failed: ${String(result ?? "no result")}`,
+      };
+    }
+
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown SQLite healthcheck error",
+    };
+  }
+}
+
+function sendJson(response: ServerResponse, statusCode: number, body: JsonValue): void {
+  response.writeHead(statusCode, {
+    "access-control-allow-headers": "content-type",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-type": "application/json; charset=utf-8",
+  });
+  response.end(statusCode === 204 ? undefined : JSON.stringify(body));
+}

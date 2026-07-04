@@ -1,0 +1,150 @@
+{
+  "fen": "r2q1r1k/1p2pp1p/p4n2/2pp2Q1/4p3/2NP2P1/PPP2PK1/R6R w - - 0 1",
+  "sideToSolve": "w",
+  "status": "solved",
+  "root": {
+    "fen": "r2q1r1k/1p2pp1p/p4n2/2pp2Q1/4p3/2NP2P1/PPP2PK1/R6R w - - 0 1",
+    "turn": "w",
+    "eval": 193,
+    "terminal": null,
+    "moves": [
+      {
+        "uci": "c3d5",
+        "eval": 193,
+        "children": [
+          {
+            "fen": "r2q1r1k/1p2pp1p/p4n2/2pN2Q1/4p3/3P2P1/PPP2PK1/R6R b - - 0 1",
+            "turn": "b",
+            "eval": 388,
+            "terminal": null,
+            "moves": [
+              {
+                "uci": "d8d6",
+                "eval": 388,
+                "children": [
+                  {
+                    "fen": "r4r1k/1p2pp1p/p2q1n2/2pN2Q1/4p3/3P2P1/PPP2PK1/R6R w - - 1 2",
+                    "turn": "w",
+                    "eval": 99995,
+                    "terminal": null,
+                    "moves": [
+                      {
+                        "uci": "d5f6",
+                        "eval": 99995,
+                        "children": [
+                          {
+                            "fen": "r4r1k/1p2pp1p/p2q1N2/2p3Q1/4p3/3P2P1/PPP2PK1/R6R b - - 0 2",
+                            "turn": "b",
+                            "eval": 99997,
+                            "terminal": null,
+                            "moves": [
+                              {
+                                "uci": "d6g3",
+                                "eval": 99997,
+                                "children": [
+                                  {
+                                    "fen": "r4r1k/1p2pp1p/p4N2/2p3Q1/4p3/3P2q1/PPP2PK1/R6R w - - 0 3",
+                                    "turn": "w",
+                                    "eval": 99997,
+                                    "terminal": null,
+                                    "moves": [
+                                      {
+                                        "uci": "f2g3",
+                                        "eval": 99997,
+                                        "children": [
+                                          {
+                                            "fen": "r4r1k/1p2pp1p/p4N2/2p3Q1/4p3/3P2P1/PPP3K1/R6R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 99998,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "e7f6",
+                                                "eval": 99998,
+                                                "children": [
+                                                  {
+                                                    "fen": "r4r1k/1p3p1p/p4p2/2p3Q1/4p3/3P2P1/PPP3K1/R6R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 99998,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "uci": "g2g3",
+                                        "eval": 99997,
+                                        "children": [
+                                          {
+                                            "fen": "r4r1k/1p2pp1p/p4N2/2p3Q1/4p3/3P2K1/PPP2P2/R6R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 99998,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "e7f6",
+                                                "eval": 99998,
+                                                "children": [
+                                                  {
+                                                    "fen": "r4r1k/1p3p1p/p4p2/2p3Q1/4p3/3P2K1/PPP2P2/R6R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 99998,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "uci": "g5g3",
+                                        "eval": 99997,
+                                        "children": [
+                                          {
+                                            "fen": "r4r1k/1p2pp1p/p4N2/2p5/4p3/3P2Q1/PPP2PK1/R6R b - - 0 3",
+                                            "turn": "b",
+                                            "eval": 99998,
+                                            "terminal": null,
+                                            "moves": [
+                                              {
+                                                "uci": "e7f6",
+                                                "eval": 99998,
+                                                "children": [
+                                                  {
+                                                    "fen": "r4r1k/1p3p1p/p4p2/2p5/4p3/3P2Q1/PPP2PK1/R6R w - - 0 4",
+                                                    "turn": "w",
+                                                    "eval": 99998,
+                                                    "terminal": "robust_win",
+                                                    "moves": []
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
