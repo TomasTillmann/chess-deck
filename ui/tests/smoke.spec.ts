@@ -23,6 +23,20 @@ async function openWoodpeckerPosition(page: Page, positionNumber = 1) {
   await page.getByRole("button", { name: `Position ${positionNumber}`, exact: true }).click();
 }
 
+async function dragMove(page: Page, squareFrom: string, squareTo: string, orientation: "white" | "black") {
+  const board = page.getByLabel("Chess position");
+  const box = await board.boundingBox();
+  if (!box) throw new Error("Could not find the chess board bounds.");
+
+  const from = squarePoint(box, squareFrom, orientation);
+  const to = squarePoint(box, squareTo, orientation);
+
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 12 });
+  await page.mouse.up();
+}
+
 test("renders the deck grid and opens a deck", async ({ page }) => {
   await page.goto("/");
 
@@ -92,16 +106,7 @@ test("plays the FEN side against Stockfish without flipping the board", async ({
   await expect(status).toHaveText("Your move");
   await expect(board).toHaveClass(/orientation-black/);
 
-  const box = await board.boundingBox();
-  if (!box) throw new Error("Could not find the chess board bounds.");
-
-  const from = squarePoint(box, "f4", "black");
-  const to = squarePoint(box, "d3", "black");
-
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: 12 });
-  await page.mouse.up();
+  await dragMove(page, "f4", "d3", "black");
 
   await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
   await expect(status).toHaveText("Your move", { timeout: 30000 });
@@ -112,20 +117,10 @@ test("syncs notation with board moves, arrows, and clicks", async ({ page }) => 
   await openWoodpeckerPosition(page);
 
   const status = page.locator(".position-header p");
-  const board = page.getByLabel("Chess position");
   const notation = page.getByLabel("Move notation");
   await expect(notation).toContainText("No moves yet");
 
-  const box = await board.boundingBox();
-  if (!box) throw new Error("Could not find the chess board bounds.");
-
-  const from = squarePoint(box, "f4", "black");
-  const to = squarePoint(box, "d3", "black");
-
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: 12 });
-  await page.mouse.up();
+  await dragMove(page, "f4", "d3", "black");
 
   const humanMove = notation.getByRole("button", { name: "Nd3" });
   await expect(humanMove).toBeVisible();
@@ -140,4 +135,37 @@ test("syncs notation with board moves, arrows, and clicks", async ({ page }) => 
 
   await humanMove.click();
   await expect(humanMove).toHaveAttribute("aria-current", "step");
+});
+
+test("keeps the mainline when a sideline starts from an earlier position", async ({ page }) => {
+  await openWoodpeckerPosition(page);
+
+  const status = page.locator(".position-header p");
+  const notation = page.getByLabel("Move notation");
+
+  await dragMove(page, "f4", "d3", "black");
+  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
+  await expect(status).toHaveText("Your move", { timeout: 30000 });
+
+  const mainlineMove = notation.getByRole("button", { name: "Nd3" });
+  await expect(mainlineMove).toBeVisible();
+  const firstEngineReply = notation.getByRole("button").nth(1);
+  await expect(firstEngineReply).toBeVisible();
+
+  await page.getByRole("button", { name: "First move" }).click();
+  await expect(status).toHaveText("Viewing start");
+
+  await dragMove(page, "f4", "e2", "black");
+  await expect(status).toHaveText("Your move", { timeout: 30000 });
+
+  const sidelineMove = notation.getByRole("button", { name: "Ne2" });
+  await expect(mainlineMove).toBeVisible();
+  await expect(sidelineMove).toBeVisible();
+  await expect(sidelineMove).not.toHaveAttribute("aria-current", "step");
+  await expect(notation.locator(".notation-variations")).toContainText("Ne2");
+  await expect(notation.locator(".notation-move")).toHaveCount(4);
+
+  await mainlineMove.click();
+  await expect(mainlineMove).toHaveAttribute("aria-current", "step");
+  await expect(sidelineMove).not.toHaveAttribute("aria-current", "step");
 });

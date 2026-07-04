@@ -1,127 +1,217 @@
-import { useEffect, useRef, type Ref } from "react";
-import type { Color } from "chessops";
+import { useEffect, useMemo, useRef, type Ref } from "react";
 
-export type MoveRecord = {
-  ply: number;
-  san: string;
-  uci: string;
-  color: Color;
-  moveNumber: number;
-};
-
-type MovePair = {
-  moveNumber: number;
-  white?: MoveRecord;
-  black?: MoveRecord;
-};
+import {
+  childPath,
+  firstChildPath,
+  lastMainlinePath,
+  pathsEqual,
+  type MovePath,
+  type MoveTreeNode,
+} from "../gameTree";
 
 type MoveNotationPanelProps = {
-  moves: MoveRecord[];
-  currentPly: number;
-  onSelectPly: (ply: number) => void;
+  root: MoveTreeNode;
+  currentPath: MovePath;
+  onSelectPath: (path: MovePath) => void;
 };
 
-function pairMoves(moves: MoveRecord[]): MovePair[] {
-  const pairs: MovePair[] = [];
+function movePrefix(node: MoveTreeNode, startsLine: boolean): string | undefined {
+  if (!node.move) return undefined;
+  if (node.move.color === "white") return `${node.move.moveNumber}.`;
+  if (startsLine) return `${node.move.moveNumber}...`;
 
-  for (const move of moves) {
-    let pair = pairs.find(item => item.moveNumber === move.moveNumber);
-    if (!pair) {
-      pair = { moveNumber: move.moveNumber };
-      pairs.push(pair);
-    }
-
-    if (move.color === "white") pair.white = move;
-    else pair.black = move;
-  }
-
-  return pairs;
+  return undefined;
 }
 
 function MoveButton({
-  move,
-  currentPly,
-  onSelectPly,
+  node,
+  path,
+  currentPath,
+  onSelectPath,
   currentRef,
 }: {
-  move?: MoveRecord;
-  currentPly: number;
-  onSelectPly: (ply: number) => void;
+  node: MoveTreeNode;
+  path: MovePath;
+  currentPath: MovePath;
+  onSelectPath: (path: MovePath) => void;
   currentRef?: Ref<HTMLButtonElement>;
 }) {
-  if (!move) return <span className="notation-empty">...</span>;
+  if (!node.move) return null;
+
+  const isCurrent = pathsEqual(path, currentPath);
 
   return (
     <button
-      ref={move.ply === currentPly ? currentRef : undefined}
+      ref={isCurrent ? currentRef : undefined}
       type="button"
-      className={move.ply === currentPly ? "notation-move is-current" : "notation-move"}
-      onClick={() => onSelectPly(move.ply)}
-      aria-current={move.ply === currentPly ? "step" : undefined}
+      className={isCurrent ? "notation-move is-current" : "notation-move"}
+      onClick={() => onSelectPath(path)}
+      aria-current={isCurrent ? "step" : undefined}
     >
-      {move.san}
+      {node.move.san}
     </button>
   );
 }
 
-export function MoveNotationPanel({ moves, currentPly, onSelectPly }: MoveNotationPanelProps) {
+function MoveToken({
+  node,
+  path,
+  currentPath,
+  startsLine,
+  onSelectPath,
+  currentRef,
+}: {
+  node: MoveTreeNode;
+  path: MovePath;
+  currentPath: MovePath;
+  startsLine: boolean;
+  onSelectPath: (path: MovePath) => void;
+  currentRef?: Ref<HTMLButtonElement>;
+}) {
+  const prefix = movePrefix(node, startsLine);
+
+  return (
+    <span className="notation-token">
+      {prefix ? <span className="notation-index">{prefix}</span> : null}
+      <MoveButton
+        node={node}
+        path={path}
+        currentPath={currentPath}
+        onSelectPath={onSelectPath}
+        currentRef={currentRef}
+      />
+    </span>
+  );
+}
+
+function MoveLine({
+  firstNode,
+  parentPath,
+  currentPath,
+  onSelectPath,
+  currentRef,
+  variant,
+}: {
+  firstNode: MoveTreeNode;
+  parentPath: MovePath;
+  currentPath: MovePath;
+  onSelectPath: (path: MovePath) => void;
+  currentRef?: Ref<HTMLButtonElement>;
+  variant: "mainline" | "variation";
+}) {
+  const items = [];
+  let node: MoveTreeNode | undefined = firstNode;
+  let path = parentPath;
+  let startsLine = true;
+
+  while (node) {
+    const nodePath = childPath(path, node);
+    const sideLines = node.children.slice(1);
+
+    items.push(
+      <MoveToken
+        key={nodePath.join("/")}
+        node={node}
+        path={nodePath}
+        currentPath={currentPath}
+        startsLine={startsLine}
+        onSelectPath={onSelectPath}
+        currentRef={currentRef}
+      />,
+    );
+
+    if (sideLines.length > 0) {
+      items.push(
+        <div className="notation-variations" key={`${nodePath.join("/")}-variations`}>
+          {sideLines.map(child => (
+            <MoveLine
+              key={child.id}
+              firstNode={child}
+              parentPath={nodePath}
+              currentPath={currentPath}
+              onSelectPath={onSelectPath}
+              currentRef={currentRef}
+              variant="variation"
+            />
+          ))}
+        </div>,
+      );
+    }
+
+    path = nodePath;
+    node = node.children[0];
+    startsLine = false;
+  }
+
+  return <div className={`notation-line is-${variant}`}>{items}</div>;
+}
+
+export function MoveNotationPanel({ root, currentPath, onSelectPath }: MoveNotationPanelProps) {
   const currentMoveRef = useRef<HTMLButtonElement | null>(null);
-  const pairs = pairMoves(moves);
-  const lastPly = moves.length;
+  const nextPath = useMemo(() => firstChildPath(root, currentPath), [currentPath, root]);
+  const lastPath = useMemo(() => lastMainlinePath(root, currentPath), [currentPath, root]);
 
   useEffect(() => {
     currentMoveRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [currentPly, moves.length]);
+  }, [currentPath, root]);
 
   return (
     <aside className="notation-panel" aria-label="Move notation">
       <div className="notation-moves" role="list">
-        {pairs.length === 0 ? (
+        {root.children.length === 0 ? (
           <p className="notation-placeholder">No moves yet</p>
         ) : (
-          pairs.map(pair => (
-            <div className="notation-row" role="listitem" key={pair.moveNumber}>
-              <span className="notation-index">{pair.moveNumber}</span>
-              <MoveButton
-                move={pair.white}
-                currentPly={currentPly}
-                onSelectPly={onSelectPly}
-                currentRef={currentMoveRef}
-              />
-              <MoveButton
-                move={pair.black}
-                currentPly={currentPly}
-                onSelectPly={onSelectPly}
-                currentRef={currentMoveRef}
-              />
-            </div>
-          ))
+          <div className="notation-tree" role="listitem">
+            <MoveLine
+              firstNode={root.children[0]}
+              parentPath={[]}
+              currentPath={currentPath}
+              onSelectPath={onSelectPath}
+              currentRef={currentMoveRef}
+              variant="mainline"
+            />
+            {root.children.length > 1 ? (
+              <div className="notation-variations is-root">
+                {root.children.slice(1).map(child => (
+                  <MoveLine
+                    key={child.id}
+                    firstNode={child}
+                    parentPath={[]}
+                    currentPath={currentPath}
+                    onSelectPath={onSelectPath}
+                    currentRef={currentMoveRef}
+                    variant="variation"
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
         )}
       </div>
       <div className="notation-controls" aria-label="Move navigation">
-        <button type="button" onClick={() => onSelectPly(0)} disabled={currentPly === 0} aria-label="First move">
+        <button type="button" onClick={() => onSelectPath([])} disabled={currentPath.length === 0} aria-label="First move">
           |&lt;
         </button>
         <button
           type="button"
-          onClick={() => onSelectPly(currentPly - 1)}
-          disabled={currentPly === 0}
+          onClick={() => onSelectPath(currentPath.slice(0, -1))}
+          disabled={currentPath.length === 0}
           aria-label="Previous move"
         >
           &lt;
         </button>
         <button
           type="button"
-          onClick={() => onSelectPly(currentPly + 1)}
-          disabled={currentPly === lastPly}
+          onClick={() => nextPath && onSelectPath(nextPath)}
+          disabled={!nextPath}
           aria-label="Next move"
         >
           &gt;
         </button>
         <button
           type="button"
-          onClick={() => onSelectPly(lastPly)}
-          disabled={currentPly === lastPly}
+          onClick={() => onSelectPath(lastPath)}
+          disabled={pathsEqual(currentPath, lastPath)}
           aria-label="Last move"
         >
           &gt;|

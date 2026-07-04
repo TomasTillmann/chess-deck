@@ -300,43 +300,69 @@ body {
   font-size: 0.95rem;
 }
 
-.notation-row {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) minmax(0, 1fr);
-  align-items: stretch;
-  min-height: 34px;
+.notation-tree {
+  padding: 0 8px;
 }
 
-.notation-row:nth-child(even) {
+.notation-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.notation-line.is-mainline {
+  padding: 4px 0;
+}
+
+.notation-line.is-variation {
+  padding: 4px 0 4px 9px;
+  border-left: 2px solid #b8c8c8;
+}
+
+.notation-variations {
+  flex-basis: 100%;
+  margin: 4px 0 4px 11px;
+  padding: 3px 6px;
+  border-left: 2px solid #b8c8c8;
   background: #edf3f1;
 }
 
-.notation-index {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #66717b;
-  font-size: 0.9rem;
-  font-weight: 700;
+.notation-variations.is-root {
+  margin-top: 2px;
 }
 
-.notation-move,
-.notation-empty {
-  display: flex;
-  align-items: center;
+.notation-token {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   min-width: 0;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #25313a;
-  font: inherit;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-align: left;
+  line-height: 1.55;
+}
+
+.notation-index {
+  color: #66717b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .notation-move {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 25px;
+  min-width: 0;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #25313a;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -349,10 +375,6 @@ body {
 .notation-move.is-current {
   background: #3e6f65;
   color: #f8fffb;
-}
-
-.notation-empty {
-  color: #9aa5ad;
 }
 
 .notation-controls {

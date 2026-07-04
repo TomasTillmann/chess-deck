@@ -18,22 +18,24 @@ import type { Dests, Key } from "@lichess-org/chessground/types";
 import "./App.css";
 import { ChessBoard } from "./components/ChessBoard";
 import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
-import { MoveNotationPanel, type MoveRecord } from "./components/MoveNotationPanel";
+import { MoveNotationPanel } from "./components/MoveNotationPanel";
 import { decks, type Deck } from "./decks";
 import { bestMove as stockfishBestMove, dispose as disposeStockfish } from "./engine/stockfishClient";
+import {
+  createMoveRoot,
+  nodeAtPath,
+  pathsEqual,
+  updateNodeAtPath,
+  type MovePath,
+  type MoveTreeNode,
+} from "./gameTree";
 
 const engineDepth = 8;
 const emptyDests = new Map() as Dests;
 
-type HistoryEntry = {
-  fen: string;
-  lastMove?: Key[];
-  move?: MoveRecord;
-};
-
 type GameState = {
-  history: HistoryEntry[];
-  currentPly: number;
+  root: MoveTreeNode;
+  currentPath: MovePath;
 };
 
 type Route =
@@ -57,15 +59,29 @@ function moveLastMove(move: Move): Key[] | undefined {
   return [makeSquare(move.from), makeSquare(move.to)] as Key[];
 }
 
-function appendOrSelectMove(history: HistoryEntry[], fromPly: number, position: Chess, move: Move) {
-  const uci = makeUci(move);
-  const existing = history[fromPly + 1]?.move;
+function nextMoveId(parent: MoveTreeNode, uci: string): string {
+  let id = uci;
+  let suffix = 2;
 
-  if (existing?.uci === uci) {
+  while (parent.children.some(child => child.id === id)) {
+    id = `${uci}-${suffix}`;
+    suffix += 1;
+  }
+
+  return id;
+}
+
+function appendOrSelectMove(root: MoveTreeNode, fromPath: MovePath, position: Chess, move: Move) {
+  const parent = nodeAtPath(root, fromPath);
+  const uci = makeUci(move);
+  const existing = parent.children.find(child => child.move?.uci === uci);
+
+  if (existing) {
     return {
-      history,
-      currentPly: fromPly + 1,
-      position: positionFromFen(history[fromPly + 1].fen),
+      root,
+      currentPath: [...fromPath, existing.id],
+      node: existing,
+      position: positionFromFen(existing.fen),
       appended: false,
     };
   }
@@ -74,8 +90,9 @@ function appendOrSelectMove(history: HistoryEntry[], fromPly: number, position: 
   const san = chessSan.makeSan(position, move);
   nextPosition.play(move);
 
-  const nextPly = fromPly + 1;
-  const nextEntry: HistoryEntry = {
+  const nextPly = fromPath.length + 1;
+  const nextNode: MoveTreeNode = {
+    id: nextMoveId(parent, uci),
     fen: chessFen.makeFen(nextPosition.toSetup()),
     lastMove: moveLastMove(move),
     move: {
@@ -85,18 +102,20 @@ function appendOrSelectMove(history: HistoryEntry[], fromPly: number, position: 
       color: position.turn,
       moveNumber: position.fullmoves,
     },
+    children: [],
   };
+  const nextPath = [...fromPath, nextNode.id];
 
   return {
-    history: [...history.slice(0, nextPly), nextEntry],
-    currentPly: nextPly,
+    root: updateNodeAtPath(root, fromPath, node => ({
+      ...node,
+      children: [...node.children, nextNode],
+    })),
+    currentPath: nextPath,
+    node: nextNode,
     position: nextPosition,
     appended: true,
   };
-}
-
-function clampPly(ply: number, history: HistoryEntry[]): number {
-  return Math.min(Math.max(ply, 0), history.length - 1);
 }
 
 function routeFromHash(): Route {
@@ -141,12 +160,12 @@ function SolverPage({
 }) {
   const initialFen = deck.fens[positionIndex] ?? deck.previewFen;
   const [game, setGame] = useState<GameState>({
-    history: [{ fen: initialFen }],
-    currentPly: 0,
+    root: createMoveRoot(initialFen),
+    currentPath: [],
   });
   const [engineThinking, setEngineThinking] = useState(false);
   const [engineError, setEngineError] = useState<string>();
-  const currentEntry = game.history[game.currentPly];
+  const currentEntry = nodeAtPath(game.root, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
   const currentFenRef = useRef(currentFen);
@@ -169,17 +188,17 @@ function SolverPage({
 
   useEffect(() => {
     setGame({
-      history: [{ fen: initialFen }],
-      currentPly: 0,
+      root: createMoveRoot(initialFen),
+      currentPath: [],
     });
     setEngineThinking(false);
     setEngineError(undefined);
   }, [initialFen]);
 
-  const goToPly = useCallback((ply: number) => {
+  const goToPath = useCallback((path: MovePath) => {
     setGame(current => ({
       ...current,
-      currentPly: clampPly(ply, current.history),
+      currentPath: path,
     }));
   }, []);
 
@@ -190,24 +209,26 @@ function SolverPage({
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        goToPly(gameRef.current.currentPly - 1);
+        goToPath(gameRef.current.currentPath.slice(0, -1));
       } else if (event.key === "ArrowRight") {
         event.preventDefault();
-        goToPly(gameRef.current.currentPly + 1);
+        const currentNode = nodeAtPath(gameRef.current.root, gameRef.current.currentPath);
+        const nextNode = currentNode.children[0];
+        if (nextNode) goToPath([...gameRef.current.currentPath, nextNode.id]);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goToPly]);
+  }, [goToPath]);
 
-  const playEngineMove = useCallback(async (fenAfterHumanMove: string, expectedPly: number) => {
+  const playEngineMove = useCallback(async (fenAfterHumanMove: string, expectedPath: MovePath) => {
     setEngineThinking(true);
     setEngineError(undefined);
 
     try {
       const uci = await stockfishBestMove(fenAfterHumanMove, engineDepth);
-      if (currentFenRef.current !== fenAfterHumanMove || gameRef.current.currentPly !== expectedPly) return;
+      if (currentFenRef.current !== fenAfterHumanMove || !pathsEqual(gameRef.current.currentPath, expectedPath)) return;
 
       const enginePosition = positionFromFen(fenAfterHumanMove);
       const move = parseUci(uci);
@@ -217,14 +238,14 @@ function SolverPage({
       }
 
       setGame(current => {
-        if (current.currentPly !== expectedPly || current.history[expectedPly]?.fen !== fenAfterHumanMove) {
+        if (!pathsEqual(current.currentPath, expectedPath) || nodeAtPath(current.root, expectedPath).fen !== fenAfterHumanMove) {
           return current;
         }
 
-        const result = appendOrSelectMove(current.history, expectedPly, enginePosition, move);
+        const result = appendOrSelectMove(current.root, expectedPath, enginePosition, move);
         return {
-          history: result.history,
-          currentPly: result.currentPly,
+          root: result.root,
+          currentPath: result.currentPath,
         };
       });
     } catch (error) {
@@ -247,22 +268,25 @@ function SolverPage({
       if (isPromotion(position, from, to)) move.promotion = "queen";
       if (!position.isLegal(move)) return;
 
-      const result = appendOrSelectMove(gameRef.current.history, gameRef.current.currentPly, position, move);
-      setGame({
-        history: result.history,
-        currentPly: result.currentPly,
-      });
+      const result = appendOrSelectMove(gameRef.current.root, gameRef.current.currentPath, position, move);
+      const nextGame = {
+        root: result.root,
+        currentPath: result.currentPath,
+      };
 
-      if (result.currentPly === result.history.length - 1 && result.position.turn !== humanColor && !result.position.isEnd()) {
-        void playEngineMove(result.history[result.currentPly].fen, result.currentPly);
+      setGame(nextGame);
+      gameRef.current = nextGame;
+      currentFenRef.current = result.node.fen;
+
+      if (result.node.children.length === 0 && result.position.turn !== humanColor && !result.position.isEnd()) {
+        void playEngineMove(result.node.fen, result.currentPath);
       }
     },
     [canHumanMove, humanColor, playEngineMove, position],
   );
 
-  const moves = useMemo(() => game.history.flatMap(entry => (entry.move ? [entry.move] : [])), [game.history]);
-  const isAtLatestPly = game.currentPly === game.history.length - 1;
-  const currentMoveLabel = game.currentPly === 0 ? "start" : `move ${game.currentPly}`;
+  const isAtLatestPly = currentEntry.children.length === 0;
+  const currentMoveLabel = game.currentPath.length === 0 ? "start" : `move ${game.currentPath.length}`;
   const previousPositionIndex = positionIndex - 1;
   const nextPositionIndex = positionIndex + 1;
   const statusText = engineError
@@ -324,7 +348,7 @@ function SolverPage({
               onMove={handleMove}
             />
           </section>
-          <MoveNotationPanel moves={moves} currentPly={game.currentPly} onSelectPly={goToPly} />
+          <MoveNotationPanel root={game.root} currentPath={game.currentPath} onSelectPath={goToPath} />
         </div>
       </div>
     </main>
