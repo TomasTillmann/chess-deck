@@ -330,10 +330,13 @@ function SolverPage({
       setSubmitState({ status: "success", score: result.score });
       setCanUpdateSolution(true);
     } catch (error) {
+      const isMissingSolution = error instanceof SolutionFetchError && error.status === 404;
+
+      setCanUpdateSolution(isMissingSolution);
       setSubmitState({
         status: "error",
         message:
-          error instanceof SolutionFetchError && error.status === 404
+          isMissingSolution
             ? "No solution found for this position."
             : "Could not load the solution. Check that the server is running.",
       });

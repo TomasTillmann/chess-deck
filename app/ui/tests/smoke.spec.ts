@@ -15,6 +15,19 @@ type MutableSolutionMove = {
   children: MutableSolutionPosition[];
 };
 
+type SolutionUpdatePayload = {
+  collection?: string;
+  solutions?: Array<{
+    fen?: string;
+    tree?: {
+      fen?: string;
+      sideToSolve?: string;
+      status?: string;
+      root?: MutableSolutionPosition;
+    };
+  }>;
+};
+
 function squarePoint(box: { x: number; y: number; width: number }, square: string, orientation: "white" | "black") {
   const file = square.charCodeAt(0) - "a".charCodeAt(0);
   const rank = Number(square[1]) - 1;
@@ -378,7 +391,9 @@ test("submits a wrong continuation and shows salmon user move plus blue solution
   await expect(solutionMove).toHaveAttribute("aria-current", "step");
 });
 
-test("submit shows an error when no solution is available", async ({ page }) => {
+test("submit shows an error and allows creating an update when no solution is available", async ({ page }) => {
+  let updatePayload: SolutionUpdatePayload | undefined;
+
   await page.route("**/v1/solution/**", route =>
     route.fulfill({
       status: 404,
@@ -386,10 +401,34 @@ test("submit shows an error when no solution is available", async ({ page }) => 
       body: JSON.stringify({ error: "Solution not found" }),
     }),
   );
+  await page.route("**/v1/solver/solutions", async route => {
+    updatePayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ stored: 1 }),
+    });
+  });
   await openWoodpeckerPosition(page);
 
+  await dragMove(page, "f4", "d3", "black");
   await page.getByRole("button", { name: "Submit" }).click();
 
   await expect(page.getByText("No solution found for this position.")).toBeVisible();
   await expect(page.getByText(/\d+%/)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Update" }).click();
+
+  await expect(page.getByText("Saved")).toBeVisible();
+  await expect.poll(() => updatePayload).toBeTruthy();
+
+  const solution = updatePayload?.solutions?.[0];
+  const rootMove = solution?.tree?.root?.moves[0];
+
+  expect(updatePayload?.collection).toBe("woodpecker");
+  expect(solution?.fen).toBe(firstFen);
+  expect(solution?.tree?.fen).toBe(firstFen);
+  expect(solution?.tree?.sideToSolve).toBe("b");
+  expect(solution?.tree?.status).toBe("solved");
+  expect(rootMove?.uci).toBe("f4d3");
 });
