@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lichess-org/chessground": "^10.1.1",
+    "chessops": "^0.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
