@@ -22,8 +22,10 @@ The API is exposed at:
 http://localhost:3001
 ```
 
-The UI container maps host port `5173` to nginx port `80`; `http://localhost:3000`
-is not used by this Compose setup.
+The UI container maps host port `5173` to the Vite dev server. UI source and
+config files are mounted into the container, so Vite hot reloads the browser
+when those files change. `http://localhost:3000` is not used by this Compose
+setup.
 
 SQLite data is mounted from `server/data` into the server container at
 `/data`, so the server reads `server/data/woodpecker.sqlite`.

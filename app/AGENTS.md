@@ -1,11 +1,12 @@
 # App Agent Notes
 
 This folder contains the Docker Compose application: the Woodpecker API server,
-its SQLite volume, and the React UI served by nginx.
+its SQLite volume, and the React/Vite UI.
 
 ## Commands
 
-- Start the full app: `docker compose up --build`
+- Start the full app with UI hot reload: `docker compose up --build`
+- Start with Compose rebuild watch for package/Dockerfile changes: `docker compose up --build --watch`
 - Stop the app: `docker compose down`
 - Reset the database volume: `docker compose down -v`
 - Check running services: `docker compose ps`
@@ -18,9 +19,9 @@ Run these commands from `app/`.
 - API healthcheck: `http://localhost:3001/healthcheck`
 - API base URL: `http://localhost:3001`
 
-The Compose UI service maps host port `5173` to nginx port `80`. Do not use
-`http://localhost:3000` for the Docker app unless the compose port mapping has
-been changed.
+The Compose UI service maps host port `5173` to the Vite dev server and mounts
+UI source/config files for default hot reload. Do not use `http://localhost:3000`
+for the Docker app unless the compose port mapping has been changed.
 
 If Docker reports permission denied for `/var/run/docker.sock`, refresh the
 current shell's docker group membership with `newgrp docker`, then rerun Compose.

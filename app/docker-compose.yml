@@ -24,10 +24,27 @@ services:
   ui:
     build:
       context: ./ui
+      target: dev
       args:
         VITE_SERVER_URL: http://localhost:3001
+    environment:
+      VITE_SERVER_URL: http://localhost:3001
     depends_on:
       server:
         condition: service_healthy
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      - ./ui/src:/app/src
+      - ./ui/index.html:/app/index.html
+      - ./ui/vite.config.ts:/app/vite.config.ts
+      - ./ui/tsconfig.json:/app/tsconfig.json
+      - ./ui/tsconfig.node.json:/app/tsconfig.node.json
+    develop:
+      watch:
+        - action: rebuild
+          path: ./ui/package.json
+        - action: rebuild
+          path: ./ui/package-lock.json
+        - action: rebuild
+          path: ./ui/Dockerfile

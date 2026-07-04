@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS build
+FROM node:22-bookworm-slim AS base
 
 WORKDIR /app
 
@@ -7,6 +7,15 @@ ENV VITE_SERVER_URL=${VITE_SERVER_URL}
 
 COPY package*.json ./
 RUN npm ci
+
+FROM base AS dev
+
+COPY . .
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+FROM base AS build
 
 COPY . .
 RUN npm run build

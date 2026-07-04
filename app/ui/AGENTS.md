@@ -11,8 +11,8 @@ This folder is the React/Vite frontend for Woodpecker. It has Playwright install
 
 Playwright is configured in `playwright.config.ts`. The test runner automatically starts Vite at `http://127.0.0.1:5173`, so prefer `npm run test:e2e` over manually starting a server for routine checks.
 
-For the Docker Compose app, the UI is also exposed on host port `5173`, but it is
-served by nginx from the production build. See `../AGENTS.md` for full-app
+For the Docker Compose app, the UI is also exposed on host port `5173` and is
+served by Vite from the Compose dev image. See `../AGENTS.md` for full-app
 commands and port notes.
 
 ## When Implementing UI Changes
