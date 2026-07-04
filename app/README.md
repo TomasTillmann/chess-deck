@@ -25,13 +25,13 @@ http://localhost:3001
 The UI container maps host port `5173` to nginx port `80`; `http://localhost:3000`
 is not used by this Compose setup.
 
-SQLite data is stored in the `woodpecker-db` Docker volume at `/data/woodpecker.sqlite`
-inside the server container.
+SQLite data is mounted from `server/data` into the server container at
+`/data`, so the server reads `server/data/woodpecker.sqlite`.
 
-To reset the database volume:
+To reset the app containers:
 
 ```bash
-docker compose down -v
+docker compose down
 ```
 
 If Docker reports permission denied for `/var/run/docker.sock`, refresh the

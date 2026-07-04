@@ -9,7 +9,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - woodpecker-db:/data
+      - ./server/data:/data
     healthcheck:
       test:
         [
@@ -31,7 +31,3 @@ services:
         condition: service_healthy
     ports:
       - "5173:80"
-
-volumes:
-  woodpecker-db:
-    name: woodpecker-db
