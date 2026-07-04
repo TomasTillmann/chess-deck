@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 function squarePoint(box: { x: number; y: number; width: number }, square: string, orientation: "white" | "black") {
   const file = square.charCodeAt(0) - "a".charCodeAt(0);
@@ -13,16 +13,79 @@ function squarePoint(box: { x: number; y: number; width: number }, square: strin
   };
 }
 
-test("renders the chess board", async ({ page }) => {
+async function openWoodpeckerDeck(page: Page) {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Woodpecker/ }).click();
+}
+
+async function openWoodpeckerPosition(page: Page, positionNumber = 1) {
+  await openWoodpeckerDeck(page);
+  await page.getByRole("button", { name: `Position ${positionNumber}`, exact: true }).click();
+}
+
+test("renders the deck grid and opens a deck", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Woodpecker/ })).toBeVisible();
+
+  await page.getByRole("button", { name: /Woodpecker/ }).click();
+
   await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
+  await expect(page.getByText("1128 positions available")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Position 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Position 2", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Chess position")).toHaveCount(0);
+});
+
+test("opens a position from a deck and moves between position views", async ({ page }) => {
+  await openWoodpeckerDeck(page);
+  await expect(page).toHaveURL(/#\/decks\/woodpecker$/);
+
+  await page.getByRole("button", { name: "Position 1", exact: true }).click();
+
+  await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/1$/);
+  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
   await expect(page.getByLabel("Chess position")).toBeVisible();
   await expect(page.locator("piece")).not.toHaveCount(0);
+
+  await expect(page.getByRole("button", { name: "Previous position" })).toBeDisabled();
+  await page.getByRole("button", { name: "Next position" }).click();
+  await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/2$/);
+  await expect(page.getByRole("heading", { name: "Woodpecker - Position 2" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Previous position" }).click();
+  await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/1$/);
+  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
+});
+
+test("navigates between decks and solver", async ({ page }) => {
+  await openWoodpeckerPosition(page);
+
+  await expect(page).toHaveURL(/#\/decks\/woodpecker\/positions\/1$/);
+  await page.getByRole("button", { name: "Go to deck", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Position 1", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Go to decks", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
+
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Position 1", exact: true })).toBeVisible();
+
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Woodpecker - Position 1" })).toBeVisible();
+
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Woodpecker" })).toBeVisible();
+
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
 });
 
 test("plays the FEN side against Stockfish without flipping the board", async ({ page }) => {
-  await page.goto("/");
+  await openWoodpeckerPosition(page);
 
   const status = page.locator(".position-header p");
   const board = page.getByLabel("Chess position");
@@ -46,7 +109,7 @@ test("plays the FEN side against Stockfish without flipping the board", async ({
 });
 
 test("syncs notation with board moves, arrows, and clicks", async ({ page }) => {
-  await page.goto("/");
+  await openWoodpeckerPosition(page);
 
   const status = page.locator(".position-header p");
   const board = page.getByLabel("Chess position");

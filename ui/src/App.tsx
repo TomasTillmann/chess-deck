@@ -17,10 +17,11 @@ import type { Dests, Key } from "@lichess-org/chessground/types";
 
 import "./App.css";
 import { ChessBoard } from "./components/ChessBoard";
+import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
 import { MoveNotationPanel, type MoveRecord } from "./components/MoveNotationPanel";
+import { decks, type Deck } from "./decks";
 import { bestMove as stockfishBestMove, dispose as disposeStockfish } from "./engine/stockfishClient";
 
-const initialFen = "r6r/1pp3k1/1b6/p2P1p2/P1N1pn2/2P2PP1/BP5P/4RR1K b - - 0 1";
 const engineDepth = 8;
 const emptyDests = new Map() as Dests;
 
@@ -34,6 +35,11 @@ type GameState = {
   history: HistoryEntry[];
   currentPly: number;
 };
+
+type Route =
+  | { view: "decks" }
+  | { view: "deck"; slug: string }
+  | { view: "position"; slug: string; positionIndex: number };
 
 function positionFromFen(fen: string): Chess {
   return Chess.fromSetup(chessFen.parseFen(fen).unwrap()).unwrap();
@@ -93,7 +99,47 @@ function clampPly(ply: number, history: HistoryEntry[]): number {
   return Math.min(Math.max(ply, 0), history.length - 1);
 }
 
-export function App() {
+function routeFromHash(): Route {
+  const positionMatch = window.location.hash.match(/^#\/decks\/([^/]+)\/positions\/(\d+)$/);
+
+  if (positionMatch) {
+    return {
+      view: "position",
+      slug: decodeURIComponent(positionMatch[1]),
+      positionIndex: Number(positionMatch[2]) - 1,
+    };
+  }
+
+  const deckMatch = window.location.hash.match(/^#\/decks\/([^/]+)$/);
+  if (deckMatch) return { view: "deck", slug: decodeURIComponent(deckMatch[1]) };
+
+  return { view: "decks" };
+}
+
+function navigateToDeck(deck: Deck) {
+  window.location.hash = `/decks/${encodeURIComponent(deck.slug)}`;
+}
+
+function navigateToPosition(deck: Deck, positionIndex: number) {
+  window.location.hash = `/decks/${encodeURIComponent(deck.slug)}/positions/${positionIndex + 1}`;
+}
+
+function navigateToDecks() {
+  window.location.hash = "/";
+}
+
+function SolverPage({
+  deck,
+  positionIndex,
+  onGoToDeck,
+  onGoToPosition,
+}: {
+  deck: Deck;
+  positionIndex: number;
+  onGoToDeck: () => void;
+  onGoToPosition: (positionIndex: number) => void;
+}) {
+  const initialFen = deck.fens[positionIndex] ?? deck.previewFen;
   const [game, setGame] = useState<GameState>({
     history: [{ fen: initialFen }],
     currentPly: 0,
@@ -106,7 +152,7 @@ export function App() {
   const currentFenRef = useRef(currentFen);
   const gameRef = useRef(game);
 
-  const humanColor = useMemo(() => positionFromFen(initialFen).turn, []);
+  const humanColor = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
   const canHumanMove = position.turn === humanColor && !engineThinking && !position.isEnd();
   const movableDests = useMemo(
@@ -120,6 +166,15 @@ export function App() {
   }, [currentFen, game]);
 
   useEffect(() => disposeStockfish, []);
+
+  useEffect(() => {
+    setGame({
+      history: [{ fen: initialFen }],
+      currentPly: 0,
+    });
+    setEngineThinking(false);
+    setEngineError(undefined);
+  }, [initialFen]);
 
   const goToPly = useCallback((ply: number) => {
     setGame(current => ({
@@ -208,6 +263,8 @@ export function App() {
   const moves = useMemo(() => game.history.flatMap(entry => (entry.move ? [entry.move] : [])), [game.history]);
   const isAtLatestPly = game.currentPly === game.history.length - 1;
   const currentMoveLabel = game.currentPly === 0 ? "start" : `move ${game.currentPly}`;
+  const previousPositionIndex = positionIndex - 1;
+  const nextPositionIndex = positionIndex + 1;
   const statusText = engineError
     ? engineError
     : position.isEnd()
@@ -221,26 +278,91 @@ export function App() {
           : "Engine to move";
 
   return (
-    <main className="app-shell">
-      <div className="play-layout">
-        <section className="board-stage" aria-labelledby="position-title">
-          <div className="position-header">
-            <h1 id="position-title">Woodpecker</h1>
-            <p>{statusText}</p>
-          </div>
-          <ChessBoard
-            fen={currentFen}
-            orientation={humanColor}
-            turnColor={position.turn}
-            movableColor={canHumanMove ? humanColor : undefined}
-            movableDests={movableDests}
-            check={position.isCheck()}
-            lastMove={lastMove}
-            onMove={handleMove}
-          />
-        </section>
-        <MoveNotationPanel moves={moves} currentPly={game.currentPly} onSelectPly={goToPly} />
+    <main className="app-shell solver-shell">
+      <div className="solver-view">
+        <div className="position-nav">
+          <button className="deck-back-button" type="button" onClick={onGoToDeck}>
+            Go to deck
+          </button>
+          <button
+            className="position-arrow-button"
+            type="button"
+            aria-label="Previous position"
+            title="Previous position"
+            disabled={previousPositionIndex < 0}
+            onClick={() => onGoToPosition(previousPositionIndex)}
+          >
+            &#9664;
+          </button>
+          <button
+            className="position-arrow-button"
+            type="button"
+            aria-label="Next position"
+            title="Next position"
+            disabled={nextPositionIndex >= deck.fens.length}
+            onClick={() => onGoToPosition(nextPositionIndex)}
+          >
+            &#9654;
+          </button>
+        </div>
+        <div className="play-layout">
+          <section className="board-stage" aria-labelledby="position-title">
+            <div className="position-header">
+              <h1 id="position-title">
+                {deck.name} - Position {positionIndex + 1}
+              </h1>
+              <p>{statusText}</p>
+            </div>
+            <ChessBoard
+              fen={currentFen}
+              orientation={humanColor}
+              turnColor={position.turn}
+              movableColor={canHumanMove ? humanColor : undefined}
+              movableDests={movableDests}
+              check={position.isCheck()}
+              lastMove={lastMove}
+              onMove={handleMove}
+            />
+          </section>
+          <MoveNotationPanel moves={moves} currentPly={game.currentPly} onSelectPly={goToPly} />
+        </div>
       </div>
     </main>
   );
+}
+
+export function App() {
+  const [route, setRoute] = useState(routeFromHash);
+
+  useEffect(() => {
+    const handleHashChange = () => setRoute(routeFromHash());
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const selectedDeck = route.view === "decks" ? undefined : decks.find(deck => deck.slug === route.slug);
+
+  if (selectedDeck && route.view === "deck") {
+    return (
+      <DeckPositionGrid
+        deck={selectedDeck}
+        onSelectPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
+        onGoToDecks={navigateToDecks}
+      />
+    );
+  }
+
+  if (selectedDeck && route.view === "position" && selectedDeck.fens[route.positionIndex]) {
+    return (
+      <SolverPage
+        deck={selectedDeck}
+        positionIndex={route.positionIndex}
+        onGoToDeck={() => navigateToDeck(selectedDeck)}
+        onGoToPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
+      />
+    );
+  }
+
+  return <DeckGrid decks={decks} onSelectDeck={navigateToDeck} />;
 }

@@ -20,6 +20,138 @@ body {
   min-height: 100vh;
 }
 
+.deck-page {
+  min-height: 100vh;
+  padding: 42px;
+}
+
+.deck-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  width: min(100%, 1120px);
+  margin: 0 auto 24px;
+}
+
+.deck-page-header h1 {
+  margin: 0;
+  color: #20242a;
+  font-size: 2rem;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.deck-page-header p {
+  margin: 0 0 4px;
+  color: #66717b;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.deck-page-header .deck-back-button {
+  margin: 0 0 2px;
+  flex: 0 0 auto;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+  gap: 18px;
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.deck-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  min-height: 312px;
+  padding: 14px;
+  border: 1px solid rgba(37, 33, 27, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow:
+    0 14px 34px rgba(37, 33, 27, 0.1),
+    0 2px 8px rgba(37, 33, 27, 0.06);
+  color: #20242a;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.deck-card:hover,
+.deck-card:focus-visible {
+  border-color: rgba(32, 36, 42, 0.32);
+  box-shadow:
+    0 18px 42px rgba(37, 33, 27, 0.15),
+    0 2px 8px rgba(37, 33, 27, 0.08);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.deck-card-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 178px;
+  padding: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.deck-card-name {
+  color: #20242a;
+  font-size: 1.15rem;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.deck-card-description {
+  color: #59646e;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.position-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.position-card {
+  grid-template-rows: 1fr;
+  min-height: 178px;
+  padding: 12px;
+}
+
+.position-card-preview {
+  min-height: 0;
+}
+
+.position-card .fen-preview {
+  width: min(100%, 188px);
+}
+
+.fen-preview {
+  display: block;
+  width: min(100%, 156px);
+  aspect-ratio: 1;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(49, 46, 43, 0.1),
+    0 2px 5px rgba(49, 46, 43, 0.24);
+  overflow: hidden;
+}
+
+.fen-preview cg-board {
+  box-shadow: none;
+}
+
 .app-shell {
   display: flex;
   align-items: center;
@@ -28,12 +160,77 @@ body {
   padding: 32px;
 }
 
+.solver-shell {
+  align-items: center;
+}
+
+.solver-view {
+  width: min(100%, 1020px);
+}
+
+.position-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.deck-back-button {
+  min-height: 38px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid #c6d0d8;
+  border-radius: 6px;
+  background: #f8fafb;
+  color: #26343b;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.deck-back-button:hover,
+.deck-back-button:focus-visible {
+  background: #e8eff2;
+  outline: none;
+}
+
+.position-arrow-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 38px;
+  border: 1px solid #000000;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #000000;
+  font: inherit;
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.position-arrow-button:hover:not(:disabled),
+.position-arrow-button:focus-visible:not(:disabled) {
+  background: #000000;
+  color: #ffffff;
+  outline: none;
+}
+
+.position-arrow-button:disabled {
+  border-color: #b8b8b8;
+  color: #b8b8b8;
+  cursor: default;
+}
+
 .play-layout {
   display: grid;
   grid-template-columns: minmax(280px, 720px) minmax(220px, 280px);
   align-items: start;
   gap: 18px;
-  width: min(100%, 1020px);
+  width: 100%;
 }
 
 .board-stage {
@@ -208,6 +405,29 @@ body {
 }
 
 @media (max-width: 560px) {
+  .deck-page {
+    padding: 24px 18px;
+  }
+
+  .deck-page-header {
+    align-items: start;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+
+  .deck-page-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .deck-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .position-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .app-shell {
     padding: 18px;
   }
