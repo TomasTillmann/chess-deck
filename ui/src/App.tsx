@@ -7,7 +7,6 @@ import {
   makeSquare,
   makeUci,
   parseSquare,
-  parseUci,
   san as chessSan,
   squareRank,
   type Move,
@@ -20,19 +19,16 @@ import { ChessBoard } from "./components/ChessBoard";
 import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
 import { MoveNotationPanel } from "./components/MoveNotationPanel";
 import { decks, type Deck } from "./decks";
-import type { Engine } from "./engine/types";
 import {
   createMoveRoot,
   moveNodeAmongSiblings,
   nodeAtPath,
-  pathsEqual,
   resetNodeChildren,
   updateNodeAtPath,
   type MovePath,
   type MoveTreeNode,
 } from "./gameTree";
 
-const engineDepth = 8;
 const emptyDests = new Map() as Dests;
 
 type GameState = {
@@ -152,13 +148,11 @@ function navigateToDecks() {
 function SolverPage({
   deck,
   positionIndex,
-  engine,
   onGoToDeck,
   onGoToPosition,
 }: {
   deck: Deck;
   positionIndex: number;
-  engine: Engine;
   onGoToDeck: () => void;
   onGoToPosition: (positionIndex: number) => void;
 }) {
@@ -167,20 +161,18 @@ function SolverPage({
     root: createMoveRoot(initialFen),
     currentPath: [],
   });
-  const [engineThinking, setEngineThinking] = useState(false);
-  const [engineError, setEngineError] = useState<string>();
   const currentEntry = nodeAtPath(game.root, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
   const currentFenRef = useRef(currentFen);
   const gameRef = useRef(game);
 
-  const humanColor = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
+  const boardOrientation = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
-  const canHumanMove = position.turn === humanColor && !engineThinking && !position.isEnd();
+  const canMove = !position.isEnd();
   const movableDests = useMemo(
-    () => (canHumanMove ? (compat.chessgroundDests(position) as Dests) : emptyDests),
-    [canHumanMove, position],
+    () => (canMove ? (compat.chessgroundDests(position) as Dests) : emptyDests),
+    [canMove, position],
   );
 
   useEffect(() => {
@@ -188,15 +180,11 @@ function SolverPage({
     gameRef.current = game;
   }, [currentFen, game]);
 
-  useEffect(() => () => engine.dispose(), [engine]);
-
   useEffect(() => {
     setGame({
       root: createMoveRoot(initialFen),
       currentPath: [],
     });
-    setEngineThinking(false);
-    setEngineError(undefined);
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
@@ -250,63 +238,22 @@ function SolverPage({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goToPath]);
 
-  const playEngineMove = useCallback(async (fenAfterHumanMove: string, expectedPath: MovePath) => {
-    setEngineThinking(true);
-    setEngineError(undefined);
+  const resetMoveTreeAtPath = useCallback((path: MovePath) => {
+    const nextRoot = resetNodeChildren(gameRef.current.root, path);
+    const resetNode = nodeAtPath(nextRoot, path);
+    const nextGame = {
+      root: nextRoot,
+      currentPath: path,
+    };
 
-    try {
-      const uci = await engine.bestMove(fenAfterHumanMove, engineDepth);
-      if (currentFenRef.current !== fenAfterHumanMove || !pathsEqual(gameRef.current.currentPath, expectedPath)) return;
-
-      const enginePosition = positionFromFen(fenAfterHumanMove);
-      const move = parseUci(uci);
-
-      if (!move || !isNormal(move) || !enginePosition.isLegal(move)) {
-        throw new Error(`Stockfish returned an illegal move: ${uci}`);
-      }
-
-      setGame(current => {
-        if (!pathsEqual(current.currentPath, expectedPath) || nodeAtPath(current.root, expectedPath).fen !== fenAfterHumanMove) {
-          return current;
-        }
-
-        const result = appendOrSelectMove(current.root, expectedPath, enginePosition, move);
-        return {
-          root: result.root,
-          currentPath: result.currentPath,
-        };
-      });
-    } catch (error) {
-      setEngineError(error instanceof Error ? error.message : "Stockfish failed to move.");
-    } finally {
-      setEngineThinking(false);
-    }
-  }, [engine]);
-
-  const resetMoveTreeAtPath = useCallback(
-    (path: MovePath) => {
-      const nextRoot = resetNodeChildren(gameRef.current.root, path);
-      const resetNode = nodeAtPath(nextRoot, path);
-      const resetPosition = positionFromFen(resetNode.fen);
-      const nextGame = {
-        root: nextRoot,
-        currentPath: path,
-      };
-
-      setGame(nextGame);
-      gameRef.current = nextGame;
-      currentFenRef.current = resetNode.fen;
-
-      if (resetPosition.turn !== humanColor && !resetPosition.isEnd()) {
-        void playEngineMove(resetNode.fen, path);
-      }
-    },
-    [humanColor, playEngineMove],
-  );
+    setGame(nextGame);
+    gameRef.current = nextGame;
+    currentFenRef.current = resetNode.fen;
+  }, []);
 
   const handleMove = useCallback(
     (orig: Key, dest: Key) => {
-      if (!canHumanMove) return;
+      if (!canMove) return;
 
       const from = parseSquare(orig);
       const to = parseSquare(dest);
@@ -326,29 +273,19 @@ function SolverPage({
       setGame(nextGame);
       gameRef.current = nextGame;
       currentFenRef.current = result.node.fen;
-
-      if (result.node.children.length === 0 && result.position.turn !== humanColor && !result.position.isEnd()) {
-        void playEngineMove(result.node.fen, result.currentPath);
-      }
     },
-    [canHumanMove, humanColor, playEngineMove, position],
+    [canMove, position],
   );
 
   const isAtLatestPly = currentEntry.children.length === 0;
   const currentMoveLabel = game.currentPath.length === 0 ? "start" : `move ${game.currentPath.length}`;
   const previousPositionIndex = positionIndex - 1;
   const nextPositionIndex = positionIndex + 1;
-  const statusText = engineError
-    ? engineError
-    : position.isEnd()
+  const statusText = position.isEnd()
       ? "Game over"
       : !isAtLatestPly
         ? `Viewing ${currentMoveLabel}`
-        : engineThinking
-        ? "Engine thinking"
-        : position.turn === humanColor
-          ? "Your move"
-          : "Engine to move";
+        : `${position.turn === "white" ? "White" : "Black"} to move`;
 
   return (
     <main className="app-shell solver-shell">
@@ -388,9 +325,9 @@ function SolverPage({
             </div>
             <ChessBoard
               fen={currentFen}
-              orientation={humanColor}
+              orientation={boardOrientation}
               turnColor={position.turn}
-              movableColor={canHumanMove ? humanColor : undefined}
+              movableColor={canMove ? position.turn : undefined}
               movableDests={movableDests}
               check={position.isCheck()}
               lastMove={lastMove}
@@ -411,7 +348,7 @@ function SolverPage({
   );
 }
 
-export function App({ engine }: { engine: Engine }) {
+export function App() {
   const [route, setRoute] = useState(routeFromHash);
 
   useEffect(() => {
@@ -438,7 +375,6 @@ export function App({ engine }: { engine: Engine }) {
       <SolverPage
         deck={selectedDeck}
         positionIndex={route.positionIndex}
-        engine={engine}
         onGoToDeck={() => navigateToDeck(selectedDeck)}
         onGoToPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
       />

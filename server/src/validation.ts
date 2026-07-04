@@ -28,6 +28,26 @@ export const recordUpdateSchema = recordCreateSchema.extend({
   id: idSchema,
 });
 
+const solutionFenSchema = z.string().min(1);
+
+export const solutionExistingBatchSchema = z.object({
+  collection: collectionSchema,
+  fens: z.array(solutionFenSchema).min(1).max(5_000),
+});
+
+export const solutionStoreBatchSchema = z.object({
+  collection: collectionSchema,
+  solutions: z
+    .array(
+      z.object({
+        fen: solutionFenSchema,
+        tree: z.any().refine(value => value !== undefined, "tree is required"),
+      }),
+    )
+    .min(1)
+    .max(100),
+});
+
 export class RequestValidationError extends Error {
   constructor(readonly issues: string[]) {
     super("Request validation failed");

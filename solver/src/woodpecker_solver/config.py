@@ -35,21 +35,9 @@ class SolverSettings:
 
 
 @dataclass(frozen=True)
-class OutputSettings:
-    pretty_json: bool
-
-
-@dataclass(frozen=True)
-class LoggingSettings:
-    error_log: str
-
-
-@dataclass(frozen=True)
 class AppSettings:
     engine: EngineSettings
     solver: SolverSettings
-    output: OutputSettings
-    logging: LoggingSettings
 
 
 def _section(data: dict[str, Any], name: str) -> dict[str, Any]:
@@ -63,8 +51,6 @@ def load_settings(path: Path) -> AppSettings:
     data = json.loads(path.read_text(encoding="utf-8"))
     engine = _section(data, "engine")
     solver = _section(data, "solver")
-    output = _section(data, "output")
-    logging = _section(data, "logging")
 
     return AppSettings(
         engine=EngineSettings(
@@ -91,6 +77,4 @@ def load_settings(path: Path) -> AppSettings:
             skip_if_no_clear_gap=bool(solver["skip_if_no_clear_gap"]),
             include_evals=bool(solver["include_evals"]),
         ),
-        output=OutputSettings(pretty_json=bool(output["pretty_json"])),
-        logging=LoggingSettings(error_log=str(logging["error_log"])),
     )

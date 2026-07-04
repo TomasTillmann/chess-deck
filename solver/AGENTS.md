@@ -8,14 +8,15 @@ collections with Stockfish.
 Run from this folder:
 
 ```bash
-uv run solve-fens --input ../fen --name woodpecker --output ../solved
+uv run solve-fens --input ../fen --name woodpecker
 ```
 
 Common verification runs:
 
 ```bash
-uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 1
-uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --parallel 2
+uv run solve-fens --input ../fen --name woodpecker --limit 1
+uv run solve-fens --input ../fen --name woodpecker --limit 5 --parallel 2
+uv run solve-fens --input ../fen --name woodpecker --limit 5 --parallel 2 --overwrite
 ```
 
 CLI options:
@@ -23,21 +24,26 @@ CLI options:
 - `--input`: base folder containing FEN collections.
 - `--name`: collection name. For `woodpecker`, input is
   `../fen/woodpecker/woodpecker.fen`.
-- `--output`: base folder for solved JSON output.
+- `--server-url`: Woodpecker server base URL. Defaults to
+  `http://127.0.0.1:3001`.
+- `--server-dir`: Woodpecker server project directory used for auto-start.
+  Defaults to `../server`.
+- `--no-start-server`: require an already-running server instead of auto-starting
+  one.
 - `--config`: path to settings JSON. Defaults to `appsettings.json`.
 - `--limit`: optional maximum number of FENs to process from the start.
-- `--overwrite`: regenerate existing `N.json` files and clear the run's error log.
+- `--overwrite`: regenerate existing DB-backed solutions.
 - `--parallel`: number of FENs to solve concurrently. Defaults to 4.
 
 Do not add CLI flags for Stockfish path, threads, depth, movetime, MultiPV, or
 solver tuning. Those belong in `appsettings.json`.
 
-## Output Layout
+## Output Storage
 
 For:
 
 ```bash
-uv run solve-fens --input ../fen --name woodpecker --output ../solved
+uv run solve-fens --input ../fen --name woodpecker
 ```
 
 the solver reads:
@@ -46,17 +52,17 @@ the solver reads:
 ../fen/woodpecker/woodpecker.fen
 ```
 
-and writes:
+and stores each solved tree through the Woodpecker server API in the SQLite
+`solutions` table:
 
 ```text
-../solved/woodpecker/1.json
-../solved/woodpecker/2.json
-...
-../solved/woodpecker/errors.jsonl
+collection = woodpecker
+fen = <original FEN>
+tree = <same JSON document previously written to N.json>
 ```
 
-One non-empty FEN line becomes one output number. Order is preserved, so the
-first non-empty FEN line is `1.json`.
+One non-empty FEN line becomes one work item. Order is preserved for progress
+output, but the database key is the FEN, not the line number.
 
 Output moves are UCI only. Do not emit SAN.
 
@@ -64,21 +70,22 @@ Output moves are UCI only. Do not emit SAN.
 
 Main files:
 
-- `src/woodpecker_solver/cli.py`: Typer CLI, file discovery, rolling parallel
-  orchestration, output writing, overwrite behavior, and error logging.
+- `src/woodpecker_solver/cli.py`: Typer CLI, file discovery, server API client,
+  rolling parallel orchestration, and overwrite behavior.
 - `src/woodpecker_solver/config.py`: typed dataclasses for `appsettings.json`.
 - `src/woodpecker_solver/engine.py`: sequential Stockfish wrapper using
   `python-chess`.
 - `src/woodpecker_solver/solver.py`: recursive FEN tree builder and stopping
   logic.
-- `appsettings.json`: Stockfish settings, solver thresholds, output formatting,
-  and log filename.
+- `appsettings.json`: Stockfish settings and solver thresholds.
 
 The solver keeps up to `--parallel` FENs in flight at once. The default
 `--parallel 4` solves up to 4 FENs concurrently; as soon as one finishes, the
 next pending FEN starts. Each worker keeps one Stockfish process alive and
-reuses it for every FEN it solves. The parent process performs all JSON and
-error-log writes.
+reuses it for every FEN it solves. The parent process performs server API calls
+for batch existence checks and batch solution storage. If no server is already
+healthy at `--server-url`, the solver starts `npm run dev` in `--server-dir` and
+stops only that managed server process when the run ends.
 
 ## Stockfish Settings
 
@@ -208,16 +215,10 @@ When that holds, the node is marked:
 "terminal": "robust_win"
 ```
 
-## Error Log
+## Errors
 
-Invalid FENs, root skips, and runtime errors are appended as JSON lines to:
-
-```text
-../solved/<name>/errors.jsonl
-```
-
-With `--overwrite`, the error log for that output collection is removed at the
-start of the run.
+Invalid FENs, root skips, and runtime errors are printed. They are not stored in
+SQLite and no `solved` folder is used.
 
 ## Development Notes
 
@@ -225,7 +226,8 @@ After changing solver code, run:
 
 ```bash
 uv run python -m py_compile src/woodpecker_solver/*.py
-uv run solve-fens --input ../fen --name woodpecker --output ../solved --limit 5 --parallel 2
+uv run solve-fens --input ../fen --name woodpecker --limit 5 --parallel 2
+uv run solve-fens --input ../fen --name woodpecker --limit 5 --parallel 2 --overwrite
 ```
 
 Keep the CLI simple. Solver behavior should be changed through

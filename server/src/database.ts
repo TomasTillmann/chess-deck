@@ -29,11 +29,41 @@ function migrate(db: Db): void {
       ON records (collection);
 
     CREATE TABLE IF NOT EXISTS solutions (
-      id TEXT NOT NULL,
+      fen TEXT NOT NULL,
       collection TEXT NOT NULL,
       tree TEXT NOT NULL CHECK (json_valid(tree)),
-      PRIMARY KEY (collection, id)
+      PRIMARY KEY (collection, fen)
     );
+
+    CREATE INDEX IF NOT EXISTS solutions_collection_idx
+      ON solutions (collection);
+  `);
+
+  migrateSolutionsFenColumn(db);
+}
+
+function migrateSolutionsFenColumn(db: Db): void {
+  const columns = db.prepare("PRAGMA table_info(solutions)").all() as { readonly name: string }[];
+  const hasFen = columns.some(column => column.name === "fen");
+  const hasId = columns.some(column => column.name === "id");
+
+  if (hasFen || !hasId) return;
+
+  db.exec(`
+    ALTER TABLE solutions RENAME TO solutions_old;
+
+    CREATE TABLE solutions (
+      fen TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      tree TEXT NOT NULL CHECK (json_valid(tree)),
+      PRIMARY KEY (collection, fen)
+    );
+
+    INSERT INTO solutions (fen, collection, tree)
+    SELECT id, collection, tree
+    FROM solutions_old;
+
+    DROP TABLE solutions_old;
 
     CREATE INDEX IF NOT EXISTS solutions_collection_idx
       ON solutions (collection);

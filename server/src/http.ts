@@ -1,8 +1,13 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
-import { RecordRepository, SolutionRepository } from "./repository.js";
-import { RequestValidationError } from "./validation.js";
+import { RecordRepository, SolutionRepository, type SolutionInput } from "./repository.js";
+import {
+  RequestValidationError,
+  readJsonBody,
+  solutionExistingBatchSchema,
+  solutionStoreBatchSchema,
+} from "./validation.js";
 
 type JsonValue =
   | string
@@ -63,7 +68,7 @@ async function handleRequest(
     const solutionPrefix = "/v1/solution/";
     if (request.method === "GET" && url.pathname.startsWith(solutionPrefix)) {
       const fen = decodeURIComponent(url.pathname.slice(solutionPrefix.length));
-      const solution = context.solutions.findById("woodpecker", fen);
+      const solution = context.solutions.findByFen("woodpecker", fen);
 
       if (!solution) {
         sendJson(response, 404, { error: "Solution not found" });
@@ -71,6 +76,26 @@ async function handleRequest(
       }
 
       sendJson(response, 200, solution.tree as JsonValue);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/solver/solutions/existing") {
+      const body = await readJsonBody(request, solutionExistingBatchSchema, 10_000_000);
+      sendJson(response, 200, {
+        existing: context.solutions.existingFens(body.collection, body.fens),
+      });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/solver/solutions") {
+      const body = await readJsonBody(request, solutionStoreBatchSchema, 100_000_000);
+      const solutions: SolutionInput[] = body.solutions.map(solution => ({
+        fen: solution.fen,
+        tree: solution.tree,
+      }));
+      sendJson(response, 200, {
+        stored: context.solutions.upsertMany(body.collection, solutions),
+      });
       return;
     }
 
@@ -114,7 +139,7 @@ function checkDatabaseHealth(db: Db): DatabaseHealth {
 function sendJson(response: ServerResponse, statusCode: number, body: JsonValue): void {
   response.writeHead(statusCode, {
     "access-control-allow-headers": "content-type",
-    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-origin": "*",
     "content-type": "application/json; charset=utf-8",
   });

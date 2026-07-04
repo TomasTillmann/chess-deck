@@ -63,3 +63,46 @@ test("GET /v1/solution/:fen returns 404 when the solution is unknown", async () 
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { error: "Solution not found" });
 });
+
+test("POST /v1/solver/solutions/existing returns existing solution FENs", async () => {
+  const response = await fetch(`${baseUrl}/v1/solver/solutions/existing`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      collection: "woodpecker",
+      fens: [fen, "missing fen"],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { existing: [fen] });
+});
+
+test("POST /v1/solver/solutions stores a batch of solved trees", async () => {
+  const batchFen = "8/8/8/8/8/8/5K2/6k1 w - - 0 1";
+  const batchTree = {
+    fen: batchFen,
+    sideToSolve: "w",
+    status: "solved",
+    root: {
+      fen: batchFen,
+      turn: "w",
+      moves: [],
+    },
+  };
+
+  const response = await fetch(`${baseUrl}/v1/solver/solutions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      collection: "woodpecker",
+      solutions: [{ fen: batchFen, tree: batchTree }],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { stored: 1 });
+  assert.deepEqual(db.prepare("SELECT tree FROM solutions WHERE collection = ? AND fen = ?").get("woodpecker", batchFen), {
+    tree: JSON.stringify(batchTree),
+  });
+});

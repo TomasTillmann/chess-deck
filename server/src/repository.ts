@@ -18,13 +18,18 @@ type RecordRow = {
 };
 
 export type StoredSolution = {
-  readonly id: string;
+  readonly fen: string;
   readonly collection: string;
   readonly tree: unknown;
 };
 
+export type SolutionInput = {
+  readonly fen: string;
+  readonly tree: unknown;
+};
+
 type SolutionRow = {
-  id: string;
+  fen: string;
   collection: string;
   tree: string;
 };
@@ -131,34 +136,68 @@ export class RecordRepository {
 export class SolutionRepository {
   constructor(private readonly db: Db) {}
 
-  upsert(collection: string, id: string, tree: unknown): StoredSolution {
-    const compactTree = JSON.stringify(tree);
+  existingFens(collection: string, fens: readonly string[]): string[] {
+    if (fens.length === 0) return [];
 
-    this.db
-      .prepare(
-        `
-          INSERT INTO solutions (id, collection, tree)
-          VALUES (@id, @collection, @tree)
-          ON CONFLICT(collection, id) DO UPDATE SET
-            tree = excluded.tree
-        `,
-      )
-      .run({
-        id,
-        collection,
-        tree: compactTree,
-      });
+    const existing: string[] = [];
+    for (let offset = 0; offset < fens.length; offset += 500) {
+      const chunk = fens.slice(offset, offset + 500);
+      const placeholders = chunk.map(() => "?").join(", ");
+      const rows = this.db
+        .prepare(
+          `
+            SELECT fen
+            FROM solutions
+            WHERE collection = ? AND fen IN (${placeholders})
+          `,
+        )
+        .all(collection, ...chunk) as { readonly fen: string }[];
 
-    const stored = this.findById(collection, id);
-    if (!stored) throw new Error(`Failed to store solution for ${collection}/${id}`);
+      existing.push(...rows.map(row => row.fen));
+    }
+
+    return existing;
+  }
+
+  upsertMany(collection: string, solutions: readonly SolutionInput[]): number {
+    if (solutions.length === 0) return 0;
+
+    const statement = this.db.prepare(
+      `
+        INSERT INTO solutions (fen, collection, tree)
+        VALUES (@fen, @collection, @tree)
+        ON CONFLICT(collection, fen) DO UPDATE SET
+          tree = excluded.tree
+      `,
+    );
+
+    const insertMany = this.db.transaction((items: readonly SolutionInput[]) => {
+      for (const solution of items) {
+        statement.run({
+          fen: solution.fen,
+          collection,
+          tree: JSON.stringify(solution.tree),
+        });
+      }
+    });
+
+    insertMany(solutions);
+    return solutions.length;
+  }
+
+  upsert(collection: string, fen: string, tree: unknown): StoredSolution {
+    this.upsertMany(collection, [{ fen, tree }]);
+
+    const stored = this.findByFen(collection, fen);
+    if (!stored) throw new Error(`Failed to store solution for ${collection}/${fen}`);
 
     return stored;
   }
 
-  findById(collection: string, id: string): StoredSolution | null {
+  findByFen(collection: string, fen: string): StoredSolution | null {
     const row = this.db
-      .prepare("SELECT * FROM solutions WHERE collection = ? AND id = ?")
-      .get(collection, id) as SolutionRow | undefined;
+      .prepare("SELECT * FROM solutions WHERE collection = ? AND fen = ?")
+      .get(collection, fen) as SolutionRow | undefined;
 
     return row ? mapSolutionRow(row) : null;
   }
@@ -184,7 +223,7 @@ function mapRow<TPayload extends Record<string, unknown>>(row: RecordRow): Store
 
 function mapSolutionRow(row: SolutionRow): StoredSolution {
   return {
-    id: row.id,
+    fen: row.fen,
     collection: row.collection,
     tree: JSON.parse(row.tree) as unknown,
   };
