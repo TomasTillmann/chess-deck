@@ -2,6 +2,7 @@ import stockfishWorkerUrl from "stockfish/bin/stockfish-18-lite-single.js?url";
 import stockfishWasmUrl from "stockfish/bin/stockfish-18-lite-single.wasm?url";
 
 import { UciEngineClient, type UciTransport } from "./uciClient";
+import type { Engine } from "./types";
 
 class WorkerUciTransport implements UciTransport {
   private readonly worker: Worker;
@@ -52,3 +53,9 @@ export function dispose(): void {
   client?.dispose();
   client = undefined;
 }
+
+export const stockfishEngine: Engine = {
+  prepare,
+  bestMove,
+  dispose,
+};

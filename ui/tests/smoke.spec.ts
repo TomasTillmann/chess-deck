@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+const appUrl = "/?engine=legal";
+
 function squarePoint(box: { x: number; y: number; width: number }, square: string, orientation: "white" | "black") {
   const file = square.charCodeAt(0) - "a".charCodeAt(0);
   const rank = Number(square[1]) - 1;
@@ -14,7 +16,7 @@ function squarePoint(box: { x: number; y: number; width: number }, square: strin
 }
 
 async function openWoodpeckerDeck(page: Page) {
-  await page.goto("/");
+  await page.goto(appUrl);
   await page.getByRole("button", { name: /Woodpecker/ }).click();
 }
 
@@ -38,7 +40,7 @@ async function dragMove(page: Page, squareFrom: string, squareTo: string, orient
 }
 
 test("renders the deck grid and opens a deck", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(appUrl);
 
   await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Woodpecker/ })).toBeVisible();
@@ -98,7 +100,7 @@ test("navigates between decks and solver", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
 });
 
-test("plays the FEN side against Stockfish without flipping the board", async ({ page }) => {
+test("plays the FEN side against the test engine without flipping the board", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
   const status = page.locator(".position-header p");
@@ -108,8 +110,7 @@ test("plays the FEN side against Stockfish without flipping the board", async ({
 
   await dragMove(page, "f4", "d3", "black");
 
-  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
   await expect(board).toHaveClass(/orientation-black/);
 });
 
@@ -124,8 +125,7 @@ test("syncs notation with board moves, arrows, and clicks", async ({ page }) => 
 
   const humanMove = notation.getByRole("button", { name: "Nd3" });
   await expect(humanMove).toBeVisible();
-  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
 
   await page.keyboard.press("ArrowLeft");
   await expect(humanMove).toHaveAttribute("aria-current", "step");
@@ -144,8 +144,7 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
-  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
 
   const mainlineMove = notation.getByRole("button", { name: "Nd3" });
   await expect(mainlineMove).toBeVisible();
@@ -156,7 +155,7 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   await expect(status).toHaveText("Viewing start");
 
   await dragMove(page, "f4", "e2", "black");
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
 
   const sidelineMove = notation.getByRole("button", { name: "Ne2" });
   await expect(mainlineMove).toBeVisible();
@@ -170,16 +169,16 @@ test("keeps the mainline when a sideline starts from an earlier position", async
   await expect(sidelineMove).not.toHaveAttribute("aria-current", "step");
 });
 
-test("resetting to an engine-to-move leaf asks Stockfish for a fresh reply", async ({ page }) => {
+test("resetting to an engine-to-move leaf asks the test engine for a fresh reply", async ({ page }) => {
   await openWoodpeckerPosition(page);
 
   const status = page.locator(".position-header p");
   const notation = page.getByLabel("Move notation");
 
   await dragMove(page, "f4", "d3", "black");
-  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
   await expect(notation.locator(".notation-move")).toHaveCount(2);
+  const firstEngineReply = await notation.locator(".notation-move").nth(1).textContent();
 
   const humanMove = notation.getByRole("button", { name: "Nd3" });
   await humanMove.click({ button: "right" });
@@ -187,8 +186,8 @@ test("resetting to an engine-to-move leaf asks Stockfish for a fresh reply", asy
 
   await page.getByRole("menuitem", { name: "Reset here" }).click();
 
-  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
-  await expect(status).toHaveText("Your move", { timeout: 30000 });
+  await expect(status).toHaveText("Your move");
   await expect(notation.locator(".notation-move")).toHaveCount(2);
   await expect(notation.locator(".notation-move").nth(1)).toHaveAttribute("aria-current", "step");
+  await expect(notation.locator(".notation-move").nth(1)).not.toHaveText(firstEngineReply ?? "");
 });

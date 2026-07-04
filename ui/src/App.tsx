@@ -20,7 +20,7 @@ import { ChessBoard } from "./components/ChessBoard";
 import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
 import { MoveNotationPanel } from "./components/MoveNotationPanel";
 import { decks, type Deck } from "./decks";
-import { bestMove as stockfishBestMove, dispose as disposeStockfish } from "./engine/stockfishClient";
+import type { Engine } from "./engine/types";
 import {
   createMoveRoot,
   moveNodeAmongSiblings,
@@ -152,11 +152,13 @@ function navigateToDecks() {
 function SolverPage({
   deck,
   positionIndex,
+  engine,
   onGoToDeck,
   onGoToPosition,
 }: {
   deck: Deck;
   positionIndex: number;
+  engine: Engine;
   onGoToDeck: () => void;
   onGoToPosition: (positionIndex: number) => void;
 }) {
@@ -186,7 +188,7 @@ function SolverPage({
     gameRef.current = game;
   }, [currentFen, game]);
 
-  useEffect(() => disposeStockfish, []);
+  useEffect(() => () => engine.dispose(), [engine]);
 
   useEffect(() => {
     setGame({
@@ -253,7 +255,7 @@ function SolverPage({
     setEngineError(undefined);
 
     try {
-      const uci = await stockfishBestMove(fenAfterHumanMove, engineDepth);
+      const uci = await engine.bestMove(fenAfterHumanMove, engineDepth);
       if (currentFenRef.current !== fenAfterHumanMove || !pathsEqual(gameRef.current.currentPath, expectedPath)) return;
 
       const enginePosition = positionFromFen(fenAfterHumanMove);
@@ -279,7 +281,7 @@ function SolverPage({
     } finally {
       setEngineThinking(false);
     }
-  }, []);
+  }, [engine]);
 
   const resetMoveTreeAtPath = useCallback(
     (path: MovePath) => {
@@ -409,7 +411,7 @@ function SolverPage({
   );
 }
 
-export function App() {
+export function App({ engine }: { engine: Engine }) {
   const [route, setRoute] = useState(routeFromHash);
 
   useEffect(() => {
@@ -436,6 +438,7 @@ export function App() {
       <SolverPage
         deck={selectedDeck}
         positionIndex={route.positionIndex}
+        engine={engine}
         onGoToDeck={() => navigateToDeck(selectedDeck)}
         onGoToPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
       />
