@@ -44,3 +44,37 @@ test("plays the FEN side against Stockfish without flipping the board", async ({
   await expect(status).toHaveText("Your move", { timeout: 30000 });
   await expect(board).toHaveClass(/orientation-black/);
 });
+
+test("syncs notation with board moves, arrows, and clicks", async ({ page }) => {
+  await page.goto("/");
+
+  const status = page.locator(".position-header p");
+  const board = page.getByLabel("Chess position");
+  const notation = page.getByLabel("Move notation");
+  await expect(notation).toContainText("No moves yet");
+
+  const box = await board.boundingBox();
+  if (!box) throw new Error("Could not find the chess board bounds.");
+
+  const from = squarePoint(box, "f4", "black");
+  const to = squarePoint(box, "d3", "black");
+
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 12 });
+  await page.mouse.up();
+
+  const humanMove = notation.getByRole("button", { name: "Nd3" });
+  await expect(humanMove).toBeVisible();
+  await expect(status).toHaveText("Engine thinking", { timeout: 5000 });
+  await expect(status).toHaveText("Your move", { timeout: 30000 });
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(humanMove).toHaveAttribute("aria-current", "step");
+
+  await page.keyboard.press("ArrowRight");
+  await expect(humanMove).not.toHaveAttribute("aria-current", "step");
+
+  await humanMove.click();
+  await expect(humanMove).toHaveAttribute("aria-current", "step");
+});
