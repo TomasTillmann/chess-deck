@@ -52,12 +52,16 @@ function MoveButton({
   if (!node.move) return null;
 
   const isCurrent = pathsEqual(path, currentPath);
+  const classes = ["notation-move"];
+  if (node.review === "solution-missing") classes.push("is-review-solution-missing");
+  if (node.review === "user-extra") classes.push("is-review-user-extra");
+  if (isCurrent) classes.push("is-current");
 
   return (
     <button
       ref={isCurrent ? currentRef : undefined}
       type="button"
-      className={isCurrent ? "notation-move is-current" : "notation-move"}
+      className={classes.join(" ")}
       onClick={() => onSelectPath(path)}
       onContextMenu={event => {
         event.preventDefault();

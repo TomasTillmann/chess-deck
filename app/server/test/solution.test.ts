@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 import { openDatabase, type Db } from "../src/database.js";
 import { createApp } from "../src/http.js";
-import { SolutionRepository } from "../src/repository.js";
+import { CollectionRepository, SolutionRepository } from "../src/repository.js";
 
 const fen = "r6r/1pp3k1/1b6/p2P1p2/P1N1pn2/2P2PP1/BP5P/4RR1K b - - 0 1";
 const tree = {
@@ -24,6 +24,7 @@ let baseUrl: string;
 
 before(async () => {
   db = openDatabase(":memory:");
+  db.prepare("INSERT INTO collections (fen) VALUES (?)").run(fen);
   new SolutionRepository(db).upsert("woodpecker", fen, tree);
 
   server = createApp(
@@ -48,6 +49,28 @@ after(async () => {
     server.close(error => (error ? reject(error) : resolve()));
   });
   db.close();
+});
+
+test("GET /v1/collections returns FENs from the collections table", async () => {
+  const response = await fetch(`${baseUrl}/v1/collections`);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    collections: [
+      {
+        slug: "woodpecker",
+        name: "Woodpecker",
+        description: "1 positions loaded from the Woodpecker deck.",
+        fens: [fen],
+      },
+    ],
+  });
+});
+
+test("CollectionRepository lists FENs by generated id", () => {
+  const repository = new CollectionRepository(db);
+
+  assert.deepEqual(repository.listFens(), [fen]);
 });
 
 test("GET /v1/solution/:fen returns the stored solution JSON", async () => {

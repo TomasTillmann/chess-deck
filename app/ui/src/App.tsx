@@ -18,9 +18,10 @@ import "./App.css";
 import { ChessBoard } from "./components/ChessBoard";
 import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
 import { MoveNotationPanel } from "./components/MoveNotationPanel";
-import { decks, type Deck } from "./decks";
+import { fetchDecks, type Deck } from "./decks";
 import {
   createMoveRoot,
+  existingPath,
   moveNodeAmongSiblings,
   nodeAtPath,
   resetNodeChildren,
@@ -28,6 +29,8 @@ import {
   type MovePath,
   type MoveTreeNode,
 } from "./gameTree";
+import { fetchSolution, SolutionFetchError } from "./solutionClient";
+import { compareSolutionTree } from "./solutionComparison";
 
 const emptyDests = new Map() as Dests;
 
@@ -35,6 +38,12 @@ type GameState = {
   root: MoveTreeNode;
   currentPath: MovePath;
 };
+
+type SubmitState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; score: number }
+  | { status: "error"; message: string };
 
 type Route =
   | { view: "decks" }
@@ -161,11 +170,15 @@ function SolverPage({
     root: createMoveRoot(initialFen),
     currentPath: [],
   });
-  const currentEntry = nodeAtPath(game.root, game.currentPath);
+  const [reviewRoot, setReviewRoot] = useState<MoveTreeNode>();
+  const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
+  const visibleRoot = reviewRoot ?? game.root;
+  const currentEntry = nodeAtPath(visibleRoot, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
   const currentFenRef = useRef(currentFen);
   const gameRef = useRef(game);
+  const reviewRootRef = useRef(reviewRoot);
 
   const boardOrientation = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
@@ -178,13 +191,17 @@ function SolverPage({
   useEffect(() => {
     currentFenRef.current = currentFen;
     gameRef.current = game;
-  }, [currentFen, game]);
+    reviewRootRef.current = reviewRoot;
+  }, [currentFen, game, reviewRoot]);
 
   useEffect(() => {
     setGame({
       root: createMoveRoot(initialFen),
       currentPath: [],
     });
+    setReviewRoot(undefined);
+    reviewRootRef.current = undefined;
+    setSubmitState({ status: "idle" });
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
@@ -192,31 +209,49 @@ function SolverPage({
       ...gameRef.current,
       currentPath: path,
     };
+    const root = reviewRootRef.current ?? nextGame.root;
 
     setGame(nextGame);
     gameRef.current = nextGame;
-    currentFenRef.current = nodeAtPath(nextGame.root, path).fen;
+    currentFenRef.current = nodeAtPath(root, path).fen;
+  }, []);
+
+  const clearReviewForEdit = useCallback((path: MovePath): MovePath => {
+    if (!reviewRootRef.current) return path;
+
+    const editPath = existingPath(gameRef.current.root, path);
+    setReviewRoot(undefined);
+    reviewRootRef.current = undefined;
+    setSubmitState({ status: "idle" });
+
+    return editPath;
   }, []);
 
   const movePathUp = useCallback((path: MovePath) => {
+    const editPath = clearReviewForEdit(path);
     const nextGame = {
       ...gameRef.current,
-      root: moveNodeAmongSiblings(gameRef.current.root, path, -1),
+      root: moveNodeAmongSiblings(gameRef.current.root, editPath, -1),
+      currentPath: editPath,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
-  }, []);
+    currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
+  }, [clearReviewForEdit]);
 
   const movePathDown = useCallback((path: MovePath) => {
+    const editPath = clearReviewForEdit(path);
     const nextGame = {
       ...gameRef.current,
-      root: moveNodeAmongSiblings(gameRef.current.root, path, 1),
+      root: moveNodeAmongSiblings(gameRef.current.root, editPath, 1),
+      currentPath: editPath,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
-  }, []);
+    currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
+  }, [clearReviewForEdit]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -239,32 +274,46 @@ function SolverPage({
   }, [goToPath]);
 
   const resetMoveTreeAtPath = useCallback((path: MovePath) => {
-    const nextRoot = resetNodeChildren(gameRef.current.root, path);
-    const resetNode = nodeAtPath(nextRoot, path);
+    const editPath = clearReviewForEdit(path);
+    const nextRoot = resetNodeChildren(gameRef.current.root, editPath);
+    const resetNode = nodeAtPath(nextRoot, editPath);
     const nextGame = {
       root: nextRoot,
-      currentPath: path,
+      currentPath: editPath,
     };
 
     setGame(nextGame);
     gameRef.current = nextGame;
     currentFenRef.current = resetNode.fen;
-  }, []);
+  }, [clearReviewForEdit]);
 
   const handleMove = useCallback(
     (orig: Key, dest: Key) => {
       if (!canMove) return;
 
+      const editPath = clearReviewForEdit(gameRef.current.currentPath);
+      const editPosition = positionFromFen(nodeAtPath(gameRef.current.root, editPath).fen);
       const from = parseSquare(orig);
       const to = parseSquare(dest);
 
       if (from === undefined || to === undefined) return;
 
       const move: Move = { from, to };
-      if (isPromotion(position, from, to)) move.promotion = "queen";
-      if (!position.isLegal(move)) return;
+      if (isPromotion(editPosition, from, to)) move.promotion = "queen";
 
-      const result = appendOrSelectMove(gameRef.current.root, gameRef.current.currentPath, position, move);
+      if (!editPosition.isLegal(move)) {
+        const nextGame = {
+          ...gameRef.current,
+          currentPath: editPath,
+        };
+
+        setGame(nextGame);
+        gameRef.current = nextGame;
+        currentFenRef.current = nodeAtPath(nextGame.root, editPath).fen;
+        return;
+      }
+
+      const result = appendOrSelectMove(gameRef.current.root, editPath, editPosition, move);
       const nextGame = {
         root: result.root,
         currentPath: result.currentPath,
@@ -274,8 +323,32 @@ function SolverPage({
       gameRef.current = nextGame;
       currentFenRef.current = result.node.fen;
     },
-    [canMove, position],
+    [canMove, clearReviewForEdit],
   );
+
+  const handleSubmit = useCallback(async () => {
+    setSubmitState({ status: "loading" });
+
+    try {
+      const solution = await fetchSolution(initialFen);
+      const result = compareSolutionTree(initialFen, gameRef.current.root, solution);
+
+      setReviewRoot(result.reviewRoot);
+      reviewRootRef.current = result.reviewRoot;
+      setSubmitState({ status: "success", score: result.score });
+      currentFenRef.current = nodeAtPath(result.reviewRoot, gameRef.current.currentPath).fen;
+    } catch (error) {
+      setReviewRoot(undefined);
+      reviewRootRef.current = undefined;
+      setSubmitState({
+        status: "error",
+        message:
+          error instanceof SolutionFetchError && error.status === 404
+            ? "No solution found for this position."
+            : "Could not load the solution. Check that the server is running.",
+      });
+    }
+  }, [initialFen]);
 
   const isAtLatestPly = currentEntry.children.length === 0;
   const currentMoveLabel = game.currentPath.length === 0 ? "start" : `move ${game.currentPath.length}`;
@@ -333,9 +406,29 @@ function SolverPage({
               lastMove={lastMove}
               onMove={handleMove}
             />
+            <div className="solution-submit-row">
+              <button
+                className="solution-submit-button"
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitState.status === "loading"}
+              >
+                {submitState.status === "loading" ? "Submitting" : "Submit"}
+              </button>
+              {submitState.status === "success" ? (
+                <span className="solution-score" aria-live="polite">
+                  {submitState.score}%
+                </span>
+              ) : null}
+              {submitState.status === "error" ? (
+                <span className="solution-status" role="status">
+                  {submitState.message}
+                </span>
+              ) : null}
+            </div>
           </section>
           <MoveNotationPanel
-            root={game.root}
+            root={visibleRoot}
             currentPath={game.currentPath}
             onSelectPath={goToPath}
             onResetPath={resetMoveTreeAtPath}
@@ -350,6 +443,31 @@ function SolverPage({
 
 export function App() {
   const [route, setRoute] = useState(routeFromHash);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [isLoadingDecks, setIsLoadingDecks] = useState(true);
+  const [deckLoadError, setDeckLoadError] = useState<string | undefined>();
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetchDecks()
+      .then(loadedDecks => {
+        if (!isCurrent) return;
+        setDecks(loadedDecks);
+        setDeckLoadError(undefined);
+      })
+      .catch(error => {
+        if (!isCurrent) return;
+        setDeckLoadError(error instanceof Error ? error.message : "Failed to load collections");
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoadingDecks(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => setRoute(routeFromHash());
@@ -359,6 +477,28 @@ export function App() {
   }, []);
 
   const selectedDeck = route.view === "decks" ? undefined : decks.find(deck => deck.slug === route.slug);
+
+  if (isLoadingDecks) {
+    return (
+      <main className="deck-page">
+        <header className="deck-page-header">
+          <h1>Decks</h1>
+          <p>Loading positions</p>
+        </header>
+      </main>
+    );
+  }
+
+  if (deckLoadError) {
+    return (
+      <main className="deck-page">
+        <header className="deck-page-header">
+          <h1>Decks</h1>
+          <p>{deckLoadError}</p>
+        </header>
+      </main>
+    );
+  }
 
   if (selectedDeck && route.view === "deck") {
     return (

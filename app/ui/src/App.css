@@ -274,6 +274,51 @@ body {
   box-shadow: none;
 }
 
+.solution-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  margin-top: 14px;
+}
+
+.solution-submit-button {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 1px solid #24704a;
+  border-radius: 6px;
+  background: #2f9a61;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.solution-submit-button:hover:not(:disabled),
+.solution-submit-button:focus-visible:not(:disabled) {
+  background: #247f50;
+  outline: none;
+}
+
+.solution-submit-button:disabled {
+  opacity: 0.66;
+  cursor: default;
+}
+
+.solution-score {
+  color: #1f4734;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.solution-status {
+  color: #8a453f;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .notation-panel {
   display: flex;
   flex-direction: column;
@@ -372,7 +417,29 @@ body {
   outline: none;
 }
 
-.notation-move.is-current {
+.notation-move.is-review-solution-missing {
+  background: #dceeff;
+  color: #18384f;
+}
+
+.notation-move.is-review-user-extra {
+  background: #ffd8d0;
+  color: #6f211c;
+}
+
+.notation-move.is-review-solution-missing:hover,
+.notation-move.is-review-solution-missing:focus-visible {
+  background: #c9e4fb;
+}
+
+.notation-move.is-review-user-extra:hover,
+.notation-move.is-review-user-extra:focus-visible {
+  background: #ffc8bd;
+}
+
+.notation-move.is-current,
+.notation-move.is-current:hover,
+.notation-move.is-current:focus-visible {
   background: #3e6f65;
   color: #f8fffb;
 }

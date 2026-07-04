@@ -11,11 +11,14 @@ export type MoveRecord = {
   moveNumber: number;
 };
 
+export type MoveReview = "solution-missing" | "user-extra";
+
 export type MoveTreeNode = {
   id: string;
   fen: string;
   lastMove?: Key[];
   move?: MoveRecord;
+  review?: MoveReview;
   children: MoveTreeNode[];
 };
 
@@ -45,6 +48,20 @@ export function nodeAtPath(root: MoveTreeNode, path: MovePath): MoveTreeNode {
   }
 
   return node;
+}
+
+export function existingPath(root: MoveTreeNode, path: MovePath): MovePath {
+  const result: MovePath = [];
+  let node = root;
+
+  for (const id of path) {
+    const child = node.children.find(candidate => candidate.id === id);
+    if (!child) return result;
+    result.push(id);
+    node = child;
+  }
+
+  return result;
 }
 
 export function updateNodeAtPath(

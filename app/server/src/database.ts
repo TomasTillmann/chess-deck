@@ -28,6 +28,11 @@ function migrate(db: Db): void {
     CREATE INDEX IF NOT EXISTS records_collection_idx
       ON records (collection);
 
+    CREATE TABLE IF NOT EXISTS collections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fen TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS solutions (
       fen TEXT NOT NULL,
       collection TEXT NOT NULL,

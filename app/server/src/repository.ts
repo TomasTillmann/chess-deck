@@ -34,6 +34,11 @@ type SolutionRow = {
   tree: string;
 };
 
+type CollectionRow = {
+  id: number;
+  fen: string;
+};
+
 export class RecordRepository {
   constructor(private readonly db: Db) {}
 
@@ -130,6 +135,16 @@ export class RecordRepository {
       .run(collection, id);
 
     return result.changes > 0;
+  }
+}
+
+export class CollectionRepository {
+  constructor(private readonly db: Db) {}
+
+  listFens(): string[] {
+    const rows = this.db.prepare("SELECT id, fen FROM collections ORDER BY id").all() as CollectionRow[];
+
+    return rows.map(row => row.fen);
   }
 }
 

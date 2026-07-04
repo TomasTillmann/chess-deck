@@ -1,7 +1,12 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
-import { RecordRepository, SolutionRepository, type SolutionInput } from "./repository.js";
+import {
+  CollectionRepository,
+  RecordRepository,
+  SolutionRepository,
+  type SolutionInput,
+} from "./repository.js";
 import {
   RequestValidationError,
   readJsonBody,
@@ -24,6 +29,7 @@ type DatabaseHealth =
 export type AppContext = {
   readonly config: ServerConfig;
   readonly db: Db;
+  readonly collections: CollectionRepository;
   readonly records: RecordRepository;
   readonly solutions: SolutionRepository;
 };
@@ -32,6 +38,7 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
   const context: AppContext = {
     config,
     db,
+    collections: new CollectionRepository(db),
     records: new RecordRepository(db),
     solutions: new SolutionRepository(db),
   };
@@ -61,6 +68,22 @@ async function handleRequest(
         status: database.ok ? "OK" : "UNHEALTHY",
         server: { ok: true },
         database,
+      });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/collections") {
+      const fens = context.collections.listFens();
+
+      sendJson(response, 200, {
+        collections: [
+          {
+            slug: "woodpecker",
+            name: "Woodpecker",
+            description: `${fens.length} positions loaded from the Woodpecker deck.`,
+            fens,
+          },
+        ],
       });
       return;
     }

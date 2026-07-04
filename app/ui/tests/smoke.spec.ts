@@ -1,6 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const appUrl = "/";
+const firstFen = "r6r/1pp3k1/1b6/p2P1p2/P1N1pn2/2P2PP1/BP5P/4RR1K b - - 0 1";
+
+type MutableSolutionPosition = {
+  fen?: string;
+  turn?: string;
+  moves: MutableSolutionMove[];
+};
+
+type MutableSolutionMove = {
+  uci: string;
+  children: MutableSolutionPosition[];
+};
 
 function squarePoint(box: { x: number; y: number; width: number }, square: string, orientation: "white" | "black") {
   const file = square.charCodeAt(0) - "a".charCodeAt(0);
@@ -37,6 +49,49 @@ async function dragMove(page: Page, squareFrom: string, squareTo: string, orient
   await page.mouse.down();
   await page.mouse.move(to.x, to.y, { steps: 12 });
   await page.mouse.up();
+}
+
+function solutionDoc(lines: string[][]) {
+  const root: MutableSolutionPosition = {
+    fen: firstFen,
+    turn: "b",
+    moves: [],
+  };
+
+  for (const line of lines) {
+    let position = root;
+
+    for (const uci of line) {
+      let move = position.moves.find(candidate => candidate.uci === uci);
+
+      if (!move) {
+        move = {
+          uci,
+          children: [{ moves: [] }],
+        };
+        position.moves.push(move);
+      }
+
+      position = move.children[0];
+    }
+  }
+
+  return {
+    fen: firstFen,
+    sideToSolve: "b",
+    status: "solved",
+    root,
+  };
+}
+
+async function mockSolution(page: Page, lines: string[][]) {
+  await page.route("**/v1/solution/**", route =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(solutionDoc(lines)),
+    }),
+  );
 }
 
 test("renders the deck grid and opens a deck", async ({ page }) => {
@@ -207,4 +262,58 @@ test("resetting a move removes its user-entered continuation", async ({ page }) 
   await expect(status).toHaveText("Black to move");
   await expect(notation.getByRole("button", { name: "Re3" })).toBeVisible();
   await expect(notation.locator(".notation-move")).toHaveCount(2);
+});
+
+test("submits a correct line and shows a 100 percent review", async ({ page }) => {
+  await mockSolution(page, [["f4d3", "e1e2"]]);
+  await openWoodpeckerPosition(page);
+
+  const notation = page.getByLabel("Move notation");
+
+  await dragMove(page, "f4", "d3", "black");
+  await dragMove(page, "e1", "e2", "black");
+  await page.getByRole("button", { name: "Submit" }).click();
+
+  await expect(page.getByText("100%")).toBeVisible();
+  await expect(notation.getByRole("button", { name: "Nd3" })).toBeVisible();
+  await expect(notation.getByRole("button", { name: "Re2" })).toBeVisible();
+  await expect(notation.locator(".notation-move.is-review-solution-missing")).toHaveCount(0);
+  await expect(notation.locator(".notation-move.is-review-user-extra")).toHaveCount(0);
+});
+
+test("submits a wrong continuation and shows salmon user move plus blue solution move", async ({ page }) => {
+  await mockSolution(page, [["f4d3", "e1e2"]]);
+  await openWoodpeckerPosition(page);
+
+  const notation = page.getByLabel("Move notation");
+
+  await dragMove(page, "f4", "d3", "black");
+  await dragMove(page, "e1", "e3", "black");
+  await page.getByRole("button", { name: "Submit" }).click();
+
+  const wrongMove = notation.getByRole("button", { name: "Re3" });
+  const solutionMove = notation.getByRole("button", { name: "Re2" });
+
+  await expect(page.getByText("50%")).toBeVisible();
+  await expect(wrongMove).toHaveClass(/is-review-user-extra/);
+  await expect(solutionMove).toHaveClass(/is-review-solution-missing/);
+
+  await solutionMove.click();
+  await expect(solutionMove).toHaveAttribute("aria-current", "step");
+});
+
+test("submit shows an error when no solution is available", async ({ page }) => {
+  await page.route("**/v1/solution/**", route =>
+    route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Solution not found" }),
+    }),
+  );
+  await openWoodpeckerPosition(page);
+
+  await page.getByRole("button", { name: "Submit" }).click();
+
+  await expect(page.getByText("No solution found for this position.")).toBeVisible();
+  await expect(page.getByText(/\d+%/)).toHaveCount(0);
 });

@@ -1,10 +1,3 @@
-type DeckDescription = {
-  name?: unknown;
-  title?: unknown;
-  description?: unknown;
-  summary?: unknown;
-};
-
 export type Deck = {
   slug: string;
   name: string;
@@ -14,20 +7,24 @@ export type Deck = {
   accentColor: string;
 };
 
-const fenFiles = import.meta.glob("../../fen/*/*.fen", {
-  eager: true,
-  query: "?raw",
-  import: "default",
-}) as Record<string, string>;
+type CollectionResponse = {
+  readonly collections?: unknown;
+};
 
-const descriptionFiles = import.meta.glob("../../fen/*/description.json", {
-  eager: true,
-  query: "?raw",
-  import: "default",
-}) as Record<string, string>;
+type CollectionPayload = {
+  readonly slug?: unknown;
+  readonly name?: unknown;
+  readonly description?: unknown;
+  readonly fens?: unknown;
+};
 
-function deckSlugFromPath(path: string): string | undefined {
-  return path.match(/\.\.\/\.\.\/fen\/([^/]+)\//)?.[1];
+const collectionsUrl = new URL(
+  "/v1/collections",
+  import.meta.env.VITE_SERVER_URL ?? "http://127.0.0.1:3001",
+).href;
+
+function textValue(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 function titleFromSlug(slug: string): string {
@@ -36,20 +33,6 @@ function titleFromSlug(slug: string): string {
     .filter(Boolean)
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function parseDescription(raw: string | undefined): DeckDescription | undefined {
-  if (!raw?.trim()) return undefined;
-
-  try {
-    return JSON.parse(raw) as DeckDescription;
-  } catch {
-    return undefined;
-  }
-}
-
-function textValue(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 function pastelForSlug(slug: string): string {
@@ -61,47 +44,41 @@ function pastelForSlug(slug: string): string {
   return `hsl(${hash} 68% 84%)`;
 }
 
-const descriptionsBySlug = Object.fromEntries(
-  Object.entries(descriptionFiles).flatMap(([path, raw]) => {
-    const slug = deckSlugFromPath(path);
-    return slug ? [[slug, parseDescription(raw)]] : [];
-  }),
-);
+function isCollectionPayload(value: unknown): value is CollectionPayload {
+  return typeof value === "object" && value !== null;
+}
 
-const fensBySlug = Object.entries(fenFiles).reduce<Record<string, string[]>>((decks, [path, raw]) => {
-  const slug = deckSlugFromPath(path);
-  if (!slug) return decks;
+function mapCollection(value: unknown): Deck | undefined {
+  if (!isCollectionPayload(value) || !Array.isArray(value.fens)) return undefined;
 
-  const fens = raw
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean);
+  const fens = value.fens.filter((fen): fen is string => typeof fen === "string" && Boolean(fen.trim()));
+  const previewFen = fens[0];
+  if (!previewFen) return undefined;
 
-  decks[slug] = [...(decks[slug] ?? []), ...fens];
-  return decks;
-}, {});
+  const slug = textValue(value.slug) ?? "woodpecker";
+  const name = textValue(value.name) ?? titleFromSlug(slug);
+  const description =
+    textValue(value.description) ?? `${fens.length} positions loaded from the ${name} deck.`;
 
-export const decks: Deck[] = Object.entries(fensBySlug)
-  .flatMap(([slug, fens]) => {
-    const previewFen = fens[0];
-    if (!previewFen) return [];
+  return {
+    slug,
+    name,
+    description,
+    fens,
+    previewFen,
+    accentColor: pastelForSlug(slug),
+  };
+}
 
-    const description = descriptionsBySlug[slug];
-    const name = textValue(description?.name) ?? textValue(description?.title) ?? titleFromSlug(slug);
-    const summary =
-      textValue(description?.description) ??
-      textValue(description?.summary) ??
-      `${fens.length} positions loaded from the ${name} deck.`;
+export async function fetchDecks(): Promise<Deck[]> {
+  const response = await fetch(collectionsUrl);
+  if (!response.ok) throw new Error(`Failed to load collections: HTTP ${response.status}`);
 
-    return [
-      {
-        slug,
-        name,
-        description: summary,
-        fens,
-        previewFen,
-        accentColor: pastelForSlug(slug),
-      },
-    ];
-  })
-  .sort((left, right) => left.name.localeCompare(right.name));
+  const body = (await response.json()) as CollectionResponse;
+  const collections = Array.isArray(body.collections) ? body.collections : [];
+
+  return collections.flatMap(collection => {
+    const deck = mapCollection(collection);
+    return deck ? [deck] : [];
+  });
+}
