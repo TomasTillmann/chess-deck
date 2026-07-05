@@ -4,11 +4,11 @@ Docker Compose runs the Woodpecker API server, its SQLite database, and the Reac
 
 ```bash
 cd app
-docker compose up --build
+docker compose up --build -d
 ```
 
 Run that from the repository root. If you are already in this directory, run only
-`docker compose up --build`.
+`docker compose up --build -d`.
 
 Open the Docker-served UI at:
 
@@ -44,4 +44,4 @@ newgrp docker
 ```
 
 That opens a shell with refreshed group membership. Stay in that shell and rerun
-`docker compose up --build` from this directory.
+`docker compose up --build -d` from this directory.
