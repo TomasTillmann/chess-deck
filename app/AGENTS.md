@@ -15,11 +15,11 @@ Run these commands from `app/`.
 
 ## Ports
 
-- UI: `http://localhost:5173`
+- UI: `http://localhost:5174`
 - API healthcheck: `http://localhost:3001/healthcheck`
 - API base URL: `http://localhost:3001`
 
-The Compose UI service maps host port `5173` to the Vite dev server and mounts
+The Compose UI service maps host port `5174` to the Vite dev server and mounts
 UI source/config files for default hot reload. Do not use `http://localhost:3000`
 for the Docker app unless the compose port mapping has been changed.
 

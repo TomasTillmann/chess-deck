@@ -10,7 +10,7 @@ cd app
 docker compose up --build
 ```
 
-The UI is served at `http://localhost:5173` and the API at
+The UI is served at `http://localhost:5174` and the API at
 `http://localhost:3001`.
 
 The current parser targets Quality Chess-style PDFs where diagrams are embedded as chess-font

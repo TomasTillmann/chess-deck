@@ -13,7 +13,7 @@ Run that from the repository root. If you are already in this directory, run onl
 Open the Docker-served UI at:
 
 ```text
-http://localhost:5173
+http://localhost:5174
 ```
 
 The API is exposed at:
@@ -22,7 +22,7 @@ The API is exposed at:
 http://localhost:3001
 ```
 
-The UI container maps host port `5173` to the Vite dev server. UI source and
+The UI container maps host port `5174` to the Vite dev server. UI source and
 config files are mounted into the container, so Vite hot reloads the browser
 when those files change. `http://localhost:3000` is not used by this Compose
 setup.
