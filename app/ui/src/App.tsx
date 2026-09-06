@@ -318,7 +318,7 @@ function SolverPage({
     setSubmitState({ status: "loading" });
 
     try {
-      const solution = await fetchSolution(initialFen);
+      const solution = await fetchSolution(deck.slug, initialFen);
       const result = compareSolutionTree(initialFen, gameRef.current.root, solution);
       const nextGame = {
         root: result.reviewRoot,
@@ -341,7 +341,7 @@ function SolverPage({
             : "Could not load the solution. Check that the server is running.",
       });
     }
-  }, [initialFen]);
+  }, [deck.slug, initialFen]);
 
   const handleUpdateSolution = useCallback(async () => {
     setUpdateState({ status: "loading" });

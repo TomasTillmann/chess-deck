@@ -73,17 +73,14 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && url.pathname === "/v1/collections") {
-      const fens = context.collections.listFens();
-
       sendJson(response, 200, {
         collections: [
-          {
-            slug: "woodpecker",
-            name: "Woodpecker",
-            description: `${fens.length} positions loaded from the Woodpecker deck.`,
-            fens,
-          },
-        ],
+          ["woodpecker", "Woodpecker"],
+          ["encyclopedia", "Encyclopedia of Chess Combinations"],
+        ].map(([slug, name]) => {
+          const fens = context.collections.listFens(slug);
+          return { slug, name, description: `${fens.length} positions loaded from the ${name} deck.`, fens };
+        }),
       });
       return;
     }
@@ -91,7 +88,7 @@ async function handleRequest(
     const solutionPrefix = "/v1/solution/";
     if (request.method === "GET" && url.pathname.startsWith(solutionPrefix)) {
       const fen = decodeURIComponent(url.pathname.slice(solutionPrefix.length));
-      const solution = context.solutions.findByFen("woodpecker", fen);
+      const solution = context.solutions.findByFen(url.searchParams.get("collection") ?? "woodpecker", fen);
 
       if (!solution) {
         sendJson(response, 404, { error: "Solution not found" });

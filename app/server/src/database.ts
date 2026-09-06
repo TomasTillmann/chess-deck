@@ -30,6 +30,7 @@ function migrate(db: Db): void {
 
     CREATE TABLE IF NOT EXISTS collections (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      collection TEXT NOT NULL DEFAULT 'woodpecker',
       fen TEXT NOT NULL
     );
 
@@ -45,6 +46,15 @@ function migrate(db: Db): void {
   `);
 
   migrateSolutionsFenColumn(db);
+  migrateCollectionsCollectionColumn(db);
+}
+
+function migrateCollectionsCollectionColumn(db: Db): void {
+  const columns = db.prepare("PRAGMA table_info(collections)").all() as { readonly name: string }[];
+  if (!columns.some(column => column.name === "collection")) {
+    db.exec("ALTER TABLE collections ADD COLUMN collection TEXT NOT NULL DEFAULT 'woodpecker'");
+  }
+  db.exec("CREATE INDEX IF NOT EXISTS collections_collection_idx ON collections (collection)");
 }
 
 function migrateSolutionsFenColumn(db: Db): void {

@@ -74,8 +74,10 @@ export function solutionDocumentFromMoveTree(initialFen: string, root: MoveTreeN
   };
 }
 
-export async function fetchSolution(initialFen: string): Promise<SolutionDocument> {
-  const response = await fetch(new URL(`/v1/solution/${encodeURIComponent(initialFen)}`, serverBaseUrl).href);
+export async function fetchSolution(collection: string, initialFen: string): Promise<SolutionDocument> {
+  const url = new URL(`/v1/solution/${encodeURIComponent(initialFen)}`, serverBaseUrl);
+  url.searchParams.set("collection", collection);
+  const response = await fetch(url.href);
 
   if (!response.ok) {
     throw new SolutionFetchError(response.status === 404 ? "Solution not found" : "Solution request failed", response.status);

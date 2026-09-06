@@ -36,6 +36,7 @@ type SolutionRow = {
 
 type CollectionRow = {
   id: number;
+  collection: string;
   fen: string;
 };
 
@@ -141,8 +142,10 @@ export class RecordRepository {
 export class CollectionRepository {
   constructor(private readonly db: Db) {}
 
-  listFens(): string[] {
-    const rows = this.db.prepare("SELECT id, fen FROM collections ORDER BY id").all() as CollectionRow[];
+  listFens(collection = "woodpecker"): string[] {
+    const rows = this.db
+      .prepare("SELECT id, collection, fen FROM collections WHERE collection = ? ORDER BY id")
+      .all(collection) as CollectionRow[];
 
     return rows.map(row => row.fen);
   }
