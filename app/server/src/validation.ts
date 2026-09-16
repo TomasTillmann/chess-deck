@@ -52,6 +52,31 @@ export const solutionStoreBatchSchema = z.object({
     .max(100),
 });
 
+export const reviewQueueSchema = z.object({
+  learnerId: idSchema,
+  collection: collectionSchema,
+});
+
+export const reviewOptionsSchema = reviewQueueSchema.extend({
+  fen: z.string().min(1).max(200),
+});
+
+export const reviewCreateSchema = reviewOptionsSchema.extend({
+  reviewId: idSchema,
+  rating: z.enum(["easy", "hard", "again"]),
+}).strict();
+
+export function parseQuery<TSchema extends z.ZodTypeAny>(
+  query: URLSearchParams,
+  schema: TSchema,
+): z.infer<TSchema> {
+  const result = schema.safeParse(Object.fromEntries(query));
+  if (!result.success) {
+    throw new RequestValidationError(result.error.issues.map(issue => issue.message));
+  }
+  return result.data;
+}
+
 export class RequestValidationError extends Error {
   constructor(readonly issues: string[]) {
     super("Request validation failed");

@@ -362,6 +362,147 @@ body {
   cursor: pointer;
 }
 
+.review-panel {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #c6ccc7;
+}
+
+.review-panel h2,
+.review-queue h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.review-description,
+.review-queue p {
+  margin: 6px 0 0;
+  color: #59646e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.review-ratings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.review-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 66px;
+  padding: 10px 6px;
+  border: 1px solid #b6c8c0;
+  border-radius: 6px;
+  background: #e5eee7;
+  color: #244f37;
+  font: inherit;
+  cursor: pointer;
+}
+
+.review-rating.is-hard {
+  border-color: #d4c4a5;
+  background: #f4ebdb;
+  color: #694810;
+}
+
+.review-rating.is-again {
+  border-color: #d6bdb7;
+  background: #f3e4df;
+  color: #783b30;
+}
+
+.review-rating strong {
+  font-size: 0.95rem;
+}
+
+.review-rating span {
+  font-size: 0.8rem;
+}
+
+.review-rating:hover:not(:disabled) {
+  border-color: currentColor;
+}
+
+.review-rating:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.review-message {
+  margin: 12px 0 0;
+  color: #1f4734;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.review-message.is-error {
+  color: #8a453f;
+}
+
+.review-text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.review-saved .deck-back-button {
+  margin-top: 10px;
+}
+
+.review-rating:focus-visible,
+.review-text-button:focus-visible,
+.deck-back-button:focus-visible {
+  outline: 2px solid #26343b;
+  outline-offset: 3px;
+}
+
+.review-queue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100%, 1120px);
+  margin: 0 auto 24px;
+  padding: 18px 0;
+  border-top: 1px solid #c6ccc7;
+  border-bottom: 1px solid #c6ccc7;
+}
+
+.position-card.is-recommended {
+  border-color: #3e6f65;
+}
+
+.position-card-label {
+  color: #25313a;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.position-card-status {
+  color: #59646e;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.position-card-status.is-due {
+  color: #783b30;
+  font-weight: 700;
+}
+
 .solution-submit-button:focus-visible,
 .solution-update-button:focus-visible {
   outline: 2px solid #26343b;

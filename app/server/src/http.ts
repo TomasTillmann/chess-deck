@@ -1,6 +1,7 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
+import { ReviewRepository, ReviewConflictError, ReviewPositionNotFoundError } from "./reviewRepository.js";
 import {
   CollectionRepository,
   RecordRepository,
@@ -10,6 +11,10 @@ import {
 import {
   RequestValidationError,
   readJsonBody,
+  parseQuery,
+  reviewQueueSchema,
+  reviewOptionsSchema,
+  reviewCreateSchema,
   solutionExistingBatchSchema,
   solutionStoreBatchSchema,
 } from "./validation.js";
@@ -32,6 +37,7 @@ export type AppContext = {
   readonly collections: CollectionRepository;
   readonly records: RecordRepository;
   readonly solutions: SolutionRepository;
+  readonly reviews: ReviewRepository;
 };
 
 export function createApp(config: ServerConfig, db: Db): http.Server {
@@ -41,6 +47,7 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
     collections: new CollectionRepository(db),
     records: new RecordRepository(db),
     solutions: new SolutionRepository(db),
+    reviews: new ReviewRepository(db),
   };
 
   return http.createServer((request, response) => {
@@ -85,6 +92,24 @@ async function handleRequest(
       return;
     }
 
+    if (request.method === "GET" && url.pathname === "/v1/review-queue") {
+      const query = parseQuery(url.searchParams, reviewQueueSchema);
+      sendJson(response, 200, context.reviews.queue(query.learnerId, query.collection));
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/review-options") {
+      const query = parseQuery(url.searchParams, reviewOptionsSchema);
+      sendJson(response, 200, context.reviews.options(query.learnerId, query.collection, query.fen));
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/reviews") {
+      const body = await readJsonBody(request, reviewCreateSchema, 4_096);
+      sendJson(response, 200, context.reviews.save(body));
+      return;
+    }
+
     const solutionPrefix = "/v1/solution/";
     if (request.method === "GET" && url.pathname.startsWith(solutionPrefix)) {
       const fen = decodeURIComponent(url.pathname.slice(solutionPrefix.length));
@@ -126,6 +151,11 @@ async function handleRequest(
       return;
     }
 
+    if (error instanceof ReviewPositionNotFoundError || error instanceof ReviewConflictError) {
+      sendJson(response, error instanceof ReviewConflictError ? 409 : 404, { error: error.message });
+      return;
+    }
+
     console.error(error);
     sendJson(response, 500, { error: "Internal server error" });
   }
@@ -162,6 +192,7 @@ function sendJson(response: ServerResponse, statusCode: number, body: JsonValue)
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-origin": "*",
     "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
   });
   response.end(statusCode === 204 ? undefined : JSON.stringify(body));
 }

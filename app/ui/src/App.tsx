@@ -18,6 +18,7 @@ import "./App.css";
 import { ChessBoard } from "./components/ChessBoard";
 import { DeckGrid, DeckPositionGrid } from "./components/DeckGrid";
 import { MoveNotationPanel } from "./components/MoveNotationPanel";
+import { ReviewPanel } from "./components/ReviewPanel";
 import { fetchDecks, type Deck } from "./decks";
 import {
   createMoveRoot,
@@ -208,6 +209,9 @@ function SolverPage({
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
   const gameRef = useRef(game);
+  const submissionVersion = useRef(0);
+
+  useEffect(() => () => { submissionVersion.current += 1; }, []);
 
   const boardOrientation = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
@@ -243,6 +247,7 @@ function SolverPage({
   }, []);
 
   const markTreeEdited = useCallback(() => {
+    submissionVersion.current += 1;
     setSubmitState({ status: "idle" });
     setUpdateState({ status: "idle" });
   }, []);
@@ -343,13 +348,16 @@ function SolverPage({
   );
 
   const handleSubmit = useCallback(async () => {
+    const version = ++submissionVersion.current;
+    const submittedGame = gameRef.current;
     setSubmitState({ status: "loading" });
 
     try {
       const solution = await fetchSolution(deck.slug, initialFen);
+      if (version !== submissionVersion.current) return;
       setSolutionReviewReasons(reviewReasons(solution));
       setCanUpdateSolution(true);
-      const result = compareSolutionTree(initialFen, gameRef.current.root, solution);
+      const result = compareSolutionTree(initialFen, submittedGame.root, solution);
       const nextGame = {
         root: result.reviewRoot,
         currentPath: gameRef.current.currentPath,
@@ -362,6 +370,7 @@ function SolverPage({
         score: result.score,
       });
     } catch (error) {
+      if (version !== submissionVersion.current) return;
       const isMissingSolution = error instanceof SolutionFetchError && error.status === 404;
 
       setCanUpdateSolution(isMissingSolution || error instanceof SolutionComparisonError);
@@ -485,6 +494,12 @@ function SolverPage({
                 </span>
               ) : null}
             </div>
+            <ReviewPanel
+              deck={deck}
+              fen={initialFen}
+              revealed={submitState.status === "success"}
+              onGoToPosition={onGoToPosition}
+            />
             <p className="solution-guidance">
               {canUpdateSolution
                 ? "Blue moves were missed. Extra analysis has no penalty. One accepted move is enough on your turn; cover every required defense. Play moves to add lines; right-click a move to delete it. Save solution replaces the stored answer with this tree."
@@ -513,6 +528,7 @@ function SolverPage({
 
 export function App() {
   const [route, setRoute] = useState(routeFromHash);
+  const [attempt, setAttempt] = useState(0);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoadingDecks, setIsLoadingDecks] = useState(true);
   const [deckLoadError, setDeckLoadError] = useState<string | undefined>();
@@ -573,6 +589,7 @@ export function App() {
   if (selectedDeck && route.view === "deck") {
     return (
       <DeckPositionGrid
+        key={selectedDeck.slug}
         deck={selectedDeck}
         onSelectPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
         onGoToDecks={navigateToDecks}
@@ -583,10 +600,14 @@ export function App() {
   if (selectedDeck && route.view === "position" && selectedDeck.fens[route.positionIndex]) {
     return (
       <SolverPage
+        key={`${selectedDeck.slug}:${route.positionIndex}:${attempt}`}
         deck={selectedDeck}
         positionIndex={route.positionIndex}
         onGoToDeck={() => navigateToDeck(selectedDeck)}
-        onGoToPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
+        onGoToPosition={positionIndex => {
+          if (positionIndex === route.positionIndex) setAttempt(value => value + 1);
+          else navigateToPosition(selectedDeck, positionIndex);
+        }}
       />
     );
   }

@@ -43,6 +43,29 @@ function migrate(db: Db): void {
 
     CREATE INDEX IF NOT EXISTS solutions_collection_idx
       ON solutions (collection);
+
+    CREATE TABLE IF NOT EXISTS review_cards (
+      learner_id TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      fen TEXT NOT NULL,
+      due_at TEXT NOT NULL,
+      interval_days REAL NOT NULL CHECK (interval_days > 0 AND interval_days <= 3650),
+      ease_factor REAL NOT NULL CHECK (ease_factor >= 1.3 AND ease_factor <= 3),
+      repetitions INTEGER NOT NULL CHECK (repetitions >= 0),
+      lapses INTEGER NOT NULL CHECK (lapses >= 0),
+      PRIMARY KEY (learner_id, collection, fen)
+    );
+
+    CREATE TABLE IF NOT EXISTS review_events (
+      learner_id TEXT NOT NULL,
+      review_id TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      fen TEXT NOT NULL,
+      rating TEXT NOT NULL CHECK (rating IN ('easy', 'hard', 'again')),
+      reviewed_at TEXT NOT NULL,
+      result TEXT NOT NULL CHECK (json_valid(result)),
+      PRIMARY KEY (learner_id, review_id)
+    );
   `);
 
   migrateSolutionsFenColumn(db);
