@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import crypto, { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -109,6 +109,49 @@ test("queue prioritizes due then unseen, deduplicates FENs, and isolates learner
   } finally { db.close(); }
 });
 
+test("recommendation draws uniformly over every due card, otherwise every unseen card", context => {
+  const db = openDatabase(":memory:");
+  try {
+    seed(db);
+    const repository = new ReviewRepository(db);
+    const futureFen = fen.replace("0 1", "1 1");
+    db.prepare("INSERT INTO collections (collection, fen) VALUES (?, ?)").run("woodpecker", futureFen);
+    repository.save(review({ fen: futureFen }), now);
+    let selectedIndex = 0;
+    let candidateCount = 3;
+    const random = context.mock.method(crypto, "randomInt", (maximum: number) => {
+      assert.equal(maximum, candidateCount);
+      return selectedIndex;
+    });
+
+    // Every distinct unseen FEN has exactly one index; duplicate deck rows add no weight.
+    for (const expected of [fen, secondFen, thirdFen]) {
+      const queue = repository.queue(learnerId, "woodpecker", now);
+      assert.equal(queue.recommendedFen, expected);
+      assert.deepEqual(queue.cards.map(card => card.fen), [fen, secondFen, thirdFen, futureFen]);
+      selectedIndex += 1;
+    }
+
+    repository.save(review({ rating: "hard" }), now - 2 * day);
+    repository.save(review({ fen: secondFen, rating: "hard" }), now - day);
+    candidateCount = 2;
+    selectedIndex = 0;
+    // All due cards are eligible, regardless of due date; unseen/future cards are excluded.
+    for (const expected of [fen, secondFen]) {
+      const queue = repository.queue(learnerId, "woodpecker", now);
+      assert.equal(queue.recommendedFen, expected);
+      assert.deepEqual(queue.cards.map(card => card.status), ["due", "due", "new", "scheduled"]);
+      selectedIndex += 1;
+    }
+
+    for (const position of [fen, secondFen, thirdFen]) repository.save(review({ fen: position }), now);
+    const drawCount = random.mock.callCount();
+    assert.equal(repository.queue(learnerId, "woodpecker", now).recommendedFen, null);
+    assert.equal(repository.queue(learnerId, "empty", now).recommendedFen, null);
+    assert.equal(random.mock.callCount(), drawCount);
+  } finally { db.close(); }
+});
+
 test("review writes are atomic, durable, idempotent, and return the original result after later reviews", () => {
   const folder = mkdtempSync(path.join(tmpdir(), "chess-review-"));
   const filename = path.join(folder, "test.sqlite");
@@ -184,7 +227,7 @@ test("review API validates requests, previews server intervals, persists and saf
     assert.equal((await early.json() as {scheduleUnchanged: boolean}).scheduleUnchanged, true);
     const queueResponse = await fetch(`${baseUrl}/v1/review-queue?${query}`);
     const queue = await queueResponse.json() as { recommendedFen: string; cards: Array<{fen: string; status: string}> };
-    assert.equal(queue.recommendedFen, secondFen);
+    assert.ok([secondFen, thirdFen].includes(queue.recommendedFen));
     assert.equal(queue.cards.find(card => card.fen === fen)?.status, "scheduled");
 
     for (const invalid of [

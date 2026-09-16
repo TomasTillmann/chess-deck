@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { Db } from "./database.js";
 import { scheduleReview, type ReviewRating, type ReviewSchedule } from "./reviewScheduler.js";
 
@@ -51,10 +52,13 @@ export class ReviewRepository {
         r.due_at, MIN(c.id)
     `).all({ learnerId, collection, serverNow }) as QueueCard[];
 
+    const dueCards = cards.filter(card => card.status === "due");
+    const candidates = dueCards.length > 0 ? dueCards : cards.filter(card => card.status === "new");
+
     return {
       serverNow,
       cards,
-      recommendedFen: cards.find(card => card.status !== "scheduled")?.fen ?? null,
+      recommendedFen: candidates.length > 0 ? candidates[crypto.randomInt(candidates.length)].fen : null,
       nextDueAt: cards.find(card => card.status === "scheduled")?.dueAt ?? null,
     };
   }

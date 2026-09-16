@@ -6,12 +6,6 @@ export type ReviewOption = {
   scheduleUnchanged: boolean;
 };
 
-export type ReviewOptions = {
-  serverNow: string;
-  dueAt: string | null;
-  options: Record<ReviewRating, ReviewOption>;
-};
-
 export type ReviewResult = ReviewOption & {
   reviewId: string;
   rating: ReviewRating;
@@ -44,22 +38,13 @@ function learnerId(): string {
   return id;
 }
 
-async function getReviewData<T>(path: string, collection: string, fen?: string): Promise<T> {
-  const url = new URL(path, serverBaseUrl);
+export async function fetchReviewQueue(collection: string): Promise<ReviewQueue> {
+  const url = new URL("/v1/review-queue", serverBaseUrl);
   url.searchParams.set("learnerId", learnerId());
   url.searchParams.set("collection", collection);
-  if (fen) url.searchParams.set("fen", fen);
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Review request failed: HTTP ${response.status}`);
-  return response.json() as Promise<T>;
-}
-
-export function fetchReviewOptions(collection: string, fen: string): Promise<ReviewOptions> {
-  return getReviewData("/v1/review-options", collection, fen);
-}
-
-export function fetchReviewQueue(collection: string): Promise<ReviewQueue> {
-  return getReviewData("/v1/review-queue", collection);
+  return response.json() as Promise<ReviewQueue>;
 }
 
 export async function saveReview(collection: string, fen: string, reviewId: string, rating: ReviewRating): Promise<ReviewResult> {
@@ -74,10 +59,4 @@ export async function saveReview(collection: string, fen: string, reviewId: stri
 
 export function reviewDate(dueAt: string): string {
   return new Date(dueAt).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-}
-
-export function reviewInterval(option: ReviewOption): string {
-  if (option.scheduleUnchanged) return "Keep scheduled date";
-  if (option.intervalDays < 1) return `${Math.round(option.intervalDays * 24 * 60)} min`;
-  return `${option.intervalDays} day${option.intervalDays === 1 ? "" : "s"}`;
 }

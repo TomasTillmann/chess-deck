@@ -177,8 +177,12 @@ function navigateToDeck(deck: Deck) {
   window.location.hash = `/decks/${encodeURIComponent(deck.slug)}`;
 }
 
-function navigateToPosition(deck: Deck, positionIndex: number) {
-  window.location.hash = `/decks/${encodeURIComponent(deck.slug)}/positions/${positionIndex + 1}`;
+function navigateToPosition(deck: Deck, positionIndex: number, preserveScroll = false) {
+  const hash = `#/decks/${encodeURIComponent(deck.slug)}/positions/${positionIndex + 1}`;
+  if (preserveScroll) {
+    window.history.pushState(null, "", hash);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  } else window.location.hash = hash;
 }
 
 function navigateToDecks() {
@@ -194,7 +198,7 @@ function SolverPage({
   deck: Deck;
   positionIndex: number;
   onGoToDeck: () => void;
-  onGoToPosition: (positionIndex: number) => void;
+  onGoToPosition: (positionIndex: number, preserveScroll?: boolean) => void;
 }) {
   const initialFen = deck.fens[positionIndex] ?? deck.previewFen;
   const [game, setGame] = useState<GameState>({
@@ -458,6 +462,14 @@ function SolverPage({
               >
                 Submit
               </button>
+              <ReviewPanel
+                deck={deck}
+                fen={initialFen}
+                revealed={submitState.status === "success"}
+                onGoToPosition={index => onGoToPosition(index, true)}
+              />
+            </div>
+            <div className="solution-result-row">
               {canUpdateSolution ? (
                 <button
                   className="solution-update-button"
@@ -494,17 +506,6 @@ function SolverPage({
                 </span>
               ) : null}
             </div>
-            <ReviewPanel
-              deck={deck}
-              fen={initialFen}
-              revealed={submitState.status === "success"}
-              onGoToPosition={onGoToPosition}
-            />
-            <p className="solution-guidance">
-              {canUpdateSolution
-                ? "Blue moves were missed. Extra analysis has no penalty. One accepted move is enough on your turn; cover every required defense. Play moves to add lines; right-click a move to delete it. Save solution replaces the stored answer with this tree."
-                : "Play your lines, then submit to review and edit the saved solution. One accepted move is enough on your turn; cover every required defense. Extra analysis has no penalty."}
-            </p>
             {solutionReviewReasons && solutionReviewReasons.length > 0 ? (
               <details className="solution-guidance">
                 <summary>Why this solution needs review</summary>
@@ -604,9 +605,9 @@ export function App() {
         deck={selectedDeck}
         positionIndex={route.positionIndex}
         onGoToDeck={() => navigateToDeck(selectedDeck)}
-        onGoToPosition={positionIndex => {
+        onGoToPosition={(positionIndex, preserveScroll) => {
           if (positionIndex === route.positionIndex) setAttempt(value => value + 1);
-          else navigateToPosition(selectedDeck, positionIndex);
+          else navigateToPosition(selectedDeck, positionIndex, preserveScroll);
         }}
       />
     );

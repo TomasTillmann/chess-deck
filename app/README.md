@@ -70,8 +70,10 @@ counters. Didn't solve always restarts the 10-minute learning step. This is a
 small deterministic scheduler, not Anki's FSRS implementation.
 
 `GET /v1/review-queue?learnerId=UUID&collection=slug` returns cards ordered by due
-reviews, unseen positions, then future reviews. `recommendedFen` is the first
-due or unseen position, or null when everything is scheduled. `nextDueAt` is
+reviews, unseen positions, then future reviews. The backend chooses
+`recommendedFen` uniformly at random from all due cards; if none are due, it
+chooses uniformly from all unseen cards. Future cards are never recommended,
+and the recommendation is null when all cards are scheduled. `nextDueAt` is
 the earliest future review. Each card is keyed by collection and exact FEN,
 so deck ordering and duplicate collection rows do not change its history.
 

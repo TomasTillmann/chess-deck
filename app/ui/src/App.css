@@ -161,7 +161,7 @@ body {
 }
 
 .solver-shell {
-  align-items: center;
+  align-items: start;
 }
 
 .solver-view {
@@ -277,12 +277,19 @@ body {
 }
 
 .solution-submit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 108px) 12px repeat(3, minmax(0, 108px));
+  column-gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.solution-result-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  min-height: 42px;
-  margin-top: 14px;
+  min-height: 38px;
 }
 
 .solution-submit-button {
@@ -362,20 +369,12 @@ body {
   cursor: pointer;
 }
 
-.review-panel {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #c6ccc7;
-}
-
-.review-panel h2,
 .review-queue h2 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 750;
 }
 
-.review-description,
 .review-queue p {
   margin: 6px 0 0;
   color: #59646e;
@@ -384,25 +383,32 @@ body {
 }
 
 .review-ratings {
+  grid-column: 3 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+}
+
+.review-ratings.is-hidden {
+  visibility: hidden;
+}
+
+.solution-submit-row > .solution-submit-button,
+.review-rating {
+  height: 38px;
+  min-width: 0;
+  padding: 0 4px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
 .review-rating {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-height: 66px;
-  padding: 10px 6px;
   border: 1px solid #b6c8c0;
   border-radius: 6px;
   background: #e5eee7;
   color: #244f37;
-  font: inherit;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -418,14 +424,6 @@ body {
   color: #783b30;
 }
 
-.review-rating strong {
-  font-size: 0.95rem;
-}
-
-.review-rating span {
-  font-size: 0.8rem;
-}
-
 .review-rating:hover:not(:disabled) {
   border-color: currentColor;
 }
@@ -435,15 +433,12 @@ body {
   opacity: 0.7;
 }
 
-.review-message {
-  margin: 12px 0 0;
-  color: #1f4734;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.review-message.is-error {
-  color: #8a453f;
+.review-feedback {
+  grid-column: 1 / -1;
+  min-height: 22px;
+  color: #59646e;
+  font-size: 0.82rem;
+  line-height: 22px;
 }
 
 .review-text-button {
@@ -456,10 +451,6 @@ body {
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-}
-
-.review-saved .deck-back-button {
-  margin-top: 10px;
 }
 
 .review-rating:focus-visible,
@@ -725,6 +716,11 @@ body {
 }
 
 @media (max-width: 560px) {
+  .solution-submit-row > .solution-submit-button,
+  .review-rating {
+    font-size: 0.8rem;
+  }
+
   .deck-page {
     padding: 24px 18px;
   }
