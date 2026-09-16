@@ -114,7 +114,7 @@ async function handleRequest(
         tree: solution.tree,
       }));
       sendJson(response, 200, {
-        stored: context.solutions.upsertMany(body.collection, solutions),
+        stored: context.solutions.upsertMany(body.collection, solutions, body.overwrite),
       });
       return;
     }

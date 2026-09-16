@@ -52,9 +52,13 @@ function MoveButton({
   if (!node.move) return null;
 
   const isCurrent = pathsEqual(path, currentPath);
+  const reviewDescription = node.review === "solution-missing" ? "Missed required move"
+    : node.review === "solution-alternative" ? "Accepted alternative — not required"
+      : node.review === "user-extra" ? "Extra analysis — no score penalty" : undefined;
   const classes = ["notation-move"];
   if (node.review === "solution-missing") classes.push("is-review-solution-missing");
   if (node.review === "user-extra") classes.push("is-review-user-extra");
+  if (node.review === "solution-alternative") classes.push("is-review-user-extra");
   if (isCurrent) classes.push("is-current");
 
   return (
@@ -68,6 +72,8 @@ function MoveButton({
         onOpenMenu(path, event.clientX, event.clientY);
       }}
       aria-current={isCurrent ? "step" : undefined}
+      aria-description={reviewDescription}
+      title={reviewDescription}
     >
       {node.move.san}
     </button>

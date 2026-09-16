@@ -6,6 +6,8 @@ export type SolutionDocument = {
   readonly fen?: unknown;
   readonly sideToSolve?: unknown;
   readonly status?: unknown;
+  readonly source?: unknown;
+  readonly quality?: unknown;
   readonly root?: unknown;
 };
 
@@ -13,6 +15,7 @@ type StoredSolutionPosition = {
   readonly fen: string;
   readonly turn: "w" | "b";
   readonly terminal: null;
+  readonly choice: "any" | "all";
   readonly moves: StoredSolutionMove[];
 };
 
@@ -47,17 +50,18 @@ function turnFromFen(fen: string): "w" | "b" {
   return chessFen.parseFen(fen).unwrap().turn === "white" ? "w" : "b";
 }
 
-function solutionPositionNode(node: MoveTreeNode): StoredSolutionPosition {
+function solutionPositionNode(node: MoveTreeNode, solverTurn: "w" | "b"): StoredSolutionPosition {
   return {
     fen: node.fen,
     turn: turnFromFen(node.fen),
     terminal: null,
+    choice: turnFromFen(node.fen) === solverTurn ? "any" : "all",
     moves: node.children.flatMap(child =>
       child.move
         ? [
             {
               uci: child.move.uci,
-              children: [solutionPositionNode(child)],
+              children: [solutionPositionNode(child, solverTurn)],
             },
           ]
         : [],
@@ -70,7 +74,8 @@ export function solutionDocumentFromMoveTree(initialFen: string, root: MoveTreeN
     fen: initialFen,
     sideToSolve: turnFromFen(initialFen),
     status: "solved",
-    root: solutionPositionNode(root),
+    source: "manual",
+    root: solutionPositionNode(root, turnFromFen(initialFen)),
   };
 }
 

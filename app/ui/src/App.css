@@ -278,6 +278,7 @@ body {
 
 .solution-submit-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   min-height: 42px;
@@ -289,7 +290,7 @@ body {
   padding: 0 18px;
   border: 1px solid #24704a;
   border-radius: 6px;
-  background: #2f9a61;
+  background: #247f50;
   color: #ffffff;
   font: inherit;
   font-size: 0.95rem;
@@ -303,7 +304,7 @@ body {
   padding: 0 18px;
   border: 1px solid #1f65bb;
   border-radius: 6px;
-  background: #2f80ed;
+  background: #236dcc;
   color: #ffffff;
   font: inherit;
   font-size: 0.95rem;
@@ -344,6 +345,27 @@ body {
 
 .solution-status.is-success {
   color: #1f4734;
+}
+
+.solution-status.is-provisional {
+  color: #765018;
+}
+
+.solution-guidance {
+  margin: 10px 0 0;
+  color: #59646e;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.solution-guidance summary {
+  cursor: pointer;
+}
+
+.solution-submit-button:focus-visible,
+.solution-update-button:focus-visible {
+  outline: 2px solid #26343b;
+  outline-offset: 3px;
 }
 
 .notation-panel {
@@ -450,8 +472,8 @@ body {
 }
 
 .notation-move.is-review-user-extra {
-  background: #ffd8d0;
-  color: #6f211c;
+  background: #e6e9ea;
+  color: #3e4950;
 }
 
 .notation-move.is-review-solution-missing:hover,
@@ -461,7 +483,7 @@ body {
 
 .notation-move.is-review-user-extra:hover,
 .notation-move.is-review-user-extra:focus-visible {
-  background: #ffc8bd;
+  background: #d5dde0;
 }
 
 .notation-move.is-current,

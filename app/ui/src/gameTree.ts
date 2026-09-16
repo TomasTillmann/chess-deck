@@ -11,7 +11,7 @@ export type MoveRecord = {
   moveNumber: number;
 };
 
-export type MoveReview = "solution-missing" | "user-extra";
+export type MoveReview = "solution-missing" | "solution-alternative" | "user-extra";
 
 export type MoveTreeNode = {
   id: string;
@@ -19,6 +19,7 @@ export type MoveTreeNode = {
   lastMove?: Key[];
   move?: MoveRecord;
   review?: MoveReview;
+  solutionChoice?: "any" | "all";
   children: MoveTreeNode[];
 };
 

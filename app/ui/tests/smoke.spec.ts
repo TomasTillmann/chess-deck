@@ -23,6 +23,7 @@ type SolutionUpdatePayload = {
       fen?: string;
       sideToSolve?: string;
       status?: string;
+      source?: string;
       root?: MutableSolutionPosition;
     };
   }>;
@@ -309,7 +310,12 @@ test("submits a correct line and shows a 100 percent review", async ({ page }) =
 });
 
 test("updates the stored solution from the edited move tree after submit", async ({ page }) => {
-  await mockSolution(page, [["f4d3", "e1e2"]]);
+  let storedSolution = solutionDoc([["f4d3", "e1e2"]]);
+  await page.route("**/v1/solution/**", route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(storedSolution),
+  }));
 
   let updatePayload:
     | {
@@ -320,6 +326,7 @@ test("updates the stored solution from the edited move tree after submit", async
             fen?: string;
             sideToSolve?: string;
             status?: string;
+            source?: string;
             root?: MutableSolutionPosition;
           };
         }>;
@@ -328,6 +335,7 @@ test("updates the stored solution from the edited move tree after submit", async
 
   await page.route("**/v1/solver/solutions", async route => {
     updatePayload = route.request().postDataJSON();
+    storedSolution = updatePayload?.solutions?.[0]?.tree as ReturnType<typeof solutionDoc>;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -337,7 +345,7 @@ test("updates the stored solution from the edited move tree after submit", async
 
   await openWoodpeckerPosition(page);
 
-  await expect(page.getByRole("button", { name: "Update" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save solution" })).toHaveCount(0);
 
   await dragMove(page, "f4", "d3", "black");
   await expect(page.getByLabel("Move notation").getByRole("button", { name: "Nd3" })).toBeVisible();
@@ -345,14 +353,17 @@ test("updates the stored solution from the edited move tree after submit", async
   await expect(page.getByLabel("Move notation").getByRole("button", { name: "Re3" })).toBeVisible();
   await page.getByRole("button", { name: "Submit" }).click();
 
-  const updateButton = page.getByRole("button", { name: "Update" });
+  const updateButton = page.getByRole("button", { name: "Save solution" });
   await expect(updateButton).toBeVisible();
+
+  await page.getByLabel("Move notation").getByRole("button", { name: "Re3" }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete" }).click();
 
   await page.getByLabel("Move notation").getByRole("button", { name: "Nd3" }).click();
   await dragMove(page, "e1", "e2", "black");
   await updateButton.click();
 
-  await expect(page.getByText("Saved")).toBeVisible();
+  await expect(page.getByText("Solution saved")).toBeVisible();
   await expect.poll(() => updatePayload).toBeTruthy();
 
   const solution = updatePayload?.solutions?.[0];
@@ -364,11 +375,18 @@ test("updates the stored solution from the edited move tree after submit", async
   expect(solution?.tree?.fen).toBe(firstFen);
   expect(solution?.tree?.sideToSolve).toBe("b");
   expect(solution?.tree?.status).toBe("solved");
+  expect(solution?.tree?.source).toBe("manual");
   expect(rootMove?.uci).toBe("f4d3");
   expect(replyMoves).toContain("e1e2");
+  expect(replyMoves).not.toContain("e1e3");
+
+  await page.reload();
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Re2" })).toBeVisible();
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Re3" })).toHaveCount(0);
 });
 
-test("submits a wrong continuation and shows salmon user move plus blue solution move", async ({ page }) => {
+test("submits a wrong continuation and shows neutral extra analysis plus a blue missing solution move", async ({ page }) => {
   await mockSolution(page, [["f4d3", "e1e2"]]);
   await openWoodpeckerPosition(page);
 
@@ -385,10 +403,56 @@ test("submits a wrong continuation and shows salmon user move plus blue solution
 
   await expect(page.getByText("50%")).toBeVisible();
   await expect(wrongMove).toHaveClass(/is-review-user-extra/);
+  await expect(wrongMove).toHaveAttribute("aria-description", "Extra analysis — no score penalty");
   await expect(solutionMove).toHaveClass(/is-review-solution-missing/);
 
   await solutionMove.click();
   await expect(solutionMove).toHaveAttribute("aria-current", "step");
+});
+
+test("deleting extra analysis clears the score and does not credit revealed moves on resubmit", async ({ page }) => {
+  await mockSolution(page, [["f4d3", "e1e2"]]);
+  await openWoodpeckerPosition(page);
+  await dragMove(page, "f4", "d3", "black");
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Nd3" })).toBeVisible();
+  await dragMove(page, "e1", "e3", "black");
+  await expect(page.getByLabel("Move notation").getByRole("button", { name: "Re3" })).toBeVisible();
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByText("50% coverage")).toBeVisible();
+  await page.getByLabel("Move notation").getByRole("button", { name: "Re3" }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await expect(page.getByText("50% coverage")).toHaveCount(0);
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByText("50% coverage")).toBeVisible();
+  await page.getByLabel("Move notation").getByRole("button", { name: "Nd3" }).click();
+  await dragMove(page, "e1", "e2", "black");
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByText("100% coverage")).toBeVisible();
+});
+
+test("provisional engine solutions show a warning and review reasons with their score", async ({ page }) => {
+  await page.route("**/v1/solution/**", route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ...solutionDoc([["f4d3"]]), status: "needs_review", quality: { reviewReasons: ["max_seconds", "unrecognized_reason"] } }),
+  }));
+  await openWoodpeckerPosition(page);
+  await dragMove(page, "f4", "d3", "black");
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByText("Provisional solution — engine analysis needs review.")).toBeVisible();
+  await expect(page.getByText("100% coverage (provisional)")).toBeVisible();
+  await page.getByText("Why this solution needs review").click();
+  await expect(page.getByText("Analysis time limit reached")).toBeVisible();
+  await expect(page.getByText("unrecognized reason")).toBeVisible();
+});
+
+test("an empty solution cannot show a passing score", async ({ page }) => {
+  await mockSolution(page, []);
+  await openWoodpeckerPosition(page);
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByText(/saved solution has no moves to score/)).toBeVisible();
+  await expect(page.locator(".solution-score")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save solution" })).toBeDisabled();
 });
 
 test("submit shows an error and allows creating an update when no solution is available", async ({ page }) => {
@@ -417,9 +481,9 @@ test("submit shows an error and allows creating an update when no solution is av
   await expect(page.getByText("No solution found for this position.")).toBeVisible();
   await expect(page.getByText(/\d+%/)).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Update" }).click();
+  await page.getByRole("button", { name: "Save solution" }).click();
 
-  await expect(page.getByText("Saved")).toBeVisible();
+  await expect(page.getByText("Solution saved")).toBeVisible();
   await expect.poll(() => updatePayload).toBeTruthy();
 
   const solution = updatePayload?.solutions?.[0];

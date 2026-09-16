@@ -28,10 +28,26 @@ import {
   type MovePath,
   type MoveTreeNode,
 } from "./gameTree";
-import { fetchSolution, SolutionFetchError, updateSolution } from "./solutionClient";
-import { compareSolutionTree } from "./solutionComparison";
+import { fetchSolution, SolutionFetchError, updateSolution, type SolutionDocument } from "./solutionClient";
+import { compareSolutionTree, SolutionComparisonError } from "./solutionComparison";
 
 const emptyDests = new Map() as Dests;
+const reviewReasonLabels: Record<string, string> = {
+  max_seconds: "Analysis time limit reached",
+  max_depth: "Line needs deeper analysis",
+  max_nodes: "More branches need analysis",
+  candidate_limit: "Additional moves need checking",
+  forcing_candidate_limit: "Additional forcing defenses need checking",
+  ambiguous_root: "Several first moves appear equivalent",
+  repetition_unresolved: "Repeating line needs review",
+  empty_root: "No solution moves were found",
+  analysis_unavailable: "Engine analysis was unavailable",
+  checking_defense_analysis_unavailable: "A checking defense still needs analysis",
+  root_mate_unconfirmed: "The mating line could not be confirmed",
+  losing_root: "The starting position appears lost",
+  solver_mated: "A line ends with the solving side checkmated",
+  winning_line_drawn: "A winning line ends in a draw",
+};
 
 type GameState = {
   root: MoveTreeNode;
@@ -57,6 +73,13 @@ type Route =
 
 function positionFromFen(fen: string): Chess {
   return Chess.fromSetup(chessFen.parseFen(fen).unwrap()).unwrap();
+}
+
+function reviewReasons(solution: SolutionDocument): string[] | undefined {
+  if (solution.status !== "needs_review") return undefined;
+  const quality = solution.quality;
+  const reasons = typeof quality === "object" && quality !== null && "reviewReasons" in quality ? quality.reviewReasons : [];
+  return Array.isArray(reasons) ? reasons.filter((reason): reason is string => typeof reason === "string") : [];
 }
 
 function isPromotion(position: Chess, from: Square, to: Square): boolean {
@@ -89,10 +112,12 @@ function appendOrSelectMove(root: MoveTreeNode, fromPath: MovePath, position: Ch
   const existing = parent.children.find(child => child.move?.uci === uci);
 
   if (existing) {
+    const selected = { ...existing };
+    delete selected.review;
     return {
-      root,
+      root: updateNodeAtPath(root, [...fromPath, existing.id], () => selected),
       currentPath: [...fromPath, existing.id],
-      node: existing,
+      node: selected,
       position: positionFromFen(existing.fen),
       appended: false,
     };
@@ -178,6 +203,7 @@ function SolverPage({
   const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
   const [updateState, setUpdateState] = useState<UpdateState>({ status: "idle" });
   const [canUpdateSolution, setCanUpdateSolution] = useState(false);
+  const [solutionReviewReasons, setSolutionReviewReasons] = useState<string[]>();
   const currentEntry = nodeAtPath(game.root, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
@@ -203,6 +229,7 @@ function SolverPage({
     setSubmitState({ status: "idle" });
     setUpdateState({ status: "idle" });
     setCanUpdateSolution(false);
+    setSolutionReviewReasons(undefined);
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
@@ -265,6 +292,7 @@ function SolverPage({
   }, [goToPath]);
 
   const deleteMoveTreeAtPath = useCallback((path: MovePath) => {
+    markTreeEdited();
     const nextPath = path.slice(0, -1);
     const nextRoot = deleteNodeAtPath(gameRef.current.root, path);
     const nextGame = {
@@ -274,7 +302,7 @@ function SolverPage({
 
     setGame(nextGame);
     gameRef.current = nextGame;
-  }, []);
+  }, [markTreeEdited]);
 
   const handleMove = useCallback(
     (orig: Key, dest: Key) => {
@@ -319,6 +347,8 @@ function SolverPage({
 
     try {
       const solution = await fetchSolution(deck.slug, initialFen);
+      setSolutionReviewReasons(reviewReasons(solution));
+      setCanUpdateSolution(true);
       const result = compareSolutionTree(initialFen, gameRef.current.root, solution);
       const nextGame = {
         root: result.reviewRoot,
@@ -327,16 +357,20 @@ function SolverPage({
 
       setGame(nextGame);
       gameRef.current = nextGame;
-      setSubmitState({ status: "success", score: result.score });
-      setCanUpdateSolution(true);
+      setSubmitState({
+        status: "success",
+        score: result.score,
+      });
     } catch (error) {
       const isMissingSolution = error instanceof SolutionFetchError && error.status === 404;
 
-      setCanUpdateSolution(isMissingSolution);
+      setCanUpdateSolution(isMissingSolution || error instanceof SolutionComparisonError);
       setSubmitState({
         status: "error",
         message:
-          isMissingSolution
+          error instanceof SolutionComparisonError
+            ? error.message
+            : isMissingSolution
             ? "No solution found for this position."
             : "Could not load the solution. Check that the server is running.",
       });
@@ -349,6 +383,7 @@ function SolverPage({
     try {
       await updateSolution(deck.slug, initialFen, gameRef.current.root);
       setUpdateState({ status: "success" });
+      setSolutionReviewReasons(undefined);
     } catch {
       setUpdateState({
         status: "error",
@@ -419,14 +454,19 @@ function SolverPage({
                   className="solution-update-button"
                   type="button"
                   onClick={handleUpdateSolution}
-                  disabled={submitState.status === "loading" || updateState.status === "loading"}
+                  disabled={submitState.status === "loading" || updateState.status === "loading" || game.root.children.length === 0}
                 >
-                  {updateState.status === "loading" ? "Updating" : "Update"}
+                  {updateState.status === "loading" ? "Saving…" : "Save solution"}
                 </button>
+              ) : null}
+              {solutionReviewReasons ? (
+                <span className="solution-status is-provisional" role="status">
+                  Provisional solution — engine analysis needs review.
+                </span>
               ) : null}
               {submitState.status === "success" ? (
                 <span className="solution-score" aria-live="polite">
-                  {submitState.score}%
+                  {submitState.score}% coverage{solutionReviewReasons ? " (provisional)" : ""}
                 </span>
               ) : null}
               {submitState.status === "error" ? (
@@ -436,7 +476,7 @@ function SolverPage({
               ) : null}
               {updateState.status === "success" ? (
                 <span className="solution-status is-success" role="status">
-                  Saved
+                  Solution saved
                 </span>
               ) : null}
               {updateState.status === "error" ? (
@@ -445,6 +485,17 @@ function SolverPage({
                 </span>
               ) : null}
             </div>
+            <p className="solution-guidance">
+              {canUpdateSolution
+                ? "Blue moves were missed. Extra analysis has no penalty. One accepted move is enough on your turn; cover every required defense. Play moves to add lines; right-click a move to delete it. Save solution replaces the stored answer with this tree."
+                : "Play your lines, then submit to review and edit the saved solution. One accepted move is enough on your turn; cover every required defense. Extra analysis has no penalty."}
+            </p>
+            {solutionReviewReasons && solutionReviewReasons.length > 0 ? (
+              <details className="solution-guidance">
+                <summary>Why this solution needs review</summary>
+                <ul>{solutionReviewReasons.map((reason, index) => <li key={index}>{reviewReasonLabels[reason] ?? reason.replace(/_/g, " ")}</li>)}</ul>
+              </details>
+            ) : null}
           </section>
           <MoveNotationPanel
             root={game.root}

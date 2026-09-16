@@ -145,7 +145,68 @@ test("POST /v1/solver/solutions stores a batch of solved trees", async () => {
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { stored: 1 });
-  assert.deepEqual(db.prepare("SELECT tree FROM solutions WHERE collection = ? AND fen = ?").get("woodpecker", batchFen), {
-    tree: JSON.stringify(batchTree),
+  assert.deepEqual(new SolutionRepository(db).findByFen("woodpecker", batchFen)?.tree, batchTree);
+});
+
+test("generation preserves solutions saved after its preflight and reports only actual writes", async () => {
+  const repository = new SolutionRepository(db);
+  const collection = "safety";
+  const generatedTree = { ...tree, source: "stockfish" };
+  const manualTree = { ...tree, source: "manual" };
+  const otherTree = { ...tree, fen: encyclopediaFen, root: { ...tree.root, fen: encyclopediaFen } };
+  assert.deepEqual(repository.existingFens(collection, [fen]), []);
+  repository.upsert(collection, fen, manualTree);
+
+  const response = await fetch(`${baseUrl}/v1/solver/solutions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      collection,
+      overwrite: false,
+      solutions: [
+        { fen, tree: generatedTree },
+        { fen: encyclopediaFen, tree: otherTree },
+        { fen: encyclopediaFen, tree: otherTree },
+      ],
+    }),
   });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { stored: 1 });
+  assert.deepEqual(repository.findByFen(collection, fen)?.tree, manualTree);
+  assert.deepEqual(repository.findByFen(collection, encyclopediaFen)?.tree, otherTree);
+
+  const replacement = { ...manualTree, comment: "Corrected by user" };
+  const updated = await fetch(`${baseUrl}/v1/solver/solutions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ collection, solutions: [{ fen, tree: replacement }] }),
+  });
+  assert.equal(updated.status, 200);
+  assert.deepEqual(await updated.json(), { stored: 1 });
+  assert.deepEqual(repository.findByFen(collection, fen)?.tree, replacement);
+});
+
+test("solution writes reject invalid document roots, mismatched FENs, and non-boolean overwrite", async () => {
+  for (const invalid of [
+    { tree: null },
+    { tree: [] },
+    { tree: { fen } },
+    { tree: { ...tree, root: [] } },
+    { tree: { ...tree, root: null } },
+    { tree: { ...tree, fen: encyclopediaFen } },
+    { tree, overwrite: "false" },
+  ]) {
+    const response = await fetch(`${baseUrl}/v1/solver/solutions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        collection: "invalid",
+        overwrite: invalid.overwrite,
+        solutions: [{ fen, tree: invalid.tree }],
+      }),
+    });
+    assert.equal(response.status, 400);
+  }
+  assert.equal(new SolutionRepository(db).count("invalid"), 0);
 });

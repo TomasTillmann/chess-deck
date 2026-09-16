@@ -177,30 +177,30 @@ export class SolutionRepository {
     return existing;
   }
 
-  upsertMany(collection: string, solutions: readonly SolutionInput[]): number {
+  upsertMany(collection: string, solutions: readonly SolutionInput[], overwrite = true): number {
     if (solutions.length === 0) return 0;
 
     const statement = this.db.prepare(
       `
         INSERT INTO solutions (fen, collection, tree)
         VALUES (@fen, @collection, @tree)
-        ON CONFLICT(collection, fen) DO UPDATE SET
-          tree = excluded.tree
+        ON CONFLICT(collection, fen) DO ${overwrite ? "UPDATE SET tree = excluded.tree" : "NOTHING"}
       `,
     );
 
     const insertMany = this.db.transaction((items: readonly SolutionInput[]) => {
+      let stored = 0;
       for (const solution of items) {
-        statement.run({
+        stored += statement.run({
           fen: solution.fen,
           collection,
           tree: JSON.stringify(solution.tree),
-        });
+        }).changes;
       }
+      return stored;
     });
 
-    insertMany(solutions);
-    return solutions.length;
+    return insertMany(solutions);
   }
 
   upsert(collection: string, fen: string, tree: unknown): StoredSolution {

@@ -2,3 +2,8 @@
 __pycache__/
 *.py[oc]
 .ruff_cache/
+
+reports/*.sqlite
+reports/*.json
+reports/*.jsonl
+reports/*.log

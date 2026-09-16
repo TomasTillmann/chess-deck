@@ -8,30 +8,38 @@ from typing import Any
 
 @dataclass(frozen=True)
 class EngineSettings:
-    path: str
-    movetime_ms: int
-    max_movetime_ms: int
-    depth: int | None
-    threads: int
-    hash_mb: int
-    limit_strength: bool
-    uci_elo: int
-    multipv: int
+    path: str = "stockfish"
+    movetime_ms: int = 500
+    root_movetime_ms: int = 5000
+    verification_movetime_ms: int = 2000
+    max_movetime_ms: int = 5000
+    depth: int | None = None
+    threads: int = 1
+    hash_mb: int = 128
+    limit_strength: bool = False
+    uci_elo: int = 3000
+    multipv: int = 4
 
 
 @dataclass(frozen=True)
 class SolverSettings:
-    max_depth: int
-    best_move_margin_cp: int
-    clear_gap_cp: int
-    winning_eval_cp: int
-    robust_win_ratio: float
-    robust_sample_multipv: int
-    min_moves_for_robust_stop: int
-    mate_score_cp: int
-    max_best_moves: int
-    skip_if_no_clear_gap: bool
-    include_evals: bool
+    max_depth: int = 20
+    max_nodes: int = 120
+    max_seconds: float = 90
+    best_move_margin_cp: int = 80
+    defense_margin_cp: int = 180
+    forcing_defense_margin_cp: int = 300
+    max_candidates: int = 12
+    mate_distance_slack: int = 2
+    winning_eval_cp: int = 300
+    decisive_eval_cp: int = 500
+    material_gain_cp: int = 150
+    stable_material_cp: int = 300
+    min_solution_plies: int = 2
+    sound_continuations: int = 3
+    stability_plies: int = 6
+    mate_score_cp: int = 100000
+    include_evals: bool = True
 
 
 @dataclass(frozen=True)
@@ -49,32 +57,23 @@ def _section(data: dict[str, Any], name: str) -> dict[str, Any]:
 
 def load_settings(path: Path) -> AppSettings:
     data = json.loads(path.read_text(encoding="utf-8"))
-    engine = _section(data, "engine")
-    solver = _section(data, "solver")
-
-    return AppSettings(
-        engine=EngineSettings(
-            path=str(engine["path"]),
-            movetime_ms=int(engine["movetime_ms"]),
-            max_movetime_ms=int(engine["max_movetime_ms"]),
-            depth=None if engine.get("depth") is None else int(engine["depth"]),
-            threads=int(engine["threads"]),
-            hash_mb=int(engine["hash_mb"]),
-            limit_strength=bool(engine["limit_strength"]),
-            uci_elo=int(engine["uci_elo"]),
-            multipv=int(engine["multipv"]),
-        ),
-        solver=SolverSettings(
-            max_depth=int(solver["max_depth"]),
-            best_move_margin_cp=int(solver["best_move_margin_cp"]),
-            clear_gap_cp=int(solver["clear_gap_cp"]),
-            winning_eval_cp=int(solver["winning_eval_cp"]),
-            robust_win_ratio=float(solver["robust_win_ratio"]),
-            robust_sample_multipv=int(solver["robust_sample_multipv"]),
-            min_moves_for_robust_stop=int(solver["min_moves_for_robust_stop"]),
-            mate_score_cp=int(solver["mate_score_cp"]),
-            max_best_moves=int(solver["max_best_moves"]),
-            skip_if_no_clear_gap=bool(solver["skip_if_no_clear_gap"]),
-            include_evals=bool(solver["include_evals"]),
-        ),
+    settings = AppSettings(
+        engine=EngineSettings(**_section(data, "engine")),
+        solver=SolverSettings(**_section(data, "solver")),
     )
+    for key in ("movetime_ms", "root_movetime_ms", "verification_movetime_ms", "max_movetime_ms", "threads", "hash_mb", "multipv"):
+        if getattr(settings.engine, key) <= 0:
+            raise ValueError(f"engine.{key} must be positive")
+    if settings.engine.depth is not None and settings.engine.depth <= 0:
+        raise ValueError("engine.depth must be positive or null")
+    for key in ("max_depth", "max_nodes", "max_seconds", "max_candidates", "sound_continuations", "stability_plies", "mate_score_cp"):
+        if getattr(settings.solver, key) <= 0:
+            raise ValueError(f"solver.{key} must be positive")
+    for key in ("best_move_margin_cp", "defense_margin_cp", "forcing_defense_margin_cp", "mate_distance_slack", "winning_eval_cp", "decisive_eval_cp", "material_gain_cp", "stable_material_cp", "min_solution_plies"):
+        if getattr(settings.solver, key) < 0:
+            raise ValueError(f"solver.{key} must be nonnegative")
+    if settings.solver.max_candidates < settings.engine.multipv:
+        raise ValueError("solver.max_candidates must be at least engine.multipv")
+    if settings.solver.sound_continuations > settings.engine.multipv:
+        raise ValueError("solver.sound_continuations must not exceed engine.multipv")
+    return settings

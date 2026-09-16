@@ -82,22 +82,22 @@ test("missing solution line inserts blue branch and score drops", () => {
   const shared = childByUci(result.reviewRoot, "f4d3");
   const missing = childByUci(shared, "e1e2");
 
-  expect(result.score).toBe(67);
+  expect(result.score).toBe(50);
   expect(shared.review).toBeUndefined();
   expect(missing.review).toBe("solution-missing");
 });
 
-test("extra user line marks salmon branch and score drops", () => {
+test("extra continuation is retained without a score penalty", () => {
   const result = compareSolutionTree(initialFen, userTree([["f4d3", "e1e2"]]), solutionDoc([["f4d3"]]));
   const shared = childByUci(result.reviewRoot, "f4d3");
   const extra = childByUci(shared, "e1e2");
 
-  expect(result.score).toBe(67);
+  expect(result.score).toBe(100);
   expect(shared.review).toBeUndefined();
   expect(extra.review).toBe("user-extra");
 });
 
-test("partial drift keeps shared prefix normal, marks wrong branch salmon, and inserts correct branch blue", () => {
+test("wrong continuation loses required coverage and inserts the missing correct move", () => {
   const result = compareSolutionTree(initialFen, userTree([["f4d3", "e1e3"]]), solutionDoc([["f4d3", "e1e2"]]));
   const shared = childByUci(result.reviewRoot, "f4d3");
   const extra = childByUci(shared, "e1e3");
@@ -107,6 +107,59 @@ test("partial drift keeps shared prefix normal, marks wrong branch salmon, and i
   expect(shared.review).toBeUndefined();
   expect(extra.review).toBe("user-extra");
   expect(missing.review).toBe("solution-missing");
+});
+
+test("extra siblings cannot lower full coverage", () => {
+  const solution = solutionDoc([["f4d3", "e1e2"]]);
+  const result = compareSolutionTree(initialFen, userTree([["f4d3", "e1e2"], ["f4e2"]]), solution);
+  expect(result.score).toBe(100);
+});
+
+test("one accepted solver alternative gives full credit without requiring the other", () => {
+  const solution = solutionDoc([["f4d3", "e1e2"], ["f4e2"]]);
+  const result = compareSolutionTree(initialFen, userTree([["f4e2"]]), solution);
+  expect(result.score).toBe(100);
+  expect(childByUci(result.reviewRoot, "f4d3").review).toBe("solution-alternative");
+});
+
+test("every required opponent resource contributes to coverage", () => {
+  const solution = solutionDoc([["f4d3", "e1e2"], ["f4d3", "e1e3"]]);
+  const result = compareSolutionTree(initialFen, userTree([["f4d3", "e1e2"]]), solution);
+  expect(result.score).toBe(67);
+});
+
+test("short shared prefixes earn only their share of required moves", () => {
+  const solution = solutionDoc([["f4d3", "e1e2", "d3e1"]]);
+  const result = compareSolutionTree(initialFen, userTree([["f4d3"]]), solution);
+  expect(result.score).toBe(33);
+});
+
+test("adding a longer accepted variation cannot lower coverage across other defenses", () => {
+  const solution = solutionDoc([
+    ["f4d3", "e1e2", "d3c1", "a2b1"],
+    ["f4d3", "e1e2", "d3e1", "a2b1", "e1d3", "b1a2", "d3e1"],
+    ["f4d3", "e1e3", "d3c1"],
+  ]);
+  const lines = [["f4d3", "e1e2", "d3c1"], ["f4d3", "e1e3", "d3c1"]];
+  const before = compareSolutionTree(initialFen, userTree(lines), solution);
+  const after = compareSolutionTree(initialFen,
+    userTree([...lines, ["f4d3", "e1e2", "d3e1", "a2b1", "e1d3"]]), solution);
+  expect(after.score).toBeGreaterThanOrEqual(before.score);
+});
+
+test("review hints cannot earn free credit on repeat submissions", () => {
+  const solution = solutionDoc([["f4d3", "e1e2"], ["f4e2"]]);
+  const first = compareSolutionTree(initialFen, userTree([["f4d3"]]), solution);
+  const second = compareSolutionTree(initialFen, first.reviewRoot, solution);
+  const third = compareSolutionTree(initialFen, second.reviewRoot, solution);
+  expect(first.score).toBe(50);
+  expect(second.score).toBe(50);
+  expect(third.score).toBe(50);
+  expect(second.userMoveCount).toBe(1);
+});
+
+test("an empty saved solution cannot produce a passing score", () => {
+  expect(() => compareSolutionTree(initialFen, userTree([]), solutionDoc([]))).toThrow(/no moves to score/);
 });
 
 test("completely different first move gives 0%", () => {

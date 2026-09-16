@@ -13,12 +13,17 @@ class Candidate:
     move: chess.Move
     mover_eval: int
     solver_eval: int
+    mover_mate: int | None = None
+    solver_mate: int | None = None
+    pv: tuple[chess.Move, ...] = ()
+    depth: int = 0
 
 
 class StockfishAnalyzer:
     def __init__(self, settings: AppSettings) -> None:
         self._settings = settings
         self._engine = chess.engine.SimpleEngine.popen_uci(settings.engine.path)
+        self.name = self._engine.id.get("name", settings.engine.path)
         options: dict[str, object] = {
             "Threads": settings.engine.threads,
             "Hash": settings.engine.hash_mb,
@@ -42,55 +47,38 @@ class StockfishAnalyzer:
         board: chess.Board,
         side_to_solve: chess.Color,
         multipv: int | None = None,
+        *,
+        verify: bool = False,
+        root: bool = False,
+        root_moves: list[chess.Move] | None = None,
     ) -> list[Candidate]:
-        legal_count = board.legal_moves.count()
+        legal_count = len(root_moves) if root_moves is not None else board.legal_moves.count()
         if legal_count == 0:
             return []
-
+        settings = self._settings.engine
+        time_ms = settings.root_movetime_ms if root else settings.verification_movetime_ms if verify else settings.movetime_ms
         infos = self._engine.analyse(
             board,
-            self._limit(),
-            multipv=min(multipv or self._settings.engine.multipv, legal_count),
+            chess.engine.Limit(depth=settings.depth, time=min(time_ms, settings.max_movetime_ms) / 1000),
+            multipv=min(multipv or settings.multipv, legal_count),
+            root_moves=root_moves,
+            info=chess.engine.INFO_SCORE | chess.engine.INFO_PV | chess.engine.INFO_BASIC,
         )
         if isinstance(infos, dict):
             infos = [infos]
-
-        candidates: list[Candidate] = []
+        candidates = []
         for info in infos:
-            pv = info.get("pv")
-            score = info.get("score")
+            pv, score = info.get("pv"), info.get("score")
             if not pv or score is None:
                 continue
-            move = pv[0]
-            candidates.append(
-                Candidate(
-                    move=move,
-                    mover_eval=_score_cp(score, board.turn, self._settings.solver.mate_score_cp),
-                    solver_eval=_score_cp(score, side_to_solve, self._settings.solver.mate_score_cp),
-                )
-            )
-        candidates.sort(key=lambda candidate: candidate.mover_eval, reverse=True)
-        return candidates
-
-    def static_eval(self, board: chess.Board, side_to_solve: chess.Color) -> int | None:
-        infos = self._engine.analyse(board, self._limit(), multipv=1)
-        if isinstance(infos, list):
-            infos = infos[0] if infos else {}
-        score = infos.get("score")
-        if score is None:
-            return None
-        return _score_cp(score, side_to_solve, self._settings.solver.mate_score_cp)
-
-    def _limit(self) -> chess.engine.Limit:
-        depth = self._settings.engine.depth
-        time_ms = min(self._settings.engine.movetime_ms, self._settings.engine.max_movetime_ms)
-        if depth is not None:
-            return chess.engine.Limit(depth=depth, time=time_ms / 1000)
-        return chess.engine.Limit(time=time_ms / 1000)
-
-
-def _score_cp(score: chess.engine.PovScore, pov: chess.Color, mate_score_cp: int) -> int:
-    value = score.pov(pov).score(mate_score=mate_score_cp)
-    if value is None:
-        return 0
-    return int(value)
+            mover, solver = score.pov(board.turn), score.pov(side_to_solve)
+            candidates.append(Candidate(
+                move=pv[0],
+                mover_eval=int(mover.score(mate_score=self._settings.solver.mate_score_cp) or 0),
+                solver_eval=int(solver.score(mate_score=self._settings.solver.mate_score_cp) or 0),
+                mover_mate=mover.mate(),
+                solver_mate=solver.mate(),
+                pv=tuple(pv),
+                depth=info.get("depth", 0),
+            ))
+        return sorted(candidates, key=lambda candidate: candidate.mover_eval, reverse=True)

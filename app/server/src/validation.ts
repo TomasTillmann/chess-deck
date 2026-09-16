@@ -37,12 +37,16 @@ export const solutionExistingBatchSchema = z.object({
 
 export const solutionStoreBatchSchema = z.object({
   collection: collectionSchema,
+  overwrite: z.boolean().default(true),
   solutions: z
     .array(
       z.object({
         fen: solutionFenSchema,
-        tree: z.any().refine(value => value !== undefined, "tree is required"),
-      }),
+        tree: z.object({
+          fen: solutionFenSchema,
+          root: z.record(z.unknown()),
+        }).passthrough(),
+      }).refine(solution => solution.tree.fen === solution.fen, "Solution FEN must match the requested FEN"),
     )
     .min(1)
     .max(100),
