@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import type { Deck } from "../decks";
 import { deleteDeckView, fetchDeckViews, renameDeckView, type DeckView } from "../deckViewClient";
-import { Button, StatusMessage } from "../design-system";
+import { Button, PageHeader, StatusMessage } from "../design-system";
+import { navigateToDecks } from "../routing";
 
 export function DeckViews({ decks, onPractice }: { decks: Deck[]; onPractice: (view: DeckView) => void }) {
-  const headingId = useId();
+  const nameInputId = useId();
   const dialogTitleId = useId();
   const dialogDescriptionId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -95,27 +96,31 @@ export function DeckViews({ decks, onPractice }: { decks: Deck[]; onPractice: (v
     }
   }
 
-  return <section className="deck-views" aria-labelledby={headingId}>
-    <h2 id={headingId} ref={heading} tabIndex={-1}>Deck Views</h2>
+  return <main className="deck-page">
+    <PageHeader title="Deck Views" headingRef={heading} />
+    <div className="deck-views">
     {loading ? <StatusMessage role="status">Loading deck views…</StatusMessage>
       : loadError ? <div className="deck-view-feedback">
         <StatusMessage tone="danger" role="alert">Could not load deck views.</StatusMessage>
         <Button onClick={() => setLoadAttempt(current => current + 1)}>Retry</Button>
       </div>
-      : views.length === 0 ? <p className="deck-views-empty">Select decks and click Practice to save a view.</p>
+      : views.length === 0 ? <div className="deck-views-empty">
+        <p>Select decks and click Practice to save a view.</p>
+        <Button onClick={navigateToDecks}>Go to decks</Button>
+      </div>
       : <ul className="deck-view-list">
         {views.map(view => <li className="deck-view-row" key={view.id}>
           <div className="deck-view-copy">
             {editingId === view.id ? <form className="deck-view-rename" onSubmit={saveName}>
-              <label htmlFor={`${headingId}-name`}>View name</label>
+              <label htmlFor={nameInputId}>View name</label>
               <div className="deck-view-rename-controls">
-                <input id={`${headingId}-name`} value={name} onChange={event => setName(event.target.value)} autoFocus required maxLength={200} disabled={pending} />
+                <input id={nameInputId} value={name} onChange={event => setName(event.target.value)} autoFocus required maxLength={200} disabled={pending} />
                 <Button type="submit" disabled={pending || !name.trim()}>{pending ? "Saving…" : "Save"}</Button>
                 <Button variant="ghost" disabled={pending} onClick={finishRename}>Cancel</Button>
               </div>
               {renameError && <StatusMessage tone="danger" role="alert">Could not rename this view. Try saving again.</StatusMessage>}
-            </form> : <h3>{view.name}</h3>}
-            <p>{view.collections.map(slug => decks.find(deck => deck.slug === slug)?.name ?? `${slug} (unavailable)`).join(" + ")}</p>
+            </form> : <h2>{view.name}</h2>}
+            <p>{view.collections.map(slug => decks.find(deck => deck.slug === slug)?.name ?? slug).join(" + ")}</p>
           </div>
           <div className="deck-view-actions">
             <Button onClick={() => onPractice(view)} disabled={pending} aria-label={`Practice ${view.name}`}>Practice</Button>
@@ -133,6 +138,7 @@ export function DeckViews({ decks, onPractice }: { decks: Deck[]; onPractice: (v
           </div>
         </li>)}
       </ul>}
+    </div>
     <dialog className="view-dialog" ref={dialog} aria-labelledby={dialogTitleId} aria-describedby={dialogDescriptionId} onCancel={event => {
       event.preventDefault();
       if (!mutationLock.current) closeDelete();
@@ -145,5 +151,5 @@ export function DeckViews({ decks, onPractice }: { decks: Deck[]; onPractice: (v
         <Button variant="danger" disabled={pending} onClick={() => void confirmDelete()}>{pending ? "Deleting…" : "Delete view"}</Button>
       </div>
     </dialog>
-  </section>;
+  </main>;
 }

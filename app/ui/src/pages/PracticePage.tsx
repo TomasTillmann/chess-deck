@@ -16,6 +16,8 @@ type PracticeSession = {
 type PracticePageProps = {
   collections?: readonly string[];
   title?: string;
+  onGoBack?: () => void;
+  backLabel?: string;
   onDecksChange: (decks: Deck[]) => void;
 };
 
@@ -24,7 +26,7 @@ export function PracticePage(props: PracticePageProps) {
 }
 
 // A scope is only a view: every position keeps its source deck and review identity.
-function PracticeScope({ collections, title: viewTitle, onDecksChange }: PracticePageProps) {
+function PracticeScope({ collections, title: viewTitle, onGoBack = navigateToDecks, backLabel = "Go to decks", onDecksChange }: PracticePageProps) {
   const [session, setSession] = useState<PracticeSession>();
   const [error, setError] = useState(false);
   const requestVersion = useRef(0);
@@ -80,20 +82,20 @@ function PracticeScope({ collections, title: viewTitle, onDecksChange }: Practic
     key={`${position.deck.slug}:${position.deck.fens[position.positionIndex]}:${session.attempt}`}
     deck={position.deck}
     positionIndex={position.positionIndex}
-    onGoToDeck={navigateToDecks}
+    onGoToDeck={onGoBack}
     onGoToPosition={sourceIndex => selectPosition(session.positions.findIndex(item => item.deck.slug === position.deck.slug && item.positionIndex === sourceIndex))}
     navigation={{
       previous: session.positionIndex > 0 ? () => selectPosition(session.positionIndex - 1) : undefined,
       next: session.positionIndex + 1 < session.positions.length ? () => selectPosition(session.positionIndex + 1) : undefined,
     }}
-    backLabel="Go to decks"
+    backLabel={backLabel}
     practiceLabel={title}
     onLoadNextReview={loadNext}
     allowSolutionEditing={false}
   />;
 
   return <main className="deck-page">
-    <PageHeader title={title} actions={<Button onClick={navigateToDecks}><Icon name="arrow-left" />Go to decks</Button>} />
+    <PageHeader title={title} actions={<Button onClick={onGoBack}><Icon name="arrow-left" />{backLabel}</Button>} />
     <div className="practice-status">
       {error ? <>
         <StatusMessage role="status">Could not load practice.</StatusMessage>

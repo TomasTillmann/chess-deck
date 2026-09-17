@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { DeckGrid } from "./components/DeckGrid";
 import { DeckPositionGrid } from "./components/DeckPositionGrid";
+import { DeckViews } from "./components/DeckViews";
 import { SolverPage } from "./pages/SolverPage";
 import { PracticePage } from "./pages/PracticePage";
 import { DeckViewPracticePage } from "./pages/DeckViewPracticePage";
 import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
-import { routeFromHash, navigateToDeck, navigateToDecks, navigateToPosition } from "./routing";
+import { routeFromHash, navigateToDeck, navigateToDecks, navigateToDeckView, navigateToPosition } from "./routing";
 
 export function App() {
   const [route, setRoute] = useState(routeFromHash);
@@ -57,6 +58,8 @@ export function App() {
   if (route.view === "practice") return route.viewId
     ? <DeckViewPracticePage key={route.viewId} viewId={route.viewId} onDecksChange={receiveDecks} />
     : <PracticePage onDecksChange={receiveDecks} />;
+
+  if (route.view === "views") return <DeckViews decks={decks} onPractice={view => navigateToDeckView(view.id)} />;
 
   if (isLoadingDecks) {
     return (

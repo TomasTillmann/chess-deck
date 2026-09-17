@@ -28,6 +28,7 @@ async function mockViews(page: Page, views: DeckView[] = []) {
     failCreate: false,
     failRename: false,
     failDelete: false,
+    beforeCreate: undefined as (() => Promise<void>) | undefined,
     beforeRename: undefined as (() => Promise<void>) | undefined,
     recommendedCollection: "beta",
   };
@@ -40,6 +41,7 @@ async function mockViews(page: Page, views: DeckView[] = []) {
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as typeof state.creates[number];
       state.creates.push(payload);
+      await state.beforeCreate?.();
       if (state.failCreate) return route.fulfill({ status: 503, json: { error: "Temporary failure" } });
       const created = state.views.find(item => [...item.collections].sort().join() === [...payload.collections].sort().join()) ?? {
         ...savedView(payload.collections),
@@ -122,11 +124,12 @@ test("selecting decks saves a named view, practices its scope, and preserves sou
   await expect(page.getByRole("heading", { name: "Alpha - 1", exact: true })).toBeVisible();
   expect(state.reviews).toHaveLength(1);
   expect(state.reviews[0]).toMatchObject({ collection: "beta", fen: secondFen, rating: "easy", learnerId: state.creates[0].learnerId });
-  await page.getByRole("button", { name: "Go to decks", exact: true }).click();
-  const views = page.getByRole("region", { name: "Deck Views", exact: true });
-  await expect(views.getByRole("button", { name: "Practice Alpha + Beta", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Go to deck views", exact: true }).click();
+  await expect(page).toHaveURL(/#\/views$/);
+  await expect(page.getByRole("heading", { name: "Deck Views", exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Practice Alpha + Beta", exact: true })).toBeVisible();
   await page.reload();
-  await views.getByRole("button", { name: "Practice Alpha + Beta", exact: true }).click();
+  await page.getByRole("button", { name: "Practice Alpha + Beta", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alpha - 1", exact: true })).toBeVisible();
   expect(state.creates).toHaveLength(1);
   expect(state.queueRequests.length).toBeGreaterThanOrEqual(3);
@@ -167,9 +170,30 @@ test("a failed create keeps selection for retry", async ({ page }) => {
   expect(state.creates[1]).toEqual(state.creates[0]);
 });
 
+test("a pending create cannot navigate away after opening Deck Views", async ({ page }) => {
+  const state = await mockViews(page);
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  state.beforeCreate = () => pending;
+  await page.goto("/");
+  await page.getByRole("checkbox", { name: "Select Alpha", exact: true }).check();
+  await page.getByRole("button", { name: "Practice", exact: true }).click();
+  await expect.poll(() => state.creates.length).toBe(1);
+  await page.getByRole("button", { name: "Navigation menu", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation", exact: true }).getByRole("link", { name: "Deck Views", exact: true }).click();
+  await expect(page).toHaveURL(/#\/views$/);
+  const created = page.waitForResponse(response => response.url().includes("/v1/deck-views") && response.request().method() === "POST");
+  release();
+  await (await created).finished();
+  await page.getByRole("heading", { name: "Deck Views", exact: true, level: 1 }).click();
+  await expect(page).toHaveURL(/#\/views$/);
+  expect(state.views).toHaveLength(1);
+  expect(state.queueRequests).toHaveLength(0);
+});
+
 test("rename supports cancel, validation, pending failure and retry without changing the scope", async ({ page }) => {
   const state = await mockViews(page, [savedView()]);
-  await page.goto("/");
+  await page.goto("/#/views");
   const rename = page.getByRole("button", { name: "Rename Alpha + Beta", exact: true });
   await rename.click();
   const input = page.getByRole("textbox", { name: "View name", exact: true });
@@ -204,7 +228,7 @@ test("rename supports cancel, validation, pending failure and retry without chan
 
 test("delete requires confirmation, recovers from failure, and only deletes view metadata", async ({ page }) => {
   const state = await mockViews(page, [savedView()]);
-  await page.goto("/");
+  await page.goto("/#/views");
   const remove = page.getByRole("button", { name: "Delete Alpha + Beta", exact: true });
   const dialog = page.getByRole("dialog", { name: "Delete deck view", exact: true });
   await remove.click();
@@ -226,6 +250,8 @@ test("delete requires confirmation, recovers from failure, and only deletes view
   await expect(remove).toHaveCount(0);
   await page.reload();
   await expect(remove).toHaveCount(0);
+  await page.getByRole("button", { name: "Navigation menu", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation", exact: true }).getByRole("link", { name: "Decks", exact: true }).click();
   await expect(page.getByRole("checkbox", { name: "Select Alpha", exact: true })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: "Select Beta", exact: true })).toBeVisible();
   expect(state.deletions).toHaveLength(2);

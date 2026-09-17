@@ -1,6 +1,7 @@
 import type { ThemeProps } from "./theme";
 
 const paths = {
+  menu: "M4 6h16M4 12h16M4 18h16",
   "chevron-left": "m14 6-6 6 6 6",
   "chevron-right": "m10 6 6 6-6 6",
   "chevron-down": "m6 9 6 6 6-6",

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Deck } from "../decks";
 import { fetchDeckView, type DeckView } from "../deckViewClient";
 import { Button, Icon, PageHeader, StatusMessage } from "../design-system";
-import { navigateToDecks } from "../routing";
+import { navigateToDeckViews } from "../routing";
 import { PracticePage } from "./PracticePage";
 
 export function DeckViewPracticePage({ viewId, onDecksChange }: { viewId: string; onDecksChange: (decks: Deck[]) => void }) {
@@ -18,10 +18,10 @@ export function DeckViewPracticePage({ viewId, onDecksChange }: { viewId: string
     return () => { active = false; };
   }, [viewId, attempt]);
 
-  if (view) return <PracticePage collections={view.collections} title={view.name} onDecksChange={onDecksChange} />;
+  if (view) return <PracticePage collections={view.collections} title={view.name} onDecksChange={onDecksChange} onGoBack={navigateToDeckViews} backLabel="Go to deck views" />;
 
   return <main className="deck-page">
-    <PageHeader title="Deck View" actions={<Button onClick={navigateToDecks}><Icon name="arrow-left" />Go to decks</Button>} />
+    <PageHeader title="Deck View" actions={<Button onClick={navigateToDeckViews}><Icon name="arrow-left" />Go to deck views</Button>} />
     <div className="practice-status">
       <StatusMessage role="status">{error ? "Could not load this deck view." : "Loading practice…"}</StatusMessage>
       {error && <Button onClick={() => setAttempt(current => current + 1)}>Retry</Button>}

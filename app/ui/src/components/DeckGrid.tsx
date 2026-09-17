@@ -1,17 +1,22 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Deck } from "../decks";
 import { createDeckView } from "../deckViewClient";
 import { Button, PageHeader, StatusMessage, type ThemeProps } from "../design-system";
 import { navigateToDeckView, navigateToPractice } from "../routing";
 import { DeckCard } from "./DeckCard";
-import { DeckViews } from "./DeckViews";
 
 export function DeckGrid({ decks, onSelectDeck, theme }: ThemeProps & { decks: Deck[]; onSelectDeck: (deck: Deck) => void }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(false);
   const pending = useRef(false);
+  const mounted = useRef(false);
   const selection = selected.filter(slug => decks.some(deck => deck.slug === slug));
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   async function practiceSelected() {
     if (!selection.length || pending.current) return;
@@ -20,12 +25,12 @@ export function DeckGrid({ decks, onSelectDeck, theme }: ThemeProps & { decks: D
     setError(false);
     try {
       const view = await createDeckView(selection);
-      navigateToDeckView(view.id);
+      if (mounted.current) navigateToDeckView(view.id);
     } catch {
-      setError(true);
+      if (mounted.current) setError(true);
     } finally {
       pending.current = false;
-      setStarting(false);
+      if (mounted.current) setStarting(false);
     }
   }
 
@@ -48,6 +53,5 @@ export function DeckGrid({ decks, onSelectDeck, theme }: ThemeProps & { decks: D
         </label>
       </div>)}
     </section>
-    <DeckViews decks={decks} onPractice={view => navigateToDeckView(view.id)} />
   </main>;
 }

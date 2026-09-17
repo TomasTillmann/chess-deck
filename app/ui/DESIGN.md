@@ -204,6 +204,10 @@ Deck pages use a centered maximum width of 1120px. The library has two columns, 
 
 The library places a **Practice All** action above the Decks heading. It opens the shared solver at `#/practice`; it is not presented as another deck card.
 
+The header's three-line navigation button opens a native popover with **Decks** (`#/`) and **Deck Views** (`#/views`). The current section is highlighted, including its practice routes. The popover overlays content without moving it and closes on selection, outside click, Escape, or a route change. At narrow widths the decorative theme icon is hidden to preserve room for both controls and the wordmark.
+
+Saved views occupy their own page, using the same centered page width and heading as Decks. Each row offers Practice, Rename, and Delete; deletion requires confirmation. Saved-view practice returns to Deck Views, while Practice All returns to Decks.
+
 The solver places a square board beside a 220–280px analysis panel, separated by 24px. The board is capped at 720px and desktop sizing responds to viewport height. At 900px and below, analysis moves beneath the board with a 220px panel height. At 560px and below, page gutters are 18px and the header is 58px high instead of 68px.
 
 Use the shared spacing scale for repeated gaps and padding. The submit/rating row reserves the rating group before reveal with `visibility: hidden`; its three equal rating columns remain in place. Feedback has a reserved row below it.
@@ -247,10 +251,10 @@ To add a theme:
 | Component | API and responsibility |
 | --- | --- |
 | `Button` | Native button props; `variant="primary\|secondary\|ghost\|success\|warning\|danger"`; `size="default\|icon\|compact"`. Defaults to secondary, default size, and `type="button"`. |
-| `Icon` | `name="chevron-left\|chevron-right\|chevron-down\|arrow-left\|first\|last\|sun\|moon"`; optional numeric `size` (18 by default). Decorative SVG; put the accessible name on its control. |
-| `PageHeader` | Required `title`, optional description as `children`, optional `actions`. Provides the deck-page heading arrangement. |
+| `Icon` | `name="menu\|chevron-left\|chevron-right\|chevron-down\|arrow-left\|first\|last\|sun\|moon"`; optional numeric `size` (18 by default). Decorative SVG; put the accessible name on its control. |
+| `PageHeader` | Required `title`, optional description as `children`, optional `actions` and `headingRef` for restoring focus. Provides the deck-page heading arrangement. |
 | `StatusMessage` | Native span props and `tone="muted\|success\|warning\|danger\|info"`; defaults to muted. The caller supplies live-region semantics where needed. |
-| `AppShell` | Application wordmark, theme selector, and children. |
+| `AppShell` | Application navigation, wordmark, theme selector, and children. |
 | `ThemeSelector` | Labeled native select for the provider's current theme, with a fixed width and decorative chevron. Supporting browsers use a themed `base-select` picker anchored below the control; other browsers retain their native menu. |
 
 Buttons have a shared minimum height of 38px, explicit hover/active states, and a disabled state. Icon buttons are square; compact buttons reduce height and padding. Color/border transitions use `motion-fast` and `ease-out`; reduced-motion preferences disable CSS transitions. All focusable controls receive a visible focus outline.

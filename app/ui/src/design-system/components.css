@@ -43,6 +43,66 @@ button, select, summary {
   border-bottom: 1px solid var(--border);
 }
 
+.workspace-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.ui-button.navigation-toggle {
+  width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  anchor-name: --navigation-toggle;
+}
+
+.workspace-navigation {
+  position: fixed;
+  inset: 76px auto auto 32px;
+  margin: 0;
+  width: min(240px, calc(100vw - 36px));
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+}
+
+@supports (top: anchor(bottom)) {
+  .workspace-navigation {
+    position-anchor: --navigation-toggle;
+    top: calc(anchor(bottom) + var(--space-2));
+    left: anchor(left);
+  }
+}
+
+.workspace-navigation a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.workspace-navigation a[aria-current="page"] {
+  background: var(--accent-soft);
+}
+
+.workspace-navigation a:hover {
+  background: var(--surface-hover);
+}
+
+.workspace-navigation a:focus-visible {
+  outline-offset: -2px;
+}
+
 .wordmark {
   display: inline-flex;
   align-items: center;
@@ -50,6 +110,7 @@ button, select, summary {
   font-size: var(--text-lg);
   font-weight: 750;
   letter-spacing: -0.035em;
+  white-space: nowrap;
 }
 
 .wordmark-dot {
@@ -64,6 +125,7 @@ button, select, summary {
   align-items: center;
   gap: var(--space-2);
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .theme-select {
@@ -289,6 +351,19 @@ button, select, summary {
   .workspace-header {
     height: 58px;
     padding-inline: 18px;
+    gap: var(--space-2);
+  }
+  .workspace-brand {
+    gap: var(--space-1);
+  }
+  .workspace-navigation {
+    inset: 66px auto auto 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .theme-selector > .ui-icon {
+    display: none;
   }
 }
 

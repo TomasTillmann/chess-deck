@@ -685,14 +685,7 @@
 
 .deck-views {
   width: min(100%, var(--page-width));
-  margin: var(--space-7) auto 0;
-}
-
-.deck-views > h2 {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-xl);
-  font-weight: 650;
-  letter-spacing: -0.025em;
+  margin: 0 auto;
 }
 
 .deck-views-empty {
@@ -700,6 +693,10 @@
   color: var(--text-muted);
   font-size: var(--text-sm);
   line-height: 1.5;
+}
+
+.deck-views-empty p {
+  margin: 0 0 var(--space-4);
 }
 
 .deck-view-list {
@@ -723,7 +720,7 @@
   overflow-wrap: anywhere;
 }
 
-.deck-view-copy h3 {
+.deck-view-copy h2 {
   margin: 0;
   font-size: var(--text-base);
   font-weight: 600;
