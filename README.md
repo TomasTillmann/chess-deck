@@ -1,4 +1,4 @@
-Woodpecker
+Chess Deck
 ==========
 
 Extract chess diagrams from PDF books into FEN.

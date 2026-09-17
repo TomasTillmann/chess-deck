@@ -1,0 +1,920 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-17T08:25:11.418457Z",
+  "title": "Design System: Chess Deck",
+  "extensions": {
+    "colorMeta": {
+      "light-canvas": {
+        "role": "neutral",
+        "displayName": "Light Canvas",
+        "tonalRamp": [
+          "oklch(15.00% 0.0054 117.92)",
+          "oklch(26.43% 0.0054 117.92)",
+          "oklch(37.86% 0.0054 117.92)",
+          "oklch(49.29% 0.0054 117.92)",
+          "oklch(60.71% 0.0054 117.92)",
+          "oklch(72.14% 0.0054 117.92)",
+          "oklch(83.57% 0.0054 117.92)",
+          "oklch(95.00% 0.0054 117.92)"
+        ]
+      },
+      "light-surface": {
+        "role": "neutral",
+        "displayName": "Light Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "light-surface-subtle": {
+        "role": "neutral",
+        "displayName": "Light Surface Subtle",
+        "tonalRamp": [
+          "oklch(15.00% 0.0086 128.56)",
+          "oklch(26.43% 0.0086 128.56)",
+          "oklch(37.86% 0.0086 128.56)",
+          "oklch(49.29% 0.0086 128.56)",
+          "oklch(60.71% 0.0086 128.56)",
+          "oklch(72.14% 0.0086 128.56)",
+          "oklch(83.57% 0.0086 128.56)",
+          "oklch(95.00% 0.0086 128.56)"
+        ]
+      },
+      "light-surface-hover": {
+        "role": "neutral",
+        "displayName": "Light Surface Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0148 132.48)",
+          "oklch(26.43% 0.0148 132.48)",
+          "oklch(37.86% 0.0148 132.48)",
+          "oklch(49.29% 0.0148 132.48)",
+          "oklch(60.71% 0.0148 132.48)",
+          "oklch(72.14% 0.0148 132.48)",
+          "oklch(83.57% 0.0148 132.48)",
+          "oklch(95.00% 0.0148 132.48)"
+        ]
+      },
+      "light-text": {
+        "role": "neutral",
+        "displayName": "Light Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.0163 145.09)",
+          "oklch(26.43% 0.0163 145.09)",
+          "oklch(37.86% 0.0163 145.09)",
+          "oklch(49.29% 0.0163 145.09)",
+          "oklch(60.71% 0.0163 145.09)",
+          "oklch(72.14% 0.0163 145.09)",
+          "oklch(83.57% 0.0163 145.09)",
+          "oklch(95.00% 0.0163 145.09)"
+        ]
+      },
+      "light-text-muted": {
+        "role": "neutral",
+        "displayName": "Light Text Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0210 142.72)",
+          "oklch(26.43% 0.0210 142.72)",
+          "oklch(37.86% 0.0210 142.72)",
+          "oklch(49.29% 0.0210 142.72)",
+          "oklch(60.71% 0.0210 142.72)",
+          "oklch(72.14% 0.0210 142.72)",
+          "oklch(83.57% 0.0210 142.72)",
+          "oklch(95.00% 0.0210 142.72)"
+        ]
+      },
+      "light-border": {
+        "role": "neutral",
+        "displayName": "Light Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0149 132.48)",
+          "oklch(26.43% 0.0149 132.48)",
+          "oklch(37.86% 0.0149 132.48)",
+          "oklch(49.29% 0.0149 132.48)",
+          "oklch(60.71% 0.0149 132.48)",
+          "oklch(72.14% 0.0149 132.48)",
+          "oklch(83.57% 0.0149 132.48)",
+          "oklch(95.00% 0.0149 132.48)"
+        ]
+      },
+      "light-border-strong": {
+        "role": "neutral",
+        "displayName": "Light Border Strong",
+        "tonalRamp": [
+          "oklch(15.00% 0.0260 137.82)",
+          "oklch(26.43% 0.0260 137.82)",
+          "oklch(37.86% 0.0260 137.82)",
+          "oklch(49.29% 0.0260 137.82)",
+          "oklch(60.71% 0.0260 137.82)",
+          "oklch(72.14% 0.0260 137.82)",
+          "oklch(83.57% 0.0260 137.82)",
+          "oklch(95.00% 0.0260 137.82)"
+        ]
+      },
+      "light-accent": {
+        "role": "primary",
+        "displayName": "Light Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.0624 152.37)",
+          "oklch(26.43% 0.0624 152.37)",
+          "oklch(37.86% 0.0624 152.37)",
+          "oklch(49.29% 0.0624 152.37)",
+          "oklch(60.71% 0.0624 152.37)",
+          "oklch(72.14% 0.0624 152.37)",
+          "oklch(83.57% 0.0624 152.37)",
+          "oklch(95.00% 0.0624 152.37)"
+        ]
+      },
+      "light-accent-hover": {
+        "role": "primary",
+        "displayName": "Light Accent Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0594 151.78)",
+          "oklch(26.43% 0.0594 151.78)",
+          "oklch(37.86% 0.0594 151.78)",
+          "oklch(49.29% 0.0594 151.78)",
+          "oklch(60.71% 0.0594 151.78)",
+          "oklch(72.14% 0.0594 151.78)",
+          "oklch(83.57% 0.0594 151.78)",
+          "oklch(95.00% 0.0594 151.78)"
+        ]
+      },
+      "light-on-accent": {
+        "role": "primary",
+        "displayName": "Light On Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "light-accent-soft": {
+        "role": "primary",
+        "displayName": "Light Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0226 134.95)",
+          "oklch(26.43% 0.0226 134.95)",
+          "oklch(37.86% 0.0226 134.95)",
+          "oklch(49.29% 0.0226 134.95)",
+          "oklch(60.71% 0.0226 134.95)",
+          "oklch(72.14% 0.0226 134.95)",
+          "oklch(83.57% 0.0226 134.95)",
+          "oklch(95.00% 0.0226 134.95)"
+        ]
+      },
+      "light-success": {
+        "displayName": "Light Success",
+        "tonalRamp": [
+          "oklch(15.00% 0.0849 151.30)",
+          "oklch(26.43% 0.0849 151.30)",
+          "oklch(37.86% 0.0849 151.30)",
+          "oklch(49.29% 0.0849 151.30)",
+          "oklch(60.71% 0.0849 151.30)",
+          "oklch(72.14% 0.0849 151.30)",
+          "oklch(83.57% 0.0849 151.30)",
+          "oklch(95.00% 0.0849 151.30)"
+        ]
+      },
+      "light-success-soft": {
+        "displayName": "Light Success Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0248 137.81)",
+          "oklch(26.43% 0.0248 137.81)",
+          "oklch(37.86% 0.0248 137.81)",
+          "oklch(49.29% 0.0248 137.81)",
+          "oklch(60.71% 0.0248 137.81)",
+          "oklch(72.14% 0.0248 137.81)",
+          "oklch(83.57% 0.0248 137.81)",
+          "oklch(95.00% 0.0248 137.81)"
+        ]
+      },
+      "light-warning": {
+        "displayName": "Light Warning",
+        "tonalRamp": [
+          "oklch(15.00% 0.0872 74.24)",
+          "oklch(26.43% 0.0872 74.24)",
+          "oklch(37.86% 0.0872 74.24)",
+          "oklch(49.29% 0.0872 74.24)",
+          "oklch(60.71% 0.0872 74.24)",
+          "oklch(72.14% 0.0872 74.24)",
+          "oklch(83.57% 0.0872 74.24)",
+          "oklch(95.00% 0.0872 74.24)"
+        ]
+      },
+      "light-warning-soft": {
+        "displayName": "Light Warning Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0285 84.59)",
+          "oklch(26.43% 0.0285 84.59)",
+          "oklch(37.86% 0.0285 84.59)",
+          "oklch(49.29% 0.0285 84.59)",
+          "oklch(60.71% 0.0285 84.59)",
+          "oklch(72.14% 0.0285 84.59)",
+          "oklch(83.57% 0.0285 84.59)",
+          "oklch(95.00% 0.0285 84.59)"
+        ]
+      },
+      "light-danger": {
+        "displayName": "Light Danger",
+        "tonalRamp": [
+          "oklch(15.00% 0.1167 28.29)",
+          "oklch(26.43% 0.1167 28.29)",
+          "oklch(37.86% 0.1167 28.29)",
+          "oklch(49.29% 0.1167 28.29)",
+          "oklch(60.71% 0.1167 28.29)",
+          "oklch(72.14% 0.1167 28.29)",
+          "oklch(83.57% 0.1167 28.29)",
+          "oklch(95.00% 0.1167 28.29)"
+        ]
+      },
+      "light-danger-soft": {
+        "displayName": "Light Danger Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0198 37.03)",
+          "oklch(26.43% 0.0198 37.03)",
+          "oklch(37.86% 0.0198 37.03)",
+          "oklch(49.29% 0.0198 37.03)",
+          "oklch(60.71% 0.0198 37.03)",
+          "oklch(72.14% 0.0198 37.03)",
+          "oklch(83.57% 0.0198 37.03)",
+          "oklch(95.00% 0.0198 37.03)"
+        ]
+      },
+      "light-info": {
+        "displayName": "Light Info",
+        "tonalRamp": [
+          "oklch(15.00% 0.0855 250.20)",
+          "oklch(26.43% 0.0855 250.20)",
+          "oklch(37.86% 0.0855 250.20)",
+          "oklch(49.29% 0.0855 250.20)",
+          "oklch(60.71% 0.0855 250.20)",
+          "oklch(72.14% 0.0855 250.20)",
+          "oklch(83.57% 0.0855 250.20)",
+          "oklch(95.00% 0.0855 250.20)"
+        ]
+      },
+      "light-info-soft": {
+        "displayName": "Light Info Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0179 245.39)",
+          "oklch(26.43% 0.0179 245.39)",
+          "oklch(37.86% 0.0179 245.39)",
+          "oklch(49.29% 0.0179 245.39)",
+          "oklch(60.71% 0.0179 245.39)",
+          "oklch(72.14% 0.0179 245.39)",
+          "oklch(83.57% 0.0179 245.39)",
+          "oklch(95.00% 0.0179 245.39)"
+        ]
+      },
+      "light-focus": {
+        "displayName": "Light Focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.1285 262.63)",
+          "oklch(26.43% 0.1285 262.63)",
+          "oklch(37.86% 0.1285 262.63)",
+          "oklch(49.29% 0.1285 262.63)",
+          "oklch(60.71% 0.1285 262.63)",
+          "oklch(72.14% 0.1285 262.63)",
+          "oklch(83.57% 0.1285 262.63)",
+          "oklch(95.00% 0.1285 262.63)"
+        ]
+      },
+      "light-selection": {
+        "displayName": "Light Selection",
+        "tonalRamp": [
+          "oklch(15.00% 0.0369 140.25)",
+          "oklch(26.43% 0.0369 140.25)",
+          "oklch(37.86% 0.0369 140.25)",
+          "oklch(49.29% 0.0369 140.25)",
+          "oklch(60.71% 0.0369 140.25)",
+          "oklch(72.14% 0.0369 140.25)",
+          "oklch(83.57% 0.0369 140.25)",
+          "oklch(95.00% 0.0369 140.25)"
+        ]
+      },
+      "light-board-light": {
+        "role": "neutral",
+        "displayName": "Light Board Light",
+        "tonalRamp": [
+          "oklch(15.00% 0.0296 98.50)",
+          "oklch(26.43% 0.0296 98.50)",
+          "oklch(37.86% 0.0296 98.50)",
+          "oklch(49.29% 0.0296 98.50)",
+          "oklch(60.71% 0.0296 98.50)",
+          "oklch(72.14% 0.0296 98.50)",
+          "oklch(83.57% 0.0296 98.50)",
+          "oklch(95.00% 0.0296 98.50)"
+        ]
+      },
+      "light-board-dark": {
+        "role": "neutral",
+        "displayName": "Light Board Dark",
+        "tonalRamp": [
+          "oklch(15.00% 0.0482 126.87)",
+          "oklch(26.43% 0.0482 126.87)",
+          "oklch(37.86% 0.0482 126.87)",
+          "oklch(49.29% 0.0482 126.87)",
+          "oklch(60.71% 0.0482 126.87)",
+          "oklch(72.14% 0.0482 126.87)",
+          "oklch(83.57% 0.0482 126.87)",
+          "oklch(95.00% 0.0482 126.87)"
+        ]
+      },
+      "light-board-coordinate": {
+        "role": "neutral",
+        "displayName": "Light Board Coordinate",
+        "tonalRamp": [
+          "oklch(15.00% 0.0305 137.47)",
+          "oklch(26.43% 0.0305 137.47)",
+          "oklch(37.86% 0.0305 137.47)",
+          "oklch(49.29% 0.0305 137.47)",
+          "oklch(60.71% 0.0305 137.47)",
+          "oklch(72.14% 0.0305 137.47)",
+          "oklch(83.57% 0.0305 137.47)",
+          "oklch(95.00% 0.0305 137.47)"
+        ]
+      },
+      "light-board-last-move": {
+        "role": "neutral",
+        "displayName": "Light Board Last Move",
+        "tonalRamp": [
+          "oklch(15.00% 0.1393 106.80 / 0.502)",
+          "oklch(26.43% 0.1393 106.80 / 0.502)",
+          "oklch(37.86% 0.1393 106.80 / 0.502)",
+          "oklch(49.29% 0.1393 106.80 / 0.502)",
+          "oklch(60.71% 0.1393 106.80 / 0.502)",
+          "oklch(72.14% 0.1393 106.80 / 0.502)",
+          "oklch(83.57% 0.1393 106.80 / 0.502)",
+          "oklch(95.00% 0.1393 106.80 / 0.502)"
+        ]
+      },
+      "light-board-selected": {
+        "role": "neutral",
+        "displayName": "Light Board Selected",
+        "tonalRamp": [
+          "oklch(15.00% 0.0396 162.91 / 0.565)",
+          "oklch(26.43% 0.0396 162.91 / 0.565)",
+          "oklch(37.86% 0.0396 162.91 / 0.565)",
+          "oklch(49.29% 0.0396 162.91 / 0.565)",
+          "oklch(60.71% 0.0396 162.91 / 0.565)",
+          "oklch(72.14% 0.0396 162.91 / 0.565)",
+          "oklch(83.57% 0.0396 162.91 / 0.565)",
+          "oklch(95.00% 0.0396 162.91 / 0.565)"
+        ]
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Dark Canvas",
+        "tonalRamp": [
+          "oklch(15.00% 0.0061 91.65)",
+          "oklch(26.43% 0.0061 91.65)",
+          "oklch(37.86% 0.0061 91.65)",
+          "oklch(49.29% 0.0061 91.65)",
+          "oklch(60.71% 0.0061 91.65)",
+          "oklch(72.14% 0.0061 91.65)",
+          "oklch(83.57% 0.0061 91.65)",
+          "oklch(95.00% 0.0061 91.65)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.0063 78.22)",
+          "oklch(26.43% 0.0063 78.22)",
+          "oklch(37.86% 0.0063 78.22)",
+          "oklch(49.29% 0.0063 78.22)",
+          "oklch(60.71% 0.0063 78.22)",
+          "oklch(72.14% 0.0063 78.22)",
+          "oklch(83.57% 0.0063 78.22)",
+          "oklch(95.00% 0.0063 78.22)"
+        ]
+      },
+      "dark-surface-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Surface Subtle",
+        "tonalRamp": [
+          "oklch(15.00% 0.0070 67.54)",
+          "oklch(26.43% 0.0070 67.54)",
+          "oklch(37.86% 0.0070 67.54)",
+          "oklch(49.29% 0.0070 67.54)",
+          "oklch(60.71% 0.0070 67.54)",
+          "oklch(72.14% 0.0070 67.54)",
+          "oklch(83.57% 0.0070 67.54)",
+          "oklch(95.00% 0.0070 67.54)"
+        ]
+      },
+      "dark-surface-hover": {
+        "role": "neutral",
+        "displayName": "Dark Surface Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0095 80.67)",
+          "oklch(26.43% 0.0095 80.67)",
+          "oklch(37.86% 0.0095 80.67)",
+          "oklch(49.29% 0.0095 80.67)",
+          "oklch(60.71% 0.0095 80.67)",
+          "oklch(72.14% 0.0095 80.67)",
+          "oklch(83.57% 0.0095 80.67)",
+          "oklch(95.00% 0.0095 80.67)"
+        ]
+      },
+      "dark-text": {
+        "role": "neutral",
+        "displayName": "Dark Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "dark-text-muted": {
+        "role": "neutral",
+        "displayName": "Dark Text Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Dark Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "dark-border-strong": {
+        "role": "neutral",
+        "displayName": "Dark Border Strong",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.1534 250.11)",
+          "oklch(26.43% 0.1534 250.11)",
+          "oklch(37.86% 0.1534 250.11)",
+          "oklch(49.29% 0.1534 250.11)",
+          "oklch(60.71% 0.1534 250.11)",
+          "oklch(72.14% 0.1534 250.11)",
+          "oklch(83.57% 0.1534 250.11)",
+          "oklch(95.00% 0.1534 250.11)"
+        ]
+      },
+      "dark-accent-hover": {
+        "role": "primary",
+        "displayName": "Dark Accent Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.1174 251.47)",
+          "oklch(26.43% 0.1174 251.47)",
+          "oklch(37.86% 0.1174 251.47)",
+          "oklch(49.29% 0.1174 251.47)",
+          "oklch(60.71% 0.1174 251.47)",
+          "oklch(72.14% 0.1174 251.47)",
+          "oklch(83.57% 0.1174 251.47)",
+          "oklch(95.00% 0.1174 251.47)"
+        ]
+      },
+      "dark-on-accent": {
+        "role": "primary",
+        "displayName": "Dark On Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.0061 91.65)",
+          "oklch(26.43% 0.0061 91.65)",
+          "oklch(37.86% 0.0061 91.65)",
+          "oklch(49.29% 0.0061 91.65)",
+          "oklch(60.71% 0.0061 91.65)",
+          "oklch(72.14% 0.0061 91.65)",
+          "oklch(83.57% 0.0061 91.65)",
+          "oklch(95.00% 0.0061 91.65)"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0521 248.50)",
+          "oklch(26.43% 0.0521 248.50)",
+          "oklch(37.86% 0.0521 248.50)",
+          "oklch(49.29% 0.0521 248.50)",
+          "oklch(60.71% 0.0521 248.50)",
+          "oklch(72.14% 0.0521 248.50)",
+          "oklch(83.57% 0.0521 248.50)",
+          "oklch(95.00% 0.0521 248.50)"
+        ]
+      },
+      "dark-success": {
+        "displayName": "Dark Success",
+        "tonalRamp": [
+          "oklch(15.00% 0.1258 130.05)",
+          "oklch(26.43% 0.1258 130.05)",
+          "oklch(37.86% 0.1258 130.05)",
+          "oklch(49.29% 0.1258 130.05)",
+          "oklch(60.71% 0.1258 130.05)",
+          "oklch(72.14% 0.1258 130.05)",
+          "oklch(83.57% 0.1258 130.05)",
+          "oklch(95.00% 0.1258 130.05)"
+        ]
+      },
+      "dark-success-soft": {
+        "displayName": "Dark Success Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0063 78.22)",
+          "oklch(26.43% 0.0063 78.22)",
+          "oklch(37.86% 0.0063 78.22)",
+          "oklch(49.29% 0.0063 78.22)",
+          "oklch(60.71% 0.0063 78.22)",
+          "oklch(72.14% 0.0063 78.22)",
+          "oklch(83.57% 0.0063 78.22)",
+          "oklch(95.00% 0.0063 78.22)"
+        ]
+      },
+      "dark-warning": {
+        "displayName": "Dark Warning",
+        "tonalRamp": [
+          "oklch(15.00% 0.1087 78.30)",
+          "oklch(26.43% 0.1087 78.30)",
+          "oklch(37.86% 0.1087 78.30)",
+          "oklch(49.29% 0.1087 78.30)",
+          "oklch(60.71% 0.1087 78.30)",
+          "oklch(72.14% 0.1087 78.30)",
+          "oklch(83.57% 0.1087 78.30)",
+          "oklch(95.00% 0.1087 78.30)"
+        ]
+      },
+      "dark-warning-soft": {
+        "displayName": "Dark Warning Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0063 78.22)",
+          "oklch(26.43% 0.0063 78.22)",
+          "oklch(37.86% 0.0063 78.22)",
+          "oklch(49.29% 0.0063 78.22)",
+          "oklch(60.71% 0.0063 78.22)",
+          "oklch(72.14% 0.0063 78.22)",
+          "oklch(83.57% 0.0063 78.22)",
+          "oklch(95.00% 0.0063 78.22)"
+        ]
+      },
+      "dark-danger": {
+        "displayName": "Dark Danger",
+        "tonalRamp": [
+          "oklch(15.00% 0.1450 21.92)",
+          "oklch(26.43% 0.1450 21.92)",
+          "oklch(37.86% 0.1450 21.92)",
+          "oklch(49.29% 0.1450 21.92)",
+          "oklch(60.71% 0.1450 21.92)",
+          "oklch(72.14% 0.1450 21.92)",
+          "oklch(83.57% 0.1450 21.92)",
+          "oklch(95.00% 0.1450 21.92)"
+        ]
+      },
+      "dark-danger-soft": {
+        "displayName": "Dark Danger Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0063 78.22)",
+          "oklch(26.43% 0.0063 78.22)",
+          "oklch(37.86% 0.0063 78.22)",
+          "oklch(49.29% 0.0063 78.22)",
+          "oklch(60.71% 0.0063 78.22)",
+          "oklch(72.14% 0.0063 78.22)",
+          "oklch(83.57% 0.0063 78.22)",
+          "oklch(95.00% 0.0063 78.22)"
+        ]
+      },
+      "dark-info": {
+        "displayName": "Dark Info",
+        "tonalRamp": [
+          "oklch(15.00% 0.1534 250.11)",
+          "oklch(26.43% 0.1534 250.11)",
+          "oklch(37.86% 0.1534 250.11)",
+          "oklch(49.29% 0.1534 250.11)",
+          "oklch(60.71% 0.1534 250.11)",
+          "oklch(72.14% 0.1534 250.11)",
+          "oklch(83.57% 0.1534 250.11)",
+          "oklch(95.00% 0.1534 250.11)"
+        ]
+      },
+      "dark-info-soft": {
+        "displayName": "Dark Info Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0061 91.65)",
+          "oklch(26.43% 0.0061 91.65)",
+          "oklch(37.86% 0.0061 91.65)",
+          "oklch(49.29% 0.0061 91.65)",
+          "oklch(60.71% 0.0061 91.65)",
+          "oklch(72.14% 0.0061 91.65)",
+          "oklch(83.57% 0.0061 91.65)",
+          "oklch(95.00% 0.0061 91.65)"
+        ]
+      },
+      "dark-focus": {
+        "displayName": "Dark Focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.1534 250.11)",
+          "oklch(26.43% 0.1534 250.11)",
+          "oklch(37.86% 0.1534 250.11)",
+          "oklch(49.29% 0.1534 250.11)",
+          "oklch(60.71% 0.1534 250.11)",
+          "oklch(72.14% 0.1534 250.11)",
+          "oklch(83.57% 0.1534 250.11)",
+          "oklch(95.00% 0.1534 250.11)"
+        ]
+      },
+      "dark-selection": {
+        "displayName": "Dark Selection",
+        "tonalRamp": [
+          "oklch(15.00% 0.0521 248.50)",
+          "oklch(26.43% 0.0521 248.50)",
+          "oklch(37.86% 0.0521 248.50)",
+          "oklch(49.29% 0.0521 248.50)",
+          "oklch(60.71% 0.0521 248.50)",
+          "oklch(72.14% 0.0521 248.50)",
+          "oklch(83.57% 0.0521 248.50)",
+          "oklch(95.00% 0.0521 248.50)"
+        ]
+      },
+      "dark-board-light": {
+        "role": "neutral",
+        "displayName": "Dark Board Light",
+        "tonalRamp": [
+          "oklch(15.00% 0.0538 78.98)",
+          "oklch(26.43% 0.0538 78.98)",
+          "oklch(37.86% 0.0538 78.98)",
+          "oklch(49.29% 0.0538 78.98)",
+          "oklch(60.71% 0.0538 78.98)",
+          "oklch(72.14% 0.0538 78.98)",
+          "oklch(83.57% 0.0538 78.98)",
+          "oklch(95.00% 0.0538 78.98)"
+        ]
+      },
+      "dark-board-dark": {
+        "role": "neutral",
+        "displayName": "Dark Board Dark",
+        "tonalRamp": [
+          "oklch(15.00% 0.0752 60.41)",
+          "oklch(26.43% 0.0752 60.41)",
+          "oklch(37.86% 0.0752 60.41)",
+          "oklch(49.29% 0.0752 60.41)",
+          "oklch(60.71% 0.0752 60.41)",
+          "oklch(72.14% 0.0752 60.41)",
+          "oklch(83.57% 0.0752 60.41)",
+          "oklch(95.00% 0.0752 60.41)"
+        ]
+      },
+      "dark-board-coordinate": {
+        "role": "neutral",
+        "displayName": "Dark Board Coordinate",
+        "tonalRamp": [
+          "oklch(15.00% 0.0061 91.65)",
+          "oklch(26.43% 0.0061 91.65)",
+          "oklch(37.86% 0.0061 91.65)",
+          "oklch(49.29% 0.0061 91.65)",
+          "oklch(60.71% 0.0061 91.65)",
+          "oklch(72.14% 0.0061 91.65)",
+          "oklch(83.57% 0.0061 91.65)",
+          "oklch(95.00% 0.0061 91.65)"
+        ]
+      },
+      "dark-board-last-move": {
+        "role": "neutral",
+        "displayName": "Dark Board Last Move",
+        "tonalRamp": [
+          "oklch(15.00% 0.1913 124.10 / 0.412)",
+          "oklch(26.43% 0.1913 124.10 / 0.412)",
+          "oklch(37.86% 0.1913 124.10 / 0.412)",
+          "oklch(49.29% 0.1913 124.10 / 0.412)",
+          "oklch(60.71% 0.1913 124.10 / 0.412)",
+          "oklch(72.14% 0.1913 124.10 / 0.412)",
+          "oklch(83.57% 0.1913 124.10 / 0.412)",
+          "oklch(95.00% 0.1913 124.10 / 0.412)"
+        ]
+      },
+      "dark-board-selected": {
+        "role": "neutral",
+        "displayName": "Dark Board Selected",
+        "tonalRamp": [
+          "oklch(15.00% 0.1078 145.56 / 0.502)",
+          "oklch(26.43% 0.1078 145.56 / 0.502)",
+          "oklch(37.86% 0.1078 145.56 / 0.502)",
+          "oklch(49.29% 0.1078 145.56 / 0.502)",
+          "oklch(60.71% 0.1078 145.56 / 0.502)",
+          "oklch(72.14% 0.1078 145.56 / 0.502)",
+          "oklch(83.57% 0.1078 145.56 / 0.502)",
+          "oklch(95.00% 0.1078 145.56 / 0.502)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Deck-page headings."
+      },
+      "headline-small": {
+        "displayName": "Headline Small",
+        "purpose": "Deck-page headings at the mobile breakpoint."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Deck card names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and supporting text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Shared button labels."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Position status metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "light-shadow-menu",
+        "value": "0 8px 24px #20272026",
+        "purpose": "Notation context menu in the light theme."
+      },
+      {
+        "name": "dark-shadow-menu",
+        "value": "0 8px 24px #00000040",
+        "purpose": "Notation context menu in the dark theme."
+      }
+    ],
+    "motion": [
+      {
+        "name": "motion-fast",
+        "value": "150ms",
+        "purpose": "Button background and border transitions; disabled by reduced motion."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Shared button state-transition easing."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack-card",
+        "value": "1000px"
+      },
+      {
+        "name": "stack-solver",
+        "value": "900px"
+      },
+      {
+        "name": "mobile",
+        "value": "560px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action, such as submitting analysis.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-primary\">Submit</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; } .ds-button-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: transparent; } .ds-button-primary:active:not(:disabled) { background: var(--accent); }"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Standard navigation and supporting action.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-secondary\">Go to decks</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } }"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet navigation and icon action.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-ghost\">Go to deck</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button-ghost { background: transparent; border-color: transparent; } .ds-button-ghost:hover:not(:disabled) { border-color: transparent; }"
+    },
+    {
+      "name": "Success button",
+      "kind": "button",
+      "refersTo": "button-success",
+      "description": "Easy review rating.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-success\">Easy</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button-success { background: var(--success-soft); color: var(--success); border-color: transparent; } .ds-button-success:hover:not(:disabled) { background: var(--surface); border-color: currentColor; }"
+    },
+    {
+      "name": "Warning button",
+      "kind": "button",
+      "refersTo": "button-warning",
+      "description": "Hard review rating.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-warning\">Hard</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button-warning { background: var(--warning-soft); color: var(--warning); border-color: transparent; } .ds-button-warning:hover:not(:disabled) { background: var(--surface); border-color: currentColor; }"
+    },
+    {
+      "name": "Danger button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Didn’t solve review rating.",
+      "html": "<button type=\"button\" class=\"ds-button ds-button-danger\">Didn’t solve</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; } .ds-button-danger:hover:not(:disabled) { background: var(--surface); border-color: currentColor; }"
+    },
+    {
+      "name": "Theme select",
+      "kind": "input",
+      "refersTo": "theme-select",
+      "description": "Native labeled appearance selector with a positioned decorative chevron; app behavior is supplied by ThemeSelector.",
+      "html": "<label class=\"ds-theme-label\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0\" /></svg><span class=\"ds-visually-hidden\">Theme</span><span class=\"ds-theme-select-wrap\"><select class=\"ds-theme-select\"><option value=\"light\">Light</option><option value=\"dark\">Dark</option></select><svg class=\"ds-theme-chevron\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\" /></svg></span></label>",
+      "css": ".ds-theme-label { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-muted); font-family: var(--font-ui); } .ds-theme-select-wrap { position: relative; display: inline-flex; align-items: center; } .ds-theme-select { appearance: none; height: 34px; padding: 0 34px 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font: inherit; font-size: var(--text-sm); cursor: pointer; } .ds-theme-chevron { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; } .ds-theme-select:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } .ds-visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }"
+    },
+    {
+      "name": "Notation navigation",
+      "kind": "nav",
+      "refersTo": "notation-navigation",
+      "description": "Four equal controls for first, previous, next, and last move.",
+      "html": "<div class=\"ds-notation-controls\" aria-label=\"Move navigation\"><button type=\"button\" class=\"ds-button\" aria-label=\"First move\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 5v14m13-13-6 6 6 6\" /></svg></button><button type=\"button\" class=\"ds-button\" aria-label=\"Previous move\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m14 6-6 6 6 6\" /></svg></button><button type=\"button\" class=\"ds-button\" aria-label=\"Next move\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m10 6 6 6-6 6\" /></svg></button><button type=\"button\" class=\"ds-button\" aria-label=\"Last move\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 5v14M6 6l6 6-6 6\" /></svg></button></div>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-notation-controls { display: grid; grid-template-columns: repeat(4, 1fr); width: 280px; border-top: 1px solid var(--border); } .ds-notation-controls .ds-button { width: 100%; min-height: 42px; padding: 0; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: var(--surface-subtle); } .ds-notation-controls .ds-button:last-child { border-right: 0; } .ds-notation-controls .ds-button:hover:not(:disabled) { background: var(--surface-hover); }"
+    },
+    {
+      "name": "Deck card",
+      "kind": "card",
+      "refersTo": "deck-card",
+      "description": "Clickable deck container; the sample isolates the shared board-preview frame and copy.",
+      "html": "<button type=\"button\" class=\"ds-button ds-deck-card\"><span class=\"ds-preview\" aria-hidden=\"true\"></span><span class=\"ds-card-copy\"><span class=\"ds-card-name\">Deck name</span><span class=\"ds-card-description\">Deck description</span></span></button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-button.ds-deck-card { display: grid; grid-template-columns: 180px minmax(0, 1fr); align-items: center; gap: var(--space-5); min-width: 0; min-height: 238px; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); color: var(--text); font-weight: 400; text-align: left; } .ds-button.ds-deck-card:hover { background: var(--surface); border-color: var(--accent); } .ds-preview { display: block; width: 100%; aspect-ratio: 1; border-radius: 3px; background-color: var(--board-light); background-image: conic-gradient(var(--board-dark) 25%, var(--board-light) 0 50%, var(--board-dark) 0 75%, var(--board-light) 0); background-size: 25% 25%; } .ds-card-copy { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; } .ds-card-name { font-size: var(--text-lg); font-weight: 650; line-height: 1.35; letter-spacing: -.02em; } .ds-card-description { color: var(--text-muted); font-size: var(--text-sm); line-height: 1.55; } @media (max-width: 1000px) { .ds-button.ds-deck-card { grid-template-columns: 1fr; } .ds-preview { max-width: 200px; } } @media (max-width: 560px) { .ds-button.ds-deck-card { grid-template-columns: 112px minmax(0, 1fr); min-height: 156px; padding: var(--space-4); gap: var(--space-4); } .ds-card-name { font-size: 1rem; } .ds-card-description { font-size: var(--text-xs); } }"
+    },
+    {
+      "name": "Current notation move",
+      "kind": "custom",
+      "refersTo": "notation-current-move",
+      "description": "Current move remains distinct within analysis notation.",
+      "html": "<span class=\"ds-notation-token\"><span class=\"ds-notation-index\">1.</span><button type=\"button\" class=\"ds-button ds-notation-move\" aria-current=\"step\">e4</button></span>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; line-height: 1.2; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); } .ds-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border-strong); } .ds-button:active:not(:disabled) { background: var(--surface-subtle); } .ds-button:disabled { opacity: .55; cursor: default; } .ds-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none; } } .ds-notation-token { display: inline-flex; align-items: baseline; gap: 3px; line-height: 1.55; font-family: var(--font-ui); } .ds-notation-index { color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; } .ds-button.ds-notation-move { max-width: 100%; min-height: 27px; min-width: 0; padding: 1px 6px; border: 0; border-radius: 4px; background: var(--accent); color: var(--on-accent); font-size: var(--text-base); font-weight: 600; text-align: left; } .ds-button.ds-notation-move:hover { background: var(--accent); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chess Workspace",
+    "overview": "Chess Deck is a quiet, functional chess workspace. The light theme pairs chalk surfaces with restrained sage accents; the Lichess-based dark theme pairs warm charcoal surfaces with blue accents and a brown board. System typography, flat bordered panels, and compact controls support repeated practice.",
+    "keyCharacteristics": [
+      "The board is the visual focus.",
+      "One shared palette vocabulary serves light and dark themes.",
+      "Borders and surface tones establish hierarchy.",
+      "Review controls keep a stable position below the board."
+    ],
+    "rules": [
+      {
+        "name": "The Theme Boundary Rule",
+        "body": "An explicit component theme overrides its subtree through CSS inheritance; descendants without a theme follow their nearest boundary.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do use semantic tokens and shared components for new controls.",
+      "Do let descendants inherit a theme unless an explicit local appearance is needed.",
+      "Do retain native control semantics, visible focus, and accessible labels.",
+      "Do keep review ratings compact and reserve their space before reveal."
+    ],
+    "donts": [
+      "Don’t add raw palette colors to page or component styles.",
+      "Don’t duplicate the theme state in individual components.",
+      "Don’t use decorative shadows on ordinary panels or cards.",
+      "Don’t change chess, review, routing, or server behavior through presentation components."
+    ]
+  }
+}

@@ -36,13 +36,13 @@ async function checkServerHealth(): Promise<void> {
     const body = (await response.json()) as HealthcheckResponse;
 
     if (!response.ok || !body.ok || body.database?.ok === false) {
-      console.error("Woodpecker server healthcheck failed", {
+      console.error("Chess Deck server healthcheck failed", {
         status: response.status,
         body,
       });
     }
   } catch (error) {
-    console.error("Woodpecker server is unhealthy", {
+    console.error("Chess Deck server is unhealthy", {
       reason:
         error instanceof DOMException && error.name === "AbortError"
           ? `Healthcheck timed out after ${healthcheckTimeoutMs}ms`

@@ -1,6 +1,6 @@
 # App Agent Notes
 
-This folder contains the Docker Compose application: the Woodpecker API server,
+This folder contains the Docker Compose application: the Chess Deck API server,
 its SQLite volume, and the React/Vite UI.
 
 ## Commands

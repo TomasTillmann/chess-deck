@@ -1,6 +1,6 @@
 # UI Agent Notes
 
-This folder is the React/Vite frontend for Woodpecker. It has Playwright installed so agents can visually verify UI work.
+This folder is the React/Vite frontend for Chess Deck. It has Playwright installed so agents can visually verify UI work.
 
 ## Commands
 
@@ -24,5 +24,5 @@ commands and port notes.
 
 ## Current Baseline
 
-- `tests/smoke.spec.ts` verifies that the app loads, the Woodpecker heading is visible, and Chessground renders pieces.
+- `tests/smoke.spec.ts` verifies that the app loads, the Chess Deck branding is visible, and Chessground renders pieces.
 - Playwright browser binaries may need to be installed on a fresh machine with `npx playwright install chromium`.

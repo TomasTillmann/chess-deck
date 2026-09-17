@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Ref } from "react";
+import { Button, Icon, type ThemeProps } from "../design-system";
 
 import {
   childPath,
@@ -11,7 +12,7 @@ import {
   type MoveTreeNode,
 } from "../gameTree";
 
-type MoveNotationPanelProps = {
+type MoveNotationPanelProps = ThemeProps & {
   root: MoveTreeNode;
   currentPath: MovePath;
   onSelectPath: (path: MovePath) => void;
@@ -62,10 +63,12 @@ function MoveButton({
   if (isCurrent) classes.push("is-current");
 
   return (
-    <button
+    <Button
       ref={isCurrent ? currentRef : undefined}
       type="button"
       className={classes.join(" ")}
+      variant="ghost"
+      size="compact"
       onClick={() => onSelectPath(path)}
       onContextMenu={event => {
         event.preventDefault();
@@ -76,7 +79,7 @@ function MoveButton({
       title={reviewDescription}
     >
       {node.move.san}
-    </button>
+    </Button>
   );
 }
 
@@ -187,6 +190,7 @@ export function MoveNotationPanel({
   onDeletePath,
   onMovePathUp,
   onMovePathDown,
+  theme,
 }: MoveNotationPanelProps) {
   const currentMoveRef = useRef<HTMLButtonElement | null>(null);
   const [moveMenu, setMoveMenu] = useState<MoveMenuState>();
@@ -231,7 +235,8 @@ export function MoveNotationPanel({
   }, [moveMenu]);
 
   return (
-    <aside className="notation-panel" aria-label="Move notation">
+    <aside className="notation-panel" data-theme={theme} aria-label="Move notation">
+      <div className="notation-heading">Analysis</div>
       <div className="notation-moves" role="list">
         {root.children.length === 0 ? (
           <p className="notation-placeholder">No moves yet</p>
@@ -266,33 +271,39 @@ export function MoveNotationPanel({
         )}
       </div>
       <div className="notation-controls" aria-label="Move navigation">
-        <button type="button" onClick={() => onSelectPath([])} disabled={currentPath.length === 0} aria-label="First move">
-          |&lt;
-        </button>
-        <button
+        <Button variant="ghost" size="icon" type="button" onClick={() => onSelectPath([])} disabled={currentPath.length === 0} aria-label="First move">
+          <Icon name="first" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           type="button"
           onClick={() => onSelectPath(currentPath.slice(0, -1))}
           disabled={currentPath.length === 0}
           aria-label="Previous move"
         >
-          &lt;
-        </button>
-        <button
+          <Icon name="chevron-left" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           type="button"
           onClick={() => nextPath && onSelectPath(nextPath)}
           disabled={!nextPath}
           aria-label="Next move"
         >
-          &gt;
-        </button>
-        <button
+          <Icon name="chevron-right" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           type="button"
           onClick={() => onSelectPath(lastPath)}
           disabled={pathsEqual(currentPath, lastPath)}
           aria-label="Last move"
         >
-          &gt;|
-        </button>
+          <Icon name="last" />
+        </Button>
       </div>
       {moveMenu ? (
         <div
@@ -301,15 +312,15 @@ export function MoveNotationPanel({
           role="menu"
           onPointerDown={event => event.stopPropagation()}
         >
-          <button type="button" role="menuitem" onClick={() => handleMenuAction(onDeletePath)}>
+          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onDeletePath)}>
             Delete
-          </button>
-          <button type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathUp)} disabled={!canMoveMenuUp}>
+          </Button>
+          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathUp)} disabled={!canMoveMenuUp}>
             Up
-          </button>
-          <button type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathDown)} disabled={!canMoveMenuDown}>
+          </Button>
+          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathDown)} disabled={!canMoveMenuDown}>
             Down
-          </button>
+          </Button>
         </div>
       ) : null}
     </aside>

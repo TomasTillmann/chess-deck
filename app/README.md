@@ -1,6 +1,6 @@
-# Woodpecker App
+# Chess Deck App
 
-Docker Compose runs the Woodpecker API server, its SQLite database, and the React UI.
+Docker Compose runs the Chess Deck API server, its SQLite database, and the React UI.
 
 ```bash
 cd app

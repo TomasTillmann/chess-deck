@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Deck } from "../decks";
+import { Button, type ThemeProps } from "../design-system";
 import { fetchReviewQueue, saveReview, type ReviewRating } from "../reviewClient";
 
 const ratings: { rating: ReviewRating; label: string }[] = [
@@ -8,7 +9,7 @@ const ratings: { rating: ReviewRating; label: string }[] = [
   { rating: "again", label: "Didn’t solve" },
 ];
 
-export function ReviewPanel({ deck, fen, revealed, onGoToPosition }: {
+export function ReviewPanel({ deck, fen, revealed, onGoToPosition, theme }: ThemeProps & {
   deck: Deck;
   fen: string;
   revealed: boolean;
@@ -58,21 +59,22 @@ export function ReviewPanel({ deck, fen, revealed, onGoToPosition }: {
   // Reserve the controls' space, and retain the attempt when the move tree is edited.
   return (
     <>
-      <div className={`review-ratings${revealed ? "" : " is-hidden"}`} role="group" aria-label="Rate puzzle" aria-hidden={!revealed} aria-busy={status === "saving"}>
+      <div className={`review-ratings${revealed ? "" : " is-hidden"}`} data-theme={theme} role="group" aria-label="Rate puzzle" aria-hidden={!revealed} aria-busy={status === "saving"}>
         {ratings.map(({ rating, label }) => (
-          <button
+          <Button
             key={rating}
             className={`review-rating is-${rating}`}
+            variant={rating === "easy" ? "success" : rating === "hard" ? "warning" : "danger"}
             type="button"
             disabled={!revealed || status !== "idle"}
             onClick={() => void rate(rating)}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
-      <div className="review-feedback" role="status">
-        {revealed && status === "error" ? <>{error} <button className="review-text-button" type="button" onClick={() => void rate(chosenRating.current!)}>Retry</button></> : null}
+      <div className="review-feedback" data-theme={theme} role="status">
+        {revealed && status === "error" ? <>{error} <Button variant="ghost" size="compact" className="review-text-button" type="button" onClick={() => void rate(chosenRating.current!)}>Retry</Button></> : null}
         {revealed && status === "finished" ? "All caught up." : null}
       </div>
     </>

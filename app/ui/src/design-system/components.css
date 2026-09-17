@@ -1,0 +1,240 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--canvas);
+  color: var(--text);
+}
+
+button, select {
+  font: inherit;
+}
+
+button, select, summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  color: var(--text);
+  background: var(--selection);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.theme-root, .workspace {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--text);
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: 68px;
+  padding: 0 var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.wordmark-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.theme-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.theme-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-selector select {
+  appearance: none;
+  height: 34px;
+  padding: 0 34px 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.theme-select > .ui-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ui-icon {
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+
+.ui-icon[data-theme] {
+  color: var(--text);
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
+}
+
+.ui-button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.ui-button:active:not(:disabled) {
+  background: var(--surface-subtle);
+}
+
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ui-button--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: transparent;
+}
+
+.ui-button--primary:active:not(:disabled) {
+  background: var(--accent);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  border-color: transparent;
+}
+
+.ui-button--success {
+  background: var(--success-soft);
+  color: var(--success);
+  border-color: transparent;
+}
+
+.ui-button--warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-color: transparent;
+}
+
+.ui-button--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: transparent;
+}
+
+.ui-button--success:hover:not(:disabled), .ui-button--warning:hover:not(:disabled), .ui-button--danger:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: currentColor;
+}
+
+.ui-button--icon {
+  width: var(--control-height);
+  padding: 0;
+}
+
+.ui-button--compact {
+  min-height: 28px;
+  padding: var(--space-1) var(--space-2);
+}
+
+.ui-status {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.ui-status--success {
+  color: var(--success);
+}
+
+.ui-status--warning {
+  color: var(--warning);
+}
+
+.ui-status--danger {
+  color: var(--danger);
+}
+
+.ui-status--info {
+  color: var(--info);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  .workspace-header {
+    height: 58px;
+    padding-inline: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

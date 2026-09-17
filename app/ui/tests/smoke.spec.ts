@@ -133,6 +133,8 @@ test("renders the deck grid and opens a deck", async ({ page }) => {
   await mockCollections(page);
   await page.goto(appUrl);
 
+  await expect(page).toHaveTitle("Chess Deck");
+  await expect(page.getByRole("banner").getByText("Chess Deck", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Decks" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Woodpecker/ })).toBeVisible();
 

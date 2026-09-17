@@ -47,8 +47,8 @@ def solve_fens(
     input_dir: Annotated[Path | None, typer.Option("--input", file_okay=False, dir_okay=True, help="Base FEN input directory (requires --name).")] = None,
     name: Annotated[str | None, typer.Option("--name", help="Collection slug; defaults to the deck filename.")] = None,
     deck: Annotated[Path | None, typer.Option("--deck", exists=True, help="FEN file or folder containing one FEN file.")] = None,
-    server_url: Annotated[str, typer.Option("--server-url", help="Base URL for the Woodpecker server.")] = "http://127.0.0.1:3001",
-    server_dir: Annotated[Path, typer.Option("--server-dir", file_okay=False, dir_okay=True, help="Woodpecker server project directory.")] = Path("../app/server"),
+    server_url: Annotated[str, typer.Option("--server-url", help="Base URL for the Chess Deck server.")] = "http://127.0.0.1:3001",
+    server_dir: Annotated[Path, typer.Option("--server-dir", file_okay=False, dir_okay=True, help="Chess Deck server project directory.")] = Path("../app/server"),
     no_start_server: Annotated[bool, typer.Option("--no-start-server", help="Require an already-running server instead of starting one.")] = False,
     config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False, help="Path to appsettings.json.")] = Path("appsettings.json"),
     limit: Annotated[int | None, typer.Option("--limit", min=1, help="Maximum number of FEN lines to process.")] = None,
@@ -347,7 +347,7 @@ class SolutionServerClient:
             details = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Server request failed: HTTP {exc.code} {details}") from exc
         except URLError as exc:
-            raise RuntimeError(f"Could not reach Woodpecker server at {self._base_url}: {exc.reason}") from exc
+            raise RuntimeError(f"Could not reach Chess Deck server at {self._base_url}: {exc.reason}") from exc
 
         if not raw:
             return {}
@@ -371,12 +371,12 @@ def _ensure_server(server: SolutionServerClient, server_dir: Path, no_start_serv
         while time.monotonic() < deadline:
             exit_code = managed_server.poll()
             if exit_code is not None:
-                raise RuntimeError(f"Woodpecker server exited before becoming healthy: exit code {exit_code}")
+                raise RuntimeError(f"Chess Deck server exited before becoming healthy: exit code {exit_code}")
             if server.is_healthy():
                 return managed_server
             time.sleep(0.25)
 
-        raise RuntimeError(f"Woodpecker server did not become healthy at {server.base_url} within 20s")
+        raise RuntimeError(f"Chess Deck server did not become healthy at {server.base_url} within 20s")
     except BaseException:
         managed_server.stop()
         raise

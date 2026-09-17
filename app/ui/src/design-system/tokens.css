@@ -1,0 +1,96 @@
+/* All theme colors live here. An explicit component theme is a CSS boundary;
+   descendants inherit it unless they declare their own theme. */
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-title: 2rem;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-control: 6px;
+  --radius-panel: 12px;
+  --control-height: 38px;
+  --page-width: 1120px;
+  --motion-fast: 150ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: var(--font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --canvas: #f4f5f1;
+  --surface: #ffffff;
+  --surface-subtle: #eaede7;
+  --surface-hover: #e0e6dc;
+  --text: #202720;
+  --text-muted: #616b60;
+  --border: #d7ddd3;
+  --border-strong: #acb8a8;
+  --accent: #365c41;
+  --accent-hover: #264930;
+  --on-accent: #ffffff;
+  --accent-soft: #e3edde;
+  --success: #2d633d;
+  --success-soft: #e3efdf;
+  --warning: #785319;
+  --warning-soft: #f7edd9;
+  --danger: #943f36;
+  --danger-soft: #f8e7e2;
+  --info: #2f5a85;
+  --info-soft: #e2edf7;
+  --focus: #466dba;
+  --selection: #d2e5ce;
+  --board-light: #e6e2cc;
+  --board-dark: #92a080;
+  --board-coordinate: #253021;
+  --board-last-move: #d3ce5880;
+  --board-selected: #526e6090;
+  --shadow-menu: 0 8px 24px #20272026;
+}
+
+/* Lichess dark neutrals/primary and default brown board. Semantic text uses
+   lighter tints of its good/warn/bad colors for our compact rating buttons.
+   Source: lichess-org/lila, ui/lib/css/theme/_theme.default.scss. */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #161512;
+  --surface: #262421;
+  --surface-subtle: #2c2926;
+  --surface-hover: #3c3934;
+  --text: #bababa;
+  --text-muted: #949494;
+  --border: #404040;
+  --border-strong: #666666;
+  --accent: #3692e7;
+  --accent-hover: #6caaed;
+  --on-accent: #161512;
+  --accent-soft: #263f57;
+  --success: #89b35b;
+  --success-soft: #262421;
+  --warning: #cfa155;
+  --warning-soft: #262421;
+  --danger: #d96666;
+  --danger-soft: #262421;
+  --info: #3692e7;
+  --info-soft: #161512;
+  --focus: #3692e7;
+  --selection: #263f57;
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+  --board-coordinate: #161512;
+  --board-last-move: #9bc70069;
+  --board-selected: #14551e80;
+  --shadow-menu: 0 8px 24px #00000040;
+}

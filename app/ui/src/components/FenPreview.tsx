@@ -1,4 +1,5 @@
 import { createElement, type CSSProperties } from "react";
+import type { ThemeProps } from "../design-system";
 
 import "@lichess-org/chessground/assets/chessground.base.css";
 import "@lichess-org/chessground/assets/chessground.brown.css";
@@ -54,15 +55,15 @@ function fenPieces(fen: string): PreviewPiece[] {
   return pieces;
 }
 
-type FenPreviewProps = {
+type FenPreviewProps = ThemeProps & {
   fen: string;
 };
 
-export function FenPreview({ fen }: FenPreviewProps) {
+export function FenPreview({ fen, theme }: FenPreviewProps) {
   const pieces = fenPieces(fen);
 
   return (
-    <div className="fen-preview cg-wrap" aria-hidden="true">
+    <div className="fen-preview cg-wrap" data-theme={theme} aria-hidden="true">
       {createElement("cg-board")}
       {pieces.map(piece =>
         createElement("piece", {
