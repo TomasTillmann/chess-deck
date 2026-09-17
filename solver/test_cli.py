@@ -88,7 +88,7 @@ class CliTests(unittest.TestCase):
     def test_resume_dedup_statuses_storage_failures_and_overwrite(self):
         with tempfile.TemporaryDirectory() as directory:
             deck = Path(directory) / "deck.fen"
-            deck.write_text("first\nreview\nfirst\nfail\nracing\ncrash\n", encoding="utf-8")
+            deck.write_text("first\nreview\nfirst\nfail\nracing\ncrash\nempty\n", encoding="utf-8")
             config = Path(directory) / "config.json"
             config.write_text("{}", encoding="utf-8")
             report = Path(directory) / "report.jsonl"
@@ -99,6 +99,8 @@ class CliTests(unittest.TestCase):
                 generated.append(item.fen)
                 if item.fen == "crash":
                     raise RuntimeError("worker crashed")
+                if item.fen == "empty":
+                    return cli.WorkResult(item, "needs_review", reason="analysis_unavailable")
                 status = "needs_review" if item.fen == "review" else "solved"
                 return cli.WorkResult(item, status, {"fen": item.fen, "status": status, "root": {"moves": []}})
 
@@ -113,7 +115,7 @@ class CliTests(unittest.TestCase):
                   patch.object(cli, "_solve_work_item", side_effect=solve)):
                 result = CliRunner().invoke(cli.app, args)
                 self.assertEqual(result.exit_code, 1, result.output)
-                self.assertIn("unique=5 solved=0 needs_review=1 existing=2 duplicates=1 errors=2", result.output)
+                self.assertIn("unique=6 solved=0 needs_review=2 existing=2 duplicates=1 errors=2", result.output)
                 self.assertEqual([value[0]["fen"] for value in server.stored], ["review"])
                 self.assertFalse(server.stored[0][1])
                 self.assertNotIn("first", generated)
@@ -121,6 +123,8 @@ class CliTests(unittest.TestCase):
                 self.assertTrue(any(event.get("event") == "generated" and event.get("fen") == "fail" for event in events))
                 self.assertTrue(any(event.get("stage") == "storage" and event.get("fen") == "fail" for event in events))
                 self.assertTrue(any(event.get("event") == "error" and event.get("fen") == "crash" for event in events))
+                self.assertEqual([(event["event"], event.get("reason")) for event in events if event.get("fen") == "empty"],
+                                 [("needs_review", "analysis_unavailable")])
 
                 generated.clear()
                 resumed = CliRunner().invoke(cli.app, args + ["--positions", "1,2,3"])

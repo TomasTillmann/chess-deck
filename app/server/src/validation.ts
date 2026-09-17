@@ -9,26 +9,27 @@ export const collectionSchema = z
 
 export const idSchema = z.string().uuid();
 
-export const paginationSchema = z.object({
-  limit: z.coerce.number().int().min(1).max(500).default(100),
-  offset: z.coerce.number().int().min(0).default(0),
-});
+const solutionFenSchema = z.string().refine(value => value.trim().length > 0, "FEN must not be blank");
 
-export const recordPayloadSchema = z.record(z.unknown()).refine(
-  value => !Array.isArray(value) && value !== null,
-  "Payload must be a JSON object",
-);
+type SolutionPosition = {
+  moves: { uci: string; children: SolutionPosition[] }[];
+  [key: string]: unknown;
+};
 
-export const recordCreateSchema = z.object({
-  collection: collectionSchema,
-  payload: recordPayloadSchema,
-});
+function solutionPositionSchema(depth: number): z.ZodType<SolutionPosition> {
+  return z.object({
+    // ponytail: cap recursive parsing at 128 plies; use iterative validation if longer lines are needed.
+    moves: depth === 128 ? z.array(z.never()) : z.array(z.object({
+      uci: z.string().regex(/^[a-h][1-8][a-h][1-8][qrbn]?$/, "Move must be a UCI string"),
+      children: z.array(z.lazy(() => solutionPositionSchema(depth + 1))),
+    }).passthrough()),
+  }).passthrough();
+}
 
-export const recordUpdateSchema = recordCreateSchema.extend({
-  id: idSchema,
-});
-
-const solutionFenSchema = z.string().min(1);
+export const solutionTreeSchema = z.object({
+  fen: solutionFenSchema,
+  root: solutionPositionSchema(0).refine(root => root.moves.length > 0, "Solution root must contain a move"),
+}).passthrough();
 
 export const solutionExistingBatchSchema = z.object({
   collection: collectionSchema,
@@ -42,10 +43,7 @@ export const solutionStoreBatchSchema = z.object({
     .array(
       z.object({
         fen: solutionFenSchema,
-        tree: z.object({
-          fen: solutionFenSchema,
-          root: z.record(z.unknown()),
-        }).passthrough(),
+        tree: solutionTreeSchema,
       }).refine(solution => solution.tree.fen === solution.fen, "Solution FEN must match the requested FEN"),
     )
     .min(1)

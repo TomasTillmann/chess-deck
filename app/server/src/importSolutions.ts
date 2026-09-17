@@ -3,12 +3,9 @@ import path from "node:path";
 import { readConfig } from "./config.js";
 import { openDatabase } from "./database.js";
 import { SolutionRepository } from "./repository.js";
+import { solutionTreeSchema } from "./validation.js";
 
 const collection = "woodpecker";
-
-type SolutionFile = {
-  readonly fen?: unknown;
-};
 
 function readSolvedDirectory(): string {
   const explicitPath = process.argv[2];
@@ -27,15 +24,14 @@ function readSolutionFiles(directory: string): string[] {
 
 function readSolution(filePath: string): { readonly fen: string; readonly tree: unknown } {
   const raw = fs.readFileSync(filePath, "utf8");
-  const parsed = JSON.parse(raw) as SolutionFile;
-
-  if (typeof parsed.fen !== "string" || !parsed.fen.trim()) {
-    throw new Error(`${filePath} does not contain a top-level fen string`);
+  const result = solutionTreeSchema.safeParse(JSON.parse(raw));
+  if (!result.success) {
+    throw new Error(`${filePath} contains an invalid solution: ${result.error.message}`);
   }
 
   return {
-    fen: parsed.fen,
-    tree: parsed,
+    fen: result.data.fen,
+    tree: result.data,
   };
 }
 

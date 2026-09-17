@@ -130,7 +130,7 @@ test("POST /v1/solver/solutions stores a batch of solved trees", async () => {
     root: {
       fen: batchFen,
       turn: "w",
-      moves: [],
+      moves: [{ uci: "f2f3", children: [{ moves: [] }] }],
     },
   };
 
@@ -209,4 +209,26 @@ test("solution writes reject invalid document roots, mismatched FENs, and non-bo
     assert.equal(response.status, 400);
   }
   assert.equal(new SolutionRepository(db).count("invalid"), 0);
+});
+
+test("malformed solution batches cannot overwrite stored trees or partially write", async () => {
+  const repository = new SolutionRepository(db);
+  repository.upsert("validated", fen, tree);
+  const otherTree = { ...tree, fen: encyclopediaFen };
+  for (const root of [{}, { moves: [] }, { moves: [{ uci: "h8h2", children: [{ moves: [{ uci: "invalid", children: [] }] }] }] }]) {
+    const response = await fetch(`${baseUrl}/v1/solver/solutions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        collection: "validated",
+        solutions: [
+          { fen: encyclopediaFen, tree: otherTree },
+          { fen, tree: { ...tree, root } },
+        ],
+      }),
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(repository.findByFen("validated", fen)?.tree, tree);
+    assert.equal(repository.findByFen("validated", encyclopediaFen), null);
+  }
 });

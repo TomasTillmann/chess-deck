@@ -45,6 +45,8 @@ export class SolutionUpdateError extends Error {
 }
 
 const serverBaseUrl = import.meta.env.VITE_SERVER_URL ?? "http://127.0.0.1:3001";
+// ponytail: ordering within this tab; server revisions are needed across clients.
+const pendingUpdates = new Map<string, Promise<void>>();
 
 function turnFromFen(fen: string): "w" | "b" {
   return chessFen.parseFen(fen).unwrap().turn === "white" ? "w" : "b";
@@ -96,21 +98,33 @@ export async function updateSolution(
   initialFen: string,
   root: MoveTreeNode,
 ): Promise<void> {
-  const response = await fetch(new URL("/v1/solver/solutions", serverBaseUrl).href, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      collection,
-      solutions: [
-        {
-          fen: initialFen,
-          tree: solutionDocumentFromMoveTree(initialFen, root),
-        },
-      ],
-    }),
+  const body = JSON.stringify({
+    collection,
+    solutions: [
+      {
+        fen: initialFen,
+        tree: solutionDocumentFromMoveTree(initialFen, root),
+      },
+    ],
   });
+  const key = JSON.stringify([collection, initialFen]);
+  const previous = pendingUpdates.get(key) ?? Promise.resolve();
+  const request = previous.catch(() => {}).then(async () => {
+    const response = await fetch(new URL("/v1/solver/solutions", serverBaseUrl).href, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body,
+    });
 
-  if (!response.ok) {
-    throw new SolutionUpdateError("Solution update failed", response.status);
+    if (!response.ok) {
+      throw new SolutionUpdateError("Solution update failed", response.status);
+    }
+  });
+  pendingUpdates.set(key, request);
+
+  try {
+    await request;
+  } finally {
+    if (pendingUpdates.get(key) === request) pendingUpdates.delete(key);
   }
 }

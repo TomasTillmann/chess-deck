@@ -6,7 +6,6 @@ import { DeckViewRepository, DeckViewCollectionsError } from "./deckViewReposito
 import {
   CollectionRepository,
   collectionName,
-  RecordRepository,
   SolutionRepository,
   type SolutionInput,
 } from "./repository.js";
@@ -42,7 +41,6 @@ export type AppContext = {
   readonly config: ServerConfig;
   readonly db: Db;
   readonly collections: CollectionRepository;
-  readonly records: RecordRepository;
   readonly solutions: SolutionRepository;
   readonly reviews: ReviewRepository;
   readonly deckViews: DeckViewRepository;
@@ -53,7 +51,6 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
     config,
     db,
     collections: new CollectionRepository(db),
-    records: new RecordRepository(db),
     solutions: new SolutionRepository(db),
     reviews: new ReviewRepository(db),
     deckViews: new DeckViewRepository(db),

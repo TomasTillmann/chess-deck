@@ -4,12 +4,13 @@ import { useReviewQueue } from "../hooks/useReviewQueue";
 import { reviewDate } from "../reviewClient";
 import { DeckCard } from "./DeckCard";
 
-export function DeckPositionGrid({ deck, onSelectPosition, onGoToDecks, theme }: ThemeProps & {
+export function DeckPositionGrid({ deck, onSelectPosition, onGoToDecks, onDecksChange, theme }: ThemeProps & {
   deck: Deck;
   onSelectPosition: (index: number) => void;
   onGoToDecks: () => void;
+  onDecksChange: (decks: Deck[]) => void;
 }) {
-  const { queue, queueError, cards, retry, recommendedIndex, dueCount, newCount } = useReviewQueue(deck);
+  const { queue, queueError, cards, retry, recommendedIndex, dueCount, newCount } = useReviewQueue(deck, onDecksChange);
   return <main className="deck-page" data-theme={theme}>
     <PageHeader title={deck.name} actions={<Button className="deck-back-button" onClick={onGoToDecks}><Icon name="arrow-left" />Go to decks</Button>}>
       {deck.fens.length} position{deck.fens.length === 1 ? "" : "s"} available

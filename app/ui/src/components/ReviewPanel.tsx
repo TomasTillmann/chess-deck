@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Deck } from "../decks";
 import { Button, type ThemeProps } from "../design-system";
-import { fetchReviewQueue, saveReview, type ReviewRating } from "../reviewClient";
+import { saveReview, type ReviewRating } from "../reviewClient";
 
 const ratings: { rating: ReviewRating; label: string }[] = [
   { rating: "easy", label: "Easy" },
@@ -9,12 +9,11 @@ const ratings: { rating: ReviewRating; label: string }[] = [
   { rating: "again", label: "Didn’t solve" },
 ];
 
-export function ReviewPanel({ deck, fen, revealed, onGoToPosition, onLoadNextReview, theme }: ThemeProps & {
+export function ReviewPanel({ deck, fen, revealed, onLoadNextReview, theme }: ThemeProps & {
   deck: Deck;
   fen: string;
   revealed: boolean;
-  onGoToPosition: (index: number) => void;
-  onLoadNextReview?: () => Promise<void>;
+  onLoadNextReview: () => Promise<void>;
 }) {
   const [reviewId] = useState(() => crypto.randomUUID());
   const [status, setStatus] = useState<"idle" | "saving" | "error" | "finished">("idle");
@@ -41,17 +40,8 @@ export function ReviewPanel({ deck, fen, revealed, onGoToPosition, onLoadNextRev
         saved.current = true;
       }
       if (!mounted.current) return;
-      if (onLoadNextReview) {
-        await onLoadNextReview();
-        if (mounted.current) setStatus("finished");
-        return;
-      }
-      const queue = await fetchReviewQueue(deck.slug);
-      if (!mounted.current) return;
-      const index = queue.recommendedFen ? deck.fens.indexOf(queue.recommendedFen) : -1;
-      if (queue.recommendedFen && index < 0) throw new Error("Recommended position is unavailable");
-      setStatus("finished");
-      if (index >= 0) onGoToPosition(index);
+      await onLoadNextReview();
+      if (mounted.current) setStatus("finished");
     } catch {
       if (mounted.current) {
         setError(saved.current ? "Saved. Couldn’t load next puzzle." : "Couldn’t save review.");

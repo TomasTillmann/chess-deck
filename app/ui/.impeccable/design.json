@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-17T08:25:11.418457Z",
+  "generatedAt": "2026-09-17T11:27:20Z",
   "title": "Design System: Chess Deck",
   "extensions": {
     "colorMeta": {
@@ -170,6 +170,33 @@
           "oklch(72.14% 0.0226 134.95)",
           "oklch(83.57% 0.0226 134.95)",
           "oklch(95.00% 0.0226 134.95)"
+        ]
+      },
+      "light-on-accent-soft": {
+        "role": "primary",
+        "displayName": "Light On Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0210 142.72)",
+          "oklch(26.43% 0.0210 142.72)",
+          "oklch(37.86% 0.0210 142.72)",
+          "oklch(49.29% 0.0210 142.72)",
+          "oklch(60.71% 0.0210 142.72)",
+          "oklch(72.14% 0.0210 142.72)",
+          "oklch(83.57% 0.0210 142.72)",
+          "oklch(95.00% 0.0210 142.72)"
+        ]
+      },
+      "light-danger-on-accent-soft": {
+        "displayName": "Light Danger On Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.1167 28.29)",
+          "oklch(26.43% 0.1167 28.29)",
+          "oklch(37.86% 0.1167 28.29)",
+          "oklch(49.29% 0.1167 28.29)",
+          "oklch(60.71% 0.1167 28.29)",
+          "oklch(72.14% 0.1167 28.29)",
+          "oklch(83.57% 0.1167 28.29)",
+          "oklch(95.00% 0.1167 28.29)"
         ]
       },
       "light-success": {
@@ -540,6 +567,33 @@
           "oklch(95.00% 0.0521 248.50)"
         ]
       },
+      "dark-on-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark On Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0290 248.20)",
+          "oklch(26.43% 0.0290 248.20)",
+          "oklch(37.86% 0.0290 248.20)",
+          "oklch(49.29% 0.0290 248.20)",
+          "oklch(60.71% 0.0290 248.20)",
+          "oklch(72.14% 0.0290 248.20)",
+          "oklch(83.57% 0.0290 248.20)",
+          "oklch(95.00% 0.0290 248.20)"
+        ]
+      },
+      "dark-danger-on-accent-soft": {
+        "displayName": "Dark Danger On Accent Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.1057 19.86)",
+          "oklch(26.43% 0.1057 19.86)",
+          "oklch(37.86% 0.1057 19.86)",
+          "oklch(49.29% 0.1057 19.86)",
+          "oklch(60.71% 0.1057 19.86)",
+          "oklch(72.14% 0.1057 19.86)",
+          "oklch(83.57% 0.1057 19.86)",
+          "oklch(95.00% 0.1057 19.86)"
+        ]
+      },
       "dark-success": {
         "displayName": "Dark Success",
         "tonalRamp": [
@@ -595,14 +649,14 @@
       "dark-danger": {
         "displayName": "Dark Danger",
         "tonalRamp": [
-          "oklch(15.00% 0.1450 21.92)",
-          "oklch(26.43% 0.1450 21.92)",
-          "oklch(37.86% 0.1450 21.92)",
-          "oklch(49.29% 0.1450 21.92)",
-          "oklch(60.71% 0.1450 21.92)",
-          "oklch(72.14% 0.1450 21.92)",
-          "oklch(83.57% 0.1450 21.92)",
-          "oklch(95.00% 0.1450 21.92)"
+          "oklch(15.00% 0.1407 21.61)",
+          "oklch(26.43% 0.1407 21.61)",
+          "oklch(37.86% 0.1407 21.61)",
+          "oklch(49.29% 0.1407 21.61)",
+          "oklch(60.71% 0.1407 21.61)",
+          "oklch(72.14% 0.1407 21.61)",
+          "oklch(83.57% 0.1407 21.61)",
+          "oklch(95.00% 0.1407 21.61)"
         ]
       },
       "dark-danger-soft": {

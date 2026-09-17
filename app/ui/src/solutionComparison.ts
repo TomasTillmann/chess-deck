@@ -3,6 +3,7 @@ import {
   fen as chessFen,
   isNormal,
   makeSquare,
+  makeUci,
   parseUci,
   san as chessSan,
   type Move,
@@ -12,6 +13,7 @@ import type { Key } from "@lichess-org/chessground/types";
 
 import type { MoveReview, MoveTreeNode } from "./gameTree";
 import type { SolutionDocument } from "./solutionClient";
+import { canonicalMove } from "./chessMoves";
 
 type SolutionPositionNode = {
   readonly fen?: unknown;
@@ -81,7 +83,8 @@ function normalizeMoveEdge(edge: SolutionMoveEdge, parentFen: string, ply: numbe
   if (typeof edge.uci !== "string" || !edge.uci.trim()) return [];
 
   const position = positionFromFen(parentFen);
-  const move = legalMoveFromUci(position, edge.uci);
+  const move = canonicalMove(position, legalMoveFromUci(position, edge.uci));
+  const uci = makeUci(move);
   const san = chessSan.makeSan(position, move);
   const nextPosition = position.clone();
   nextPosition.play(move);
@@ -91,13 +94,13 @@ function normalizeMoveEdge(edge: SolutionMoveEdge, parentFen: string, ply: numbe
 
   return [
     {
-      id: edge.uci,
+      id: uci,
       fen: nextFen,
       lastMove: moveLastMove(move),
       move: {
         ply,
         san,
-        uci: edge.uci,
+        uci,
         color: position.turn,
         moveNumber: position.fullmoves,
       },

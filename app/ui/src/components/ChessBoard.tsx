@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { Chessground } from "@lichess-org/chessground";
 import type { Api as ChessgroundApi } from "@lichess-org/chessground/api";
 import type { Config as ChessgroundConfig } from "@lichess-org/chessground/config";
 import type { Color, Dests, FEN, Key } from "@lichess-org/chessground/types";
 import type { ThemeProps } from "../design-system";
+import { syncBoardMotion } from "../boardMotion";
+import { describePosition } from "../boardAccessibility";
 
 import "@lichess-org/chessground/assets/chessground.base.css";
 import "@lichess-org/chessground/assets/chessground.brown.css";
@@ -33,6 +35,8 @@ export function ChessBoard({
 }: ChessBoardProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<ChessgroundApi | null>(null);
+  const descriptionId = useId();
+  const description = useMemo(() => describePosition(fen), [fen]);
 
   const config = useMemo<ChessgroundConfig>(
     () => ({
@@ -74,8 +78,10 @@ export function ChessBoard({
 
     const ground = Chessground(boardRef.current, config);
     groundRef.current = ground;
+    const stopSyncingMotion = syncBoardMotion(ground);
 
     return () => {
+      stopSyncingMotion();
       ground.destroy();
       groundRef.current = null;
     };
@@ -85,5 +91,8 @@ export function ChessBoard({
     groundRef.current?.set(config);
   }, [config]);
 
-  return <div ref={boardRef} className="chess-board" data-theme={theme} aria-label="Chess position" />;
+  return <>
+    <div ref={boardRef} className="chess-board" data-theme={theme} role="img" aria-label="Chess position" aria-describedby={descriptionId} />
+    <p id={descriptionId} className="visually-hidden">{description}</p>
+  </>;
 }

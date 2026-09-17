@@ -12,18 +12,18 @@ export function routeFromHash(): Route {
   if (window.location.hash === "#/practice") return { view: "practice" };
   const viewMatch = window.location.hash.match(/^#\/views\/([0-9a-f-]+)\/practice$/i);
   if (viewMatch) return { view: "practice", viewId: viewMatch[1] };
-  const positionMatch = window.location.hash.match(/^#\/decks\/([^/]+)\/positions\/(\d+)$/);
-
-  if (positionMatch) {
-    return {
-      view: "position",
-      slug: decodeURIComponent(positionMatch[1]),
-      positionIndex: Number(positionMatch[2]) - 1,
-    };
+  const deckMatch = window.location.hash.match(/^#\/decks\/([^/]+)(?:\/positions\/(\d+))?$/);
+  if (deckMatch) {
+    let slug: string;
+    try {
+      slug = decodeURIComponent(deckMatch[1]);
+    } catch {
+      return { view: "decks" };
+    }
+    return deckMatch[2]
+      ? { view: "position", slug, positionIndex: Number(deckMatch[2]) - 1 }
+      : { view: "deck", slug };
   }
-
-  const deckMatch = window.location.hash.match(/^#\/decks\/([^/]+)$/);
-  if (deckMatch) return { view: "deck", slug: decodeURIComponent(deckMatch[1]) };
 
   return { view: "decks" };
 }

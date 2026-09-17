@@ -7,6 +7,7 @@ import {
   makeSquare,
   makeUci,
   parseSquare,
+  parseUci,
   san as chessSan,
   squareRank,
   type Move,
@@ -25,6 +26,7 @@ import {
 } from "../gameTree";
 import { fetchSolution, SolutionFetchError, updateSolution, type SolutionDocument } from "../solutionClient";
 import { compareSolutionTree, SolutionComparisonError } from "../solutionComparison";
+import { canonicalMove } from "../chessMoves";
 
 const emptyDests = new Map() as Dests;
 
@@ -62,6 +64,33 @@ function isPromotion(position: Chess, from: Square, to: Square): boolean {
   return piece?.role === "pawn" && (squareRank(to) === 0 || squareRank(to) === 7);
 }
 
+export type PromotionRole = "queen" | "rook" | "bishop" | "knight";
+const promotionRoles: PromotionRole[] = ["queen", "rook", "bishop", "knight"];
+type PendingPromotion = { orig: Key; dest: Key; choices: PromotionRole[] };
+
+export function resolveBoardMove(position: Chess, orig: Key, dest: Key, promotion?: PromotionRole): { move: Move } | { promotions: PromotionRole[] } | undefined {
+  const from = parseSquare(orig);
+  const to = parseSquare(dest);
+  if (from === undefined || to === undefined || (promotion !== undefined && !promotionRoles.includes(promotion))) return;
+  if (isPromotion(position, from, to) && !promotion) {
+    const promotions = promotionRoles.filter(role => position.isLegal({ from, to, promotion: role }));
+    return promotions.length ? { promotions } : undefined;
+  }
+  const move: Move = { from, to, ...(promotion ? { promotion } : {}) };
+  return position.isLegal(move) ? { move } : undefined;
+}
+
+export function parseKeyboardMove(position: Chess, text: string): { orig: Key; dest: Key; promotion?: PromotionRole } | undefined {
+  const input = text.trim();
+  const move = parseUci(input) ?? chessSan.parseSan(position, input);
+  if (!move || !isNormal(move)) return;
+  const promotion = promotionRoles.find(role => role === move.promotion);
+  if (move.promotion && !promotion) return;
+  const orig = makeSquare(move.from);
+  const dest = makeSquare(move.to);
+  return resolveBoardMove(position, orig, dest, promotion) ? { orig, dest, promotion } : undefined;
+}
+
 function moveLastMove(move: Move): Key[] | undefined {
   if (!isNormal(move)) return undefined;
 
@@ -80,7 +109,8 @@ function nextMoveId(parent: MoveTreeNode, uci: string): string {
   return id;
 }
 
-function appendOrSelectMove(root: MoveTreeNode, fromPath: MovePath, position: Chess, move: Move) {
+export function appendOrSelectMove(root: MoveTreeNode, fromPath: MovePath, position: Chess, move: Move) {
+  move = canonicalMove(position, move);
   const parent = nodeAtPath(root, fromPath);
   const uci = makeUci(move);
   const existing = parent.children.find(child => child.move?.uci === uci);
@@ -139,17 +169,22 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   const [updateState, setUpdateState] = useState<UpdateState>({ status: "idle" });
   const [canUpdateSolution, setCanUpdateSolution] = useState(false);
   const [solutionReviewReasons, setSolutionReviewReasons] = useState<string[]>();
+  const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion>();
   const currentEntry = nodeAtPath(game.root, game.currentPath);
   const currentFen = currentEntry.fen;
   const lastMove = currentEntry.lastMove;
   const gameRef = useRef(game);
   const submissionVersion = useRef(0);
+  const updateRequest = useRef<object | null>(null);
 
-  useEffect(() => () => { submissionVersion.current += 1; }, []);
+  useEffect(() => () => {
+    submissionVersion.current += 1;
+    updateRequest.current = null;
+  }, []);
 
   const boardOrientation = useMemo(() => positionFromFen(initialFen).turn, [initialFen]);
   const position = useMemo(() => positionFromFen(currentFen), [currentFen]);
-  const canMove = !position.isEnd();
+  const canMove = !position.isEnd() && !pendingPromotion;
   const movableDests = useMemo(
     () => (canMove ? (compat.chessgroundDests(position) as Dests) : emptyDests),
     [canMove, position],
@@ -160,6 +195,8 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   }, [game]);
 
   useEffect(() => {
+    updateRequest.current = null;
+    setPendingPromotion(undefined);
     setGame({
       root: createMoveRoot(initialFen),
       currentPath: [],
@@ -171,6 +208,7 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   }, [initialFen]);
 
   const goToPath = useCallback((path: MovePath) => {
+    setPendingPromotion(undefined);
     const nextGame = {
       ...gameRef.current,
       currentPath: path,
@@ -181,9 +219,10 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   }, []);
 
   const markTreeEdited = useCallback(() => {
+    setPendingPromotion(undefined);
     submissionVersion.current += 1;
     setSubmitState({ status: "idle" });
-    setUpdateState({ status: "idle" });
+    if (!updateRequest.current) setUpdateState({ status: "idle" });
   }, []);
 
   const movePathUp = useCallback((path: MovePath) => {
@@ -213,7 +252,7 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select")) return;
+      if (target?.closest("input, textarea, select, dialog")) return;
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();
@@ -244,32 +283,20 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   }, [markTreeEdited]);
 
   const handleMove = useCallback(
-    (orig: Key, dest: Key) => {
-      if (!canMove) return;
-
-      markTreeEdited();
+    (orig: Key, dest: Key, promotion?: PromotionRole): "moved" | "promotion" | "invalid" => {
+      if (pendingPromotion && (orig !== pendingPromotion.orig || dest !== pendingPromotion.dest || !promotion)) return "invalid";
       const editPath = gameRef.current.currentPath;
       const editPosition = positionFromFen(nodeAtPath(gameRef.current.root, editPath).fen);
-      const from = parseSquare(orig);
-      const to = parseSquare(dest);
-
-      if (from === undefined || to === undefined) return;
-
-      const move: Move = { from, to };
-      if (isPromotion(editPosition, from, to)) move.promotion = "queen";
-
-      if (!editPosition.isLegal(move)) {
-        const nextGame = {
-          ...gameRef.current,
-          currentPath: editPath,
-        };
-
-        setGame(nextGame);
-        gameRef.current = nextGame;
-        return;
+      if (editPosition.isEnd()) return "invalid";
+      const resolved = resolveBoardMove(editPosition, orig, dest, promotion);
+      if (!resolved) return "invalid";
+      if ("promotions" in resolved) {
+        setPendingPromotion({ orig, dest, choices: resolved.promotions });
+        return "promotion";
       }
 
-      const result = appendOrSelectMove(gameRef.current.root, editPath, editPosition, move);
+      markTreeEdited();
+      const result = appendOrSelectMove(gameRef.current.root, editPath, editPosition, resolved.move);
       const nextGame = {
         root: result.root,
         currentPath: result.currentPath,
@@ -277,9 +304,19 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
 
       setGame(nextGame);
       gameRef.current = nextGame;
+      return "moved";
     },
-    [canMove, markTreeEdited],
+    [markTreeEdited, pendingPromotion],
   );
+  const cancelPromotion = useCallback(() => setPendingPromotion(undefined), []);
+  const choosePromotion = useCallback((role: PromotionRole) => {
+    if (pendingPromotion) handleMove(pendingPromotion.orig, pendingPromotion.dest, role);
+  }, [handleMove, pendingPromotion]);
+  const handleKeyboardMove = useCallback((text: string) => {
+    const current = gameRef.current;
+    const move = parseKeyboardMove(positionFromFen(nodeAtPath(current.root, current.currentPath).fen), text);
+    return move ? handleMove(move.orig, move.dest, move.promotion) : "invalid";
+  }, [handleMove]);
 
   const handleSubmit = useCallback(async () => {
     const version = ++submissionVersion.current;
@@ -321,18 +358,30 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
   }, [deck.slug, initialFen]);
 
   const handleUpdateSolution = useCallback(async () => {
+    if (updateRequest.current) return;
+    const request = {};
+    const version = submissionVersion.current;
+    updateRequest.current = request;
     setUpdateState({ status: "loading" });
+    let result: UpdateState = { status: "success" };
 
     try {
       await updateSolution(deck.slug, initialFen, gameRef.current.root);
-      setUpdateState({ status: "success" });
-      setSolutionReviewReasons(undefined);
     } catch {
-      setUpdateState({
+      result = {
         status: "error",
         message: "Could not update the solution. Check that the server is running.",
-      });
+      };
     }
+
+    if (updateRequest.current !== request) return;
+    updateRequest.current = null;
+    if (version !== submissionVersion.current) {
+      setUpdateState({ status: "idle" });
+      return;
+    }
+    setUpdateState(result);
+    if (result.status === "success") setSolutionReviewReasons(undefined);
   }, [deck.slug, initialFen]);
 
   return {
@@ -353,6 +402,10 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
     movePathDown,
     deleteMoveTreeAtPath,
     handleMove,
+    handleKeyboardMove,
+    pendingPromotion,
+    cancelPromotion,
+    choosePromotion,
     handleSubmit,
     handleUpdateSolution,
   };

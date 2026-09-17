@@ -223,6 +223,22 @@ class SolverChecks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Invalid chess position"):
             FenSolver(self.settings(), FakeAnalyzer()).solve("8/8/8/8/8/8/8/8 w - - 0 1")
 
+    def test_empty_roots_return_review_reasons_without_a_storage_document(self):
+        class EmptyAnalyzer:
+            def candidates(self, *args, **kwargs):
+                return []
+        cases = (
+            ("7k/6Q1/5K2/8/8/8/8/8 b - - 0 1", "solver_mated"),
+            ("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1", "draw"),
+            ("7k/8/8/8/8/8/8/K7 w - - 0 1", "draw"),
+            (chess.STARTING_FEN, "analysis_unavailable"),
+        )
+        for fen, reason in cases:
+            with self.subTest(fen=fen):
+                result = FenSolver(self.settings(), EmptyAnalyzer()).solve(fen)
+                self.assertIsNone(result.document)
+                self.assertEqual((result.status, result.reason), ("needs_review", reason))
+
 
 if __name__ == "__main__":
     unittest.main()

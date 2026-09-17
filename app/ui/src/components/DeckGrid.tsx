@@ -38,8 +38,8 @@ export function DeckGrid({ decks, onSelectDeck, theme }: ThemeProps & { decks: D
     <div className="library-practice"><Button variant="primary" onClick={navigateToPractice}>Practice All</Button></div>
     <PageHeader title="Decks" actions={<div className="deck-selection-actions">
       <span role="status">{selection.length} selected</span>
-      <Button variant="primary" disabled={!selection.length || starting} onClick={() => void practiceSelected()}>{starting ? "Starting…" : "Practice"}</Button>
-    </div>}>{decks.length} deck{decks.length === 1 ? "" : "s"} available</PageHeader>
+      <Button variant="primary" aria-describedby="deck-selection-hint" disabled={!selection.length || starting} onClick={() => void practiceSelected()}>{starting ? "Starting…" : "Practice"}</Button>
+    </div>}>{decks.length} deck{decks.length === 1 ? "" : "s"} available<br /><span id="deck-selection-hint">Practice saves your selection in Deck Views.</span></PageHeader>
     {error && <div className="deck-selection-error"><StatusMessage tone="danger" role="alert">Could not start practice. Try again.</StatusMessage></div>}
     <section className="deck-grid library-grid" aria-label="Decks">
       {decks.map(deck => <div className={`library-deck${selection.includes(deck.slug) ? " is-selected" : ""}`} key={deck.slug}>

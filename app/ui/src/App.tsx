@@ -8,6 +8,8 @@ import { PracticePage } from "./pages/PracticePage";
 import { DeckViewPracticePage } from "./pages/DeckViewPracticePage";
 import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
+import { fetchReviewQueue } from "./reviewClient";
+import { loadDeckReview } from "./reviewCatalog";
 import { routeFromHash, navigateToDeck, navigateToDecks, navigateToDeckView, navigateToPosition } from "./routing";
 
 export function App() {
@@ -17,6 +19,7 @@ export function App() {
   const [isLoadingDecks, setIsLoadingDecks] = useState(true);
   const [deckLoadError, setDeckLoadError] = useState<string | undefined>();
   const catalogVersion = useRef(0);
+  const routeVersion = useRef(0);
 
   const receiveDecks = useCallback((loadedDecks: Deck[]) => {
     catalogVersion.current++;
@@ -47,10 +50,16 @@ export function App() {
   }, [receiveDecks]);
 
   useEffect(() => {
-    const handleHashChange = () => setRoute(routeFromHash());
+    const handleHashChange = () => {
+      routeVersion.current++;
+      setRoute(routeFromHash());
+    };
 
     window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    return () => {
+      routeVersion.current++;
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, []);
 
   const selectedDeck = route.view === "deck" || route.view === "position" ? decks.find(deck => deck.slug === route.slug) : undefined;
@@ -84,6 +93,7 @@ export function App() {
         deck={selectedDeck}
         onSelectPosition={positionIndex => navigateToPosition(selectedDeck, positionIndex)}
         onGoToDecks={navigateToDecks}
+        onDecksChange={receiveDecks}
       />
     );
   }
@@ -91,13 +101,29 @@ export function App() {
   if (selectedDeck && route.view === "position" && selectedDeck.fens[route.positionIndex]) {
     return (
       <SolverPage
-        key={`${selectedDeck.slug}:${route.positionIndex}:${attempt}`}
+        key={`${selectedDeck.slug}:${selectedDeck.fens[route.positionIndex]}:${attempt}`}
         deck={selectedDeck}
         positionIndex={route.positionIndex}
         onGoToDeck={() => navigateToDeck(selectedDeck)}
         onGoToPosition={(positionIndex, preserveScroll) => {
           if (positionIndex === route.positionIndex) setAttempt(value => value + 1);
           else navigateToPosition(selectedDeck, positionIndex, preserveScroll);
+        }}
+        onLoadNextReview={async () => {
+          const version = routeVersion.current;
+          const hash = window.location.hash;
+          const currentFen = selectedDeck.fens[route.positionIndex];
+          const result = await loadDeckReview(selectedDeck.slug, fetchDecks, fetchReviewQueue);
+          if (version !== routeVersion.current || hash !== window.location.hash) return;
+          receiveDecks(result.decks);
+          const nextIndex = result.recommendedIndex >= 0
+            ? result.recommendedIndex
+            : result.deck.fens.indexOf(currentFen);
+          if (nextIndex < 0) navigateToDeck(result.deck);
+          else {
+            if (result.recommendedIndex >= 0 && result.deck.fens[nextIndex] === currentFen) setAttempt(value => value + 1);
+            if (nextIndex !== route.positionIndex || result.recommendedIndex >= 0) navigateToPosition(result.deck, nextIndex, true);
+          }
         }}
       />
     );

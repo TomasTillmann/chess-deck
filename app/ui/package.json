@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "test:unit": "node --experimental-test-module-mocks --import ./test/register.mjs --test test/*.test.ts",
     "test:e2e": "playwright test",
     "preview": "vite preview"
   },

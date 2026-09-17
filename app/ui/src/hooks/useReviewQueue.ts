@@ -1,22 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Deck } from "../decks";
+import { fetchDecks, type Deck } from "../decks";
 import { fetchReviewQueue, type ReviewQueue } from "../reviewClient";
+import { loadDeckReview } from "../reviewCatalog";
 
-export function useReviewQueue(deck: Deck) {
+export function useReviewQueue(deck: Deck, onDecksChange: (decks: Deck[]) => void) {
   const [queue, setQueue] = useState<ReviewQueue>();
   const [queueError, setQueueError] = useState(false);
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let current = true;
+    const hash = window.location.hash;
     setQueueError(false);
-    fetchReviewQueue(deck.slug).then(value => {
-      if (current) setQueue(value);
+    loadDeckReview(deck.slug, fetchDecks, fetchReviewQueue).then(value => {
+      if (!current || hash !== window.location.hash) return;
+      onDecksChange(value.decks);
+      setQueue(value.queue);
     }).catch(() => {
       if (current) setQueueError(true);
     });
     return () => { current = false; };
-  }, [deck.slug, reload]);
+  }, [deck.slug, reload, onDecksChange]);
 
   useEffect(() => {
     const refresh = () => setReload(value => value + 1);

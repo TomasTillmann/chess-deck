@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, get_type_hints
 
 
 @dataclass(frozen=True)
@@ -48,18 +49,39 @@ class AppSettings:
     solver: SolverSettings
 
 
-def _section(data: dict[str, Any], name: str) -> dict[str, Any]:
-    value = data.get(name)
-    if not isinstance(value, dict):
+def _section(data: dict[str, Any], name: str, cls: type[EngineSettings] | type[SolverSettings]) -> dict[str, Any]:
+    section = data.get(name)
+    if not isinstance(section, dict):
         raise ValueError(f"Missing or invalid '{name}' section in config")
-    return value
+    types = get_type_hints(cls)
+    for key, value in section.items():
+        if key not in types:
+            raise ValueError(f"Unknown config field '{name}.{key}'")
+        expected = types[key]
+        if expected is float:
+            valid = type(value) is int or (type(value) is float and math.isfinite(value))
+            requirement = "a finite number"
+        elif expected == int | None:
+            valid = value is None or type(value) is int
+            requirement = "an integer or null"
+        else:
+            valid = type(value) is expected
+            requirement = {int: "an integer", bool: "a boolean", str: "a string"}[expected]
+        if not valid:
+            raise ValueError(f"{name}.{key} must be {requirement}")
+    return section
 
 
 def load_settings(path: Path) -> AppSettings:
     data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Config must be a JSON object")
+    for key in data:
+        if key not in ("engine", "solver"):
+            raise ValueError(f"Unknown config field '{key}'")
     settings = AppSettings(
-        engine=EngineSettings(**_section(data, "engine")),
-        solver=SolverSettings(**_section(data, "solver")),
+        engine=EngineSettings(**_section(data, "engine", EngineSettings)),
+        solver=SolverSettings(**_section(data, "solver", SolverSettings)),
     )
     for key in ("movetime_ms", "root_movetime_ms", "verification_movetime_ms", "max_movetime_ms", "threads", "hash_mb", "multipv"):
         if getattr(settings.engine, key) <= 0:

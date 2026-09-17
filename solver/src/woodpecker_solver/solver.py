@@ -18,6 +18,10 @@ class SolveResult:
     reason: str | None = None
 
 
+class _DeadlineReached(Exception):
+    pass
+
+
 class FenSolver:
     def __init__(self, settings: AppSettings, analyzer: StockfishAnalyzer) -> None:
         self._settings = settings
@@ -30,13 +34,15 @@ class FenSolver:
         self._side = board.turn
         self._initial_material = _material(board, self._side)
         self._root_eval = None
+        self._root_candidate: Candidate | None = None
         self._nodes = 0
         self._issues: set[str] = set()
         self._verified_defenses: dict[str, Candidate] = {}
         self._started = time.monotonic()
         root = self._build_node(board, depth=0)
         if not root["moves"]:
-            self._review(root, "empty_root")
+            reason = ", ".join(sorted(self._issues or {root["terminal"] or "empty_root"}))
+            return SolveResult(status="needs_review", document=None, reason=reason)
         status = "needs_review" if self._issues else "solved"
         return SolveResult(status=status, document={
             "fen": fen,
@@ -67,6 +73,22 @@ class FenSolver:
             "moves": [],
         }
         self._nodes += 1
+        try:
+            return self._populate_node(board, depth, node)
+        except _DeadlineReached:
+            node["terminal"] = "max_seconds"
+            self._review(node, "max_seconds")
+            if depth == 0 and self._root_candidate is not None:
+                candidate = self._root_candidate
+                child = board.copy(stack=True)
+                child.push(candidate.move)
+                edge = {"uci": candidate.move.uci(), "children": [self._build_node(child, depth + 1)]}
+                self._set_eval(node, candidate)
+                self._set_eval(edge, candidate)
+                node.update(terminal=None, moves=[edge])
+            return node
+
+    def _populate_node(self, board: chess.Board, depth: int, node: dict[str, Any]) -> dict[str, Any]:
         analysis_moves = None
         if board.is_checkmate():
             node["terminal"] = "checkmate"
@@ -108,7 +130,7 @@ class FenSolver:
             return node
 
         count = 2 if depth == 0 else self._settings.engine.multipv
-        candidates = self._analyzer.candidates(board, self._side, multipv=count, root=depth == 0,
+        candidates = self._candidates(board, multipv=count, root=depth == 0,
                                                verify=depth == 1, root_moves=analysis_moves)
         verified_defense = self._verified_defenses.pop(board.fen(), None)
         if verified_defense is not None and analysis_moves is not None and verified_defense.move not in analysis_moves:
@@ -123,7 +145,7 @@ class FenSolver:
             self._root_eval = candidates[0].solver_eval
         self._set_eval(node, candidates[0])
         if self._resolved(board, candidates, depth):
-            candidates = self._analyzer.candidates(board, self._side, verify=True, root_moves=analysis_moves)
+            candidates = self._candidates(board, verify=True, root_moves=analysis_moves)
             if not candidates:
                 node["terminal"] = "analysis_unavailable"
                 self._review(node, "analysis_unavailable")
@@ -145,7 +167,7 @@ class FenSolver:
                     if not nonrepeating:
                         available = analysis_moves if analysis_moves is not None else list(board.legal_moves)
                         analysis_moves = [move for move in available if move not in repeating]
-                        retried = self._analyzer.candidates(board, self._side, multipv=count, verify=True, root_moves=analysis_moves)
+                        retried = self._candidates(board, multipv=count, verify=True, root_moves=analysis_moves)
                         nonrepeating = [candidate for candidate in retried if candidate.solver_eval >= settings.winning_eval_cp and not _repeats_in_pv(board, candidate, settings.stability_plies)]
                         legal_count = len(analysis_moves)
                     if not nonrepeating:
@@ -159,7 +181,7 @@ class FenSolver:
                 self._review(node, "candidate_limit")
                 break
             count = min(count * 2, settings.max_candidates, legal_count)
-            candidates = self._analyzer.candidates(board, self._side, multipv=count, root=depth == 0, root_moves=analysis_moves)
+            candidates = self._candidates(board, multipv=count, root=depth == 0, root_moves=analysis_moves)
             if not candidates:
                 node["terminal"] = "analysis_unavailable"
                 self._review(node, "analysis_unavailable")
@@ -178,11 +200,11 @@ class FenSolver:
             for candidate in selected:
                 child = board.copy(stack=True)
                 child.push(candidate.move)
-                replies = self._analyzer.candidates(child, self._side, multipv=1, verify=True)
+                replies = self._candidates(child, multipv=1, verify=True)
                 if replies:
                     score = replies[0]
                     if (candidate.solver_mate is not None and candidate.solver_mate > 0 and score.solver_mate is None) or (candidate.solver_eval >= settings.winning_eval_cp > score.solver_eval):
-                        stronger = self._analyzer.candidates(child, self._side, multipv=1, root=True)
+                        stronger = self._candidates(child, multipv=1, root=True)
                         if stronger:
                             score = stronger[0]
                     if candidate.solver_mate is not None and candidate.solver_mate > 0 and score.solver_mate is None:
@@ -194,6 +216,7 @@ class FenSolver:
                                         mover_mate=mate, solver_mate=mate,
                                         depth=score.depth, pv=(candidate.move,) + score.pv)
                 verified.append(candidate)
+                self._root_candidate = max(verified, key=lambda candidate: candidate.mover_eval)
             verified.sort(key=lambda candidate: candidate.mover_eval, reverse=True)
             selected = [candidate for candidate in verified if _competitive(verified[0], candidate, margin, mate_slack)]
             self._root_eval = selected[0].solver_eval
@@ -216,12 +239,12 @@ class FenSolver:
             analyzed = {candidate.move for candidate in candidates}
             forcing = [move for move in available if move not in analyzed
                        and (board.is_capture(move) or board.gives_check(move) or move.promotion)]
-            extras = self._analyzer.candidates(board, self._side, multipv=settings.max_candidates, root_moves=forcing) if forcing else []
+            extras = self._candidates(board, multipv=settings.max_candidates, root_moves=forcing) if forcing else []
             forcing_limited = len(extras) == settings.max_candidates < len(forcing) and _competitive(candidates[0], extras[-1], settings.forcing_defense_margin_cp, settings.mate_distance_slack)
             analyzed.update(candidate.move for candidate in extras)
             missing_required = [move for move in available if move in required and move not in analyzed]
             if missing_required:
-                extras += self._analyzer.candidates(board, self._side, multipv=len(missing_required), root_moves=missing_required)
+                extras += self._candidates(board, multipv=len(missing_required), root_moves=missing_required)
             if required - {candidate.move for candidate in candidates + extras}:
                 self._review(node, "critical_defense_analysis_unavailable")
             selected += [candidate for candidate in candidates[len(selected):] + extras
@@ -249,14 +272,25 @@ class FenSolver:
             self._review(node, "repetition_unresolved")
         return node
 
+    def _candidates(self, board: chess.Board, **kwargs: Any) -> list[Candidate]:
+        remaining = self._settings.solver.max_seconds - (time.monotonic() - self._started)
+        if remaining <= 0:
+            raise _DeadlineReached
+        candidates = self._analyzer.candidates(board, self._side, time_limit=remaining, **kwargs)
+        if not board.move_stack and candidates:
+            self._root_candidate = candidates[0]
+        if not candidates and time.monotonic() - self._started >= self._settings.solver.max_seconds:
+            raise _DeadlineReached
+        return candidates
+
     def _budget(self, depth: int) -> str | None:
         settings = self._settings.solver
+        if time.monotonic() - self._started >= settings.max_seconds:
+            return "max_seconds"
         if depth >= settings.max_depth:
             return "max_depth"
         if self._nodes > settings.max_nodes:
             return "max_nodes"
-        if time.monotonic() - self._started >= settings.max_seconds:
-            return "max_seconds"
         return None
 
     def _review(self, node: dict[str, Any], reason: str) -> None:

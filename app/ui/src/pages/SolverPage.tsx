@@ -1,5 +1,8 @@
 import { ChessBoard } from "../components/ChessBoard";
+import { KeyboardMoveInput } from "../components/KeyboardMoveInput";
+import { positionAnnouncement } from "../boardAccessibility";
 import { MoveNotationPanel } from "../components/MoveNotationPanel";
+import { PromotionChoice } from "../components/PromotionChoice";
 import { ReviewPanel } from "../components/ReviewPanel";
 import type { Deck } from "../decks";
 import { Button, Icon, StatusMessage, type ThemeProps } from "../design-system";
@@ -30,7 +33,7 @@ type SolverPageProps = ThemeProps & {
   navigation?: { previous?: () => void; next?: () => void };
   backLabel?: string;
   practiceLabel?: string;
-  onLoadNextReview?: () => Promise<void>;
+  onLoadNextReview: () => Promise<void>;
   allowSolutionEditing?: boolean;
 };
 
@@ -53,6 +56,10 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
     movePathDown,
     deleteMoveTreeAtPath,
     handleMove,
+    handleKeyboardMove,
+    pendingPromotion,
+    choosePromotion,
+    cancelPromotion,
     handleSubmit,
     handleUpdateSolution,
   } = usePuzzleSolver(deck, positionIndex);
@@ -110,8 +117,14 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
               movableDests={movableDests}
               check={position.isCheck()}
               lastMove={lastMove}
-              onMove={handleMove}
+              onMove={(orig, dest) => handleMove(orig, dest)}
             />
+            {pendingPromotion && <PromotionChoice
+              destination={pendingPromotion.dest}
+              choices={pendingPromotion.choices}
+              onChoose={choosePromotion}
+              onCancel={cancelPromotion}
+            />}
             <div className="solution-submit-row">
               <Button
                 variant="primary"
@@ -126,7 +139,6 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
                 deck={deck}
                 fen={initialFen}
                 revealed={submitState.status === "success"}
-                onGoToPosition={index => onGoToPosition(index, true)}
                 onLoadNextReview={onLoadNextReview}
               />
             </div>
@@ -167,6 +179,7 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
                 </StatusMessage>
               ) : null}
             </div>
+            <KeyboardMoveInput fen={currentFen} status={positionAnnouncement(position)} disabled={position.isEnd()} onMove={handleKeyboardMove} />
             {solutionReviewReasons && solutionReviewReasons.length > 0 ? (
               <details className="solution-guidance">
                 <summary>Why this solution needs review</summary>

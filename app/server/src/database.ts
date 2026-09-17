@@ -99,7 +99,7 @@ function migrateSolutionsFenColumn(db: Db): void {
 
   if (hasFen || !hasId) return;
 
-  db.exec(`
+  db.transaction(() => db.exec(`
     ALTER TABLE solutions RENAME TO solutions_old;
 
     CREATE TABLE solutions (
@@ -117,5 +117,5 @@ function migrateSolutionsFenColumn(db: Db): void {
 
     CREATE INDEX IF NOT EXISTS solutions_collection_idx
       ON solutions (collection);
-  `);
+  `))();
 }
