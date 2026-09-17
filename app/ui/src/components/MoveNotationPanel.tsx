@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type Ref } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type Ref } from "react";
 import { Button, Icon, type ThemeProps } from "../design-system";
+import { fitMoveMenu, focusMoveMenuItem, revealNotationMove } from "../notationInteractions";
 
 import {
   childPath,
@@ -25,7 +26,10 @@ type MoveMenuState = {
   path: MovePath;
   x: number;
   y: number;
+  opener: HTMLButtonElement;
 };
+
+type OpenMoveMenu = (path: MovePath, x: number, y: number, opener: HTMLButtonElement) => void;
 
 function movePrefix(node: MoveTreeNode, startsLine: boolean): string | undefined {
   if (!node.move) return undefined;
@@ -47,7 +51,7 @@ function MoveButton({
   path: MovePath;
   currentPath: MovePath;
   onSelectPath: (path: MovePath) => void;
-  onOpenMenu: (path: MovePath, x: number, y: number) => void;
+  onOpenMenu: OpenMoveMenu;
   currentRef?: Ref<HTMLButtonElement>;
 }) {
   if (!node.move) return null;
@@ -72,8 +76,18 @@ function MoveButton({
       onClick={() => onSelectPath(path)}
       onContextMenu={event => {
         event.preventDefault();
-        onOpenMenu(path, event.clientX, event.clientY);
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const keyboard = event.clientX === 0 && event.clientY === 0;
+        onOpenMenu(path, keyboard ? bounds.left : event.clientX, keyboard ? bounds.bottom : event.clientY, event.currentTarget);
       }}
+      onKeyDown={event => {
+        if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const bounds = event.currentTarget.getBoundingClientRect();
+        onOpenMenu(path, bounds.left, bounds.bottom, event.currentTarget);
+      }}
+      aria-haspopup="menu"
       aria-current={isCurrent ? "step" : undefined}
       aria-description={reviewDescription}
       title={reviewDescription}
@@ -97,7 +111,7 @@ function MoveToken({
   currentPath: MovePath;
   startsLine: boolean;
   onSelectPath: (path: MovePath) => void;
-  onOpenMenu: (path: MovePath, x: number, y: number) => void;
+  onOpenMenu: OpenMoveMenu;
   currentRef?: Ref<HTMLButtonElement>;
 }) {
   const prefix = movePrefix(node, startsLine);
@@ -130,7 +144,7 @@ function MoveLine({
   parentPath: MovePath;
   currentPath: MovePath;
   onSelectPath: (path: MovePath) => void;
-  onOpenMenu: (path: MovePath, x: number, y: number) => void;
+  onOpenMenu: OpenMoveMenu;
   currentRef?: Ref<HTMLButtonElement>;
   variant: "mainline" | "variation";
 }) {
@@ -193,6 +207,9 @@ export function MoveNotationPanel({
   theme,
 }: MoveNotationPanelProps) {
   const currentMoveRef = useRef<HTMLButtonElement | null>(null);
+  const movesRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const restoreFocusRef = useRef<HTMLButtonElement | null>(null);
   const [moveMenu, setMoveMenu] = useState<MoveMenuState>();
   const nextPath = useMemo(() => firstChildPath(root, currentPath), [currentPath, root]);
   const lastPath = useMemo(() => lastMainlinePath(root, currentPath), [currentPath, root]);
@@ -201,43 +218,72 @@ export function MoveNotationPanel({
   const canMoveMenuUp = menuSiblingIndex > 0;
   const canMoveMenuDown = menuSiblingIndex >= 0 && menuSiblingIndex < menuSiblingCount - 1;
 
-  function closeMoveMenu() {
+  function closeMoveMenu(restoreFocus = false) {
+    if (restoreFocus && moveMenu) restoreFocusRef.current = moveMenu.opener;
     setMoveMenu(undefined);
   }
+
+  const openMoveMenu: OpenMoveMenu = (path, x, y, opener) => setMoveMenu({ path, x, y, opener });
 
   function handleMenuAction(action: (path: MovePath) => void) {
     if (!moveMenu) return;
 
     const path = moveMenu.path;
-    closeMoveMenu();
+    closeMoveMenu(true);
     action(path);
   }
 
-  useEffect(() => {
-    currentMoveRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  useLayoutEffect(() => {
+    if (movesRef.current && currentMoveRef.current) revealNotationMove(movesRef.current, currentMoveRef.current);
   }, [currentPath, root]);
 
-  useEffect(() => {
-    if (!moveMenu) return undefined;
+  useLayoutEffect(() => {
+    if (!moveMenu) {
+      const opener = restoreFocusRef.current;
+      if (opener) (opener.isConnected ? opener : currentMoveRef.current ?? movesRef.current)?.focus({ preventScroll: true });
+      restoreFocusRef.current = null;
+      return;
+    }
+    const menu = menuRef.current;
+    if (!menu) return;
+    const positionMenu = () => {
+      const viewport = window.visualViewport;
+      fitMoveMenu(menu, moveMenu.x, moveMenu.y, {
+        left: viewport?.offsetLeft ?? 0,
+        top: viewport?.offsetTop ?? 0,
+        width: viewport?.width ?? document.documentElement.clientWidth,
+        height: viewport?.height ?? document.documentElement.clientHeight,
+      });
+    };
+    positionMenu();
+    focusMoveMenuItem(menu, "Home", document.activeElement);
 
-    const handlePointerDown = () => closeMoveMenu();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeMoveMenu();
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!menu.contains(event.target as Node)) closeMoveMenu();
+    };
+    const handleFocusOut = (event: FocusEvent) => {
+      if (!menu.contains(event.target as Node)) closeMoveMenu();
     };
 
     window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("focusin", handleFocusOut);
+    window.addEventListener("resize", positionMenu);
+    window.visualViewport?.addEventListener("resize", positionMenu);
+    window.visualViewport?.addEventListener("scroll", positionMenu);
 
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("focusin", handleFocusOut);
+      window.removeEventListener("resize", positionMenu);
+      window.visualViewport?.removeEventListener("resize", positionMenu);
+      window.visualViewport?.removeEventListener("scroll", positionMenu);
     };
   }, [moveMenu]);
 
   return (
     <aside className="notation-panel" data-theme={theme} aria-label="Move notation">
       <div className="notation-heading">Analysis</div>
-      <div className="notation-moves" role="list">
+      <div ref={movesRef} className="notation-moves" role="list" tabIndex={-1}>
         {root.children.length === 0 ? (
           <p className="notation-placeholder">No moves yet</p>
         ) : (
@@ -247,7 +293,7 @@ export function MoveNotationPanel({
               parentPath={[]}
               currentPath={currentPath}
               onSelectPath={onSelectPath}
-              onOpenMenu={(path, x, y) => setMoveMenu({ path, x, y })}
+              onOpenMenu={openMoveMenu}
               currentRef={currentMoveRef}
               variant="mainline"
             />
@@ -260,7 +306,7 @@ export function MoveNotationPanel({
                     parentPath={[]}
                     currentPath={currentPath}
                     onSelectPath={onSelectPath}
-                    onOpenMenu={(path, x, y) => setMoveMenu({ path, x, y })}
+                    onOpenMenu={openMoveMenu}
                     currentRef={currentMoveRef}
                     variant="variation"
                   />
@@ -307,18 +353,31 @@ export function MoveNotationPanel({
       </div>
       {moveMenu ? (
         <div
+          ref={menuRef}
           className="notation-context-menu"
-          style={{ left: moveMenu.x, top: moveMenu.y }}
+          style={{ left: moveMenu.x, top: moveMenu.y, overflowY: "auto", minWidth: 0, width: 142 }}
           role="menu"
-          onPointerDown={event => event.stopPropagation()}
+          aria-label="Move actions"
+          onKeyDown={event => {
+            event.stopPropagation();
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeMoveMenu(true);
+            } else if (event.key === "Tab") {
+              moveMenu.opener.focus({ preventScroll: true });
+              closeMoveMenu();
+            } else if (focusMoveMenuItem(event.currentTarget, event.key, document.activeElement)) {
+              event.preventDefault();
+            }
+          }}
         >
-          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onDeletePath)}>
+          <Button variant="ghost" type="button" role="menuitem" tabIndex={-1} onClick={() => handleMenuAction(onDeletePath)}>
             Delete
           </Button>
-          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathUp)} disabled={!canMoveMenuUp}>
+          <Button variant="ghost" type="button" role="menuitem" tabIndex={-1} onClick={() => handleMenuAction(onMovePathUp)} disabled={!canMoveMenuUp}>
             Up
           </Button>
-          <Button variant="ghost" type="button" role="menuitem" onClick={() => handleMenuAction(onMovePathDown)} disabled={!canMoveMenuDown}>
+          <Button variant="ghost" type="button" role="menuitem" tabIndex={-1} onClick={() => handleMenuAction(onMovePathDown)} disabled={!canMoveMenuDown}>
             Down
           </Button>
         </div>

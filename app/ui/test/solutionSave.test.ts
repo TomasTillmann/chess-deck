@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
+import type { SolutionDocument } from "../src/solutionClient.ts";
 
 type Effect = { deps: unknown[]; cleanup?: () => void };
 let current: ReturnType<typeof solverHarness>;
 const saves: { resolve: () => void; reject: (error: Error) => void }[] = [];
+let loadSolution: () => Promise<SolutionDocument> = async () => ({});
+class SolutionFetchError extends Error {
+  constructor(readonly status: number) { super(`Solution request failed: ${status}`); }
+}
 
 mock.module("react", {
   namedExports: {
@@ -16,8 +21,8 @@ mock.module("react", {
 });
 mock.module("../src/solutionClient.ts", {
   namedExports: {
-    SolutionFetchError: class extends Error {},
-    fetchSolution: async () => ({}),
+    SolutionFetchError,
+    fetchSolution: () => loadSolution(),
     updateSolution: () => new Promise<void>((resolve, reject) => saves.push({ resolve, reject })),
   },
 });
@@ -152,3 +157,61 @@ for (const fails of [false, true]) {
     fresh.unmount();
   });
 }
+
+test("submitting without a saved solution permits self-rating without inventing a score", async () => {
+  loadSolution = async () => { throw new SolutionFetchError(404); };
+  const harness = solverHarness();
+  assert.equal(harness.render().canRate, false);
+  const pending = harness.render().handleSubmit();
+  assert.equal(harness.render().canRate, true, "comparison must not delay self-rating");
+  await pending;
+  const solver = harness.render();
+  assert.deepEqual(solver.submitState, { status: "ungraded" });
+  assert.equal(solver.canRate, true);
+  assert.equal(solver.canUpdateSolution, true, "a confirmed missing solution may be created");
+  assert.equal(solver.game.root.children.length, 0, "submission without moves is still an attempt");
+  harness.unmount();
+});
+
+for (const failure of ["network", "server", "invalid solution"] as const) {
+  test(`${failure} keeps self-rating available and allows comparison retry`, async () => {
+    loadSolution = async () => {
+      if (failure === "invalid solution") return {};
+      throw failure === "network" ? new Error("offline") : new SolutionFetchError(500);
+    };
+    const harness = solverHarness();
+    harness.render().handleMove("e2", "e4");
+    await harness.render().handleSubmit();
+    const solver = harness.render();
+    assert.equal(solver.submitState.status, "error");
+    assert.equal(solver.canRate, true);
+    assert.equal(solver.canUpdateSolution, failure === "invalid solution", "a failed read cannot enable overwriting an unknown solution");
+    loadSolution = async () => ({ fen, root: { moves: [{ uci: "e2e4", children: [] }] } });
+    await solver.handleSubmit();
+    assert.deepEqual(harness.render().submitState, { status: "success", score: 100 });
+    assert.equal(harness.render().canRate, true);
+    harness.unmount();
+  });
+}
+
+test("editing or leaving during comparison cannot reveal ratings for a stale attempt", async () => {
+  for (const leave of [false, true]) {
+    let reject!: (error: Error) => void;
+    loadSolution = () => new Promise((_, onReject) => { reject = onReject; });
+    const harness = solverHarness();
+    const pending = harness.render().handleSubmit();
+    if (leave) harness.unmount();
+    else {
+      harness.render().handleMove("e2", "e4");
+      assert.equal(harness.render().canRate, false);
+    }
+    reject(new SolutionFetchError(404));
+    await pending;
+    if (leave) assert.equal(harness.writesAfterUnmount, 0);
+    else {
+      assert.deepEqual(harness.render().submitState, { status: "idle" });
+      assert.equal(harness.render().canRate, false);
+      harness.unmount();
+    }
+  }
+});

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
 import { DeckGrid } from "./components/DeckGrid";
 import { DeckPositionGrid } from "./components/DeckPositionGrid";
@@ -11,7 +11,7 @@ import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
 import { fetchReviewQueue } from "./reviewClient";
 import { loadDeckReview } from "./reviewCatalog";
-import { routeFromHash, navigateToDeck, navigateToDecks, navigateToDeckView, navigateToPosition } from "./routing";
+import { routeFromHash, navigationScroll, navigateToDeck, navigateToDecks, navigateToDeckView, navigateToPosition } from "./routing";
 
 export function App() {
   const [route, setRoute] = useState(routeFromHash);
@@ -21,6 +21,7 @@ export function App() {
   const [deckLoadError, setDeckLoadError] = useState<string | undefined>();
   const catalogVersion = useRef(0);
   const routeVersion = useRef(0);
+  const routeScroll = useRef<{ top: number; left: number } | undefined>(undefined);
 
   const receiveDecks = useCallback((loadedDecks: Deck[]) => {
     catalogVersion.current++;
@@ -51,17 +52,48 @@ export function App() {
   }, [receiveDecks]);
 
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleHashChange = (event: Event) => {
       routeVersion.current++;
+      routeScroll.current = navigationScroll(event, window.history.state?.routeScroll);
       setRoute(routeFromHash());
+    };
+    const rememberScroll = () => {
+      window.history.replaceState({ ...window.history.state, routeScroll: { top: window.scrollY, left: window.scrollX } }, "");
     };
 
     window.addEventListener("hashchange", handleHashChange);
+    document.addEventListener("click", rememberScroll, true);
     return () => {
       routeVersion.current++;
       window.removeEventListener("hashchange", handleHashChange);
+      document.removeEventListener("click", rememberScroll, true);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const target = routeScroll.current;
+    routeScroll.current = undefined;
+    if (!target) return;
+    const { top, left } = target;
+    // Back may return to an async page. Restore once its content is tall enough.
+    const observer = new ResizeObserver(() => restore());
+    const stop = () => observer.disconnect();
+    function restore() {
+      window.scrollTo({ top, left, behavior: "instant" });
+      if (document.documentElement.scrollHeight - window.innerHeight >= top) stop();
+    }
+    observer.observe(document.body);
+    restore();
+    window.addEventListener("pointerdown", stop, { once: true });
+    window.addEventListener("wheel", stop, { once: true });
+    window.addEventListener("keydown", stop, { once: true });
+    return () => {
+      stop();
+      window.removeEventListener("pointerdown", stop);
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("keydown", stop);
+    };
+  }, [route]);
 
   const selectedDeck = route.view === "deck" || route.view === "position" ? decks.find(deck => deck.slug === route.slug) : undefined;
 

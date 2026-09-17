@@ -3,26 +3,42 @@ import { fetchDecks, type Deck } from "../decks";
 import { BarChart, Button, MetricStrip, PageHeader, RatingBreakdown, StatusMessage } from "../design-system";
 import { CardStatisticsTable } from "../components/CardStatisticsTable";
 import { chartPoints, fetchStatistics, type Statistics, type StatisticsPeriod } from "../statisticsClient";
+import { readStatisticsViewState, type StatisticsViewState } from "../statisticsViewState";
 import "./StatisticsPage.css";
 
 export function StatisticsPage({ decks, onDecksChange }: { decks: Deck[]; onDecksChange: (decks: Deck[]) => void }) {
-  const [collection, setCollection] = useState("");
-  const [days, setDays] = useState<StatisticsPeriod>(30);
+  const [selection, setSelection] = useState(() => readStatisticsViewState(window.history.state?.statistics));
+  const { collection, days } = selection;
   const [revision, setRevision] = useState(0);
-  const [data, setData] = useState<Statistics>();
+  const [response, setResponse] = useState<{ collection: string; days: StatisticsPeriod; data: Statistics }>();
   const [error, setError] = useState<string>();
+  const [loading, setLoading] = useState(true);
+  const updateSelection = (changes: Partial<StatisticsViewState>) => setSelection(current => ({ ...current, ...changes }));
+
+  useEffect(() => {
+    if (window.location.hash === "#/statistics") {
+      window.history.replaceState({ ...window.history.state, statistics: selection }, "");
+    }
+  }, [selection]);
 
   useEffect(() => {
     const controller = new AbortController();
-    setData(undefined);
+    setLoading(true);
     setError(undefined);
     void Promise.all([fetchDecks(controller.signal), fetchStatistics(collection, days, controller.signal)]).then(([catalog, result]) => {
       if (controller.signal.aborted) return;
       onDecksChange(catalog);
-      if (collection && !catalog.some(deck => deck.slug === collection)) setCollection("");
-      else setData(result);
+      if (collection && !catalog.some(deck => deck.slug === collection)) {
+        setSelection(current => ({ ...current, collection: "", page: 0 }));
+      } else {
+        setResponse({ collection, days, data: result });
+        setLoading(false);
+      }
     }).catch(reason => {
-      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Could not load statistics.");
+      if (!controller.signal.aborted) {
+        setError(reason instanceof Error ? reason.message : "Could not load statistics.");
+        setLoading(false);
+      }
     });
     return () => controller.abort();
   }, [collection, days, revision, onDecksChange]);
@@ -33,7 +49,7 @@ export function StatisticsPage({ decks, onDecksChange }: { decks: Deck[]; onDeck
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
-  const loading = !data && !error;
+  const data = response?.collection === collection && response.days === days ? response.data : undefined;
   const format = (value: number) => value.toLocaleString();
   const period = `Last ${days} days`;
 
@@ -44,13 +60,13 @@ export function StatisticsPage({ decks, onDecksChange }: { decks: Deck[]; onDeck
     <div className="statistics-content">
       <div className="statistics-filters">
         <label className="statistics-field">Deck
-          <select value={collection} onChange={event => setCollection(event.target.value)}>
+          <select value={collection} onChange={event => updateSelection({ collection: event.target.value, page: 0 })}>
             <option value="">All decks</option>
             {decks.map(deck => <option key={deck.slug} value={deck.slug}>{deck.name}</option>)}
           </select>
         </label>
         <label className="statistics-field">History
-          <select value={days} onChange={event => setDays(Number(event.target.value) as StatisticsPeriod)}>
+          <select value={days} onChange={event => updateSelection({ days: Number(event.target.value) as StatisticsPeriod })}>
             <option value={30}>Last 30 days</option>
             <option value={90}>Last 90 days</option>
             <option value={365}>Last 365 days</option>
@@ -58,9 +74,9 @@ export function StatisticsPage({ decks, onDecksChange }: { decks: Deck[]; onDeck
         </label>
       </div>
 
-      {loading && <StatusMessage role="status">Loading statistics…</StatusMessage>}
+      {loading && <StatusMessage role="status" className={data ? "visually-hidden" : undefined}>{data ? "Refreshing statistics…" : "Loading statistics…"}</StatusMessage>}
       {error && <div className="statistics-error" role="alert">
-        <StatusMessage tone="danger">{error}</StatusMessage>
+        <StatusMessage tone="danger">{error}{data && " Showing previously loaded statistics."}</StatusMessage>
         <Button onClick={() => setRevision(value => value + 1)}>Retry</Button>
       </div>}
 
@@ -115,14 +131,14 @@ export function StatisticsPage({ decks, onDecksChange }: { decks: Deck[]; onDeck
               <table className="statistics-table">
                 <thead><tr><th scope="col">Deck</th><th scope="col">Reviews</th><th scope="col">Cards practiced</th><th scope="col">Due now</th><th scope="col">Last practiced</th></tr></thead>
                 <tbody>{data.decks.map(deck => <tr key={deck.collection}>
-                  <th scope="row"><button className="statistics-text-button" onClick={() => setCollection(deck.collection)}>{deck.name}</button></th>
+                  <th scope="row"><button className="statistics-text-button" onClick={() => updateSelection({ collection: deck.collection, page: 0 })}>{deck.name}</button></th>
                   <td>{format(deck.reviews)}</td><td>{format(deck.reviewedCards)} / {format(deck.totalCards)}</td><td>{format(deck.dueCards)}</td>
                   <td>{deck.lastReviewedAt ? <time dateTime={deck.lastReviewedAt} title={new Date(deck.lastReviewedAt).toLocaleString()}>{new Date(deck.lastReviewedAt).toLocaleDateString()}</time> : "Never"}</td>
                 </tr>)}</tbody>
               </table>
             </div>
           </section>
-          <CardStatisticsTable key={collection} cards={data.cards} decks={data.decks} />
+          <CardStatisticsTable cards={data.cards} decks={data.decks} selection={selection} onSelectionChange={updateSelection} />
         </>}
         <p className="statistics-footnote">Dates use {data.timeZone.replace(/_/g, " ")}. History includes cards currently in your decks. Reviews from Practice All and Deck Views count toward their source decks.</p>
       </>}

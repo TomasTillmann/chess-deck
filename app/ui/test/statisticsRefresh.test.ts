@@ -7,6 +7,14 @@ const requests: { kind: string; signal: AbortSignal; resolve: (value: unknown) =
 let writes: { target: string; value: unknown }[] = [];
 let stateIndex = 0;
 let effects: (() => (() => void) | void)[] = [];
+let historyState: Record<string, unknown> = {};
+Object.defineProperty(globalThis, "window", { configurable: true, value: {
+  location: { hash: "#/statistics" },
+  history: {
+    get state() { return historyState; },
+    replaceState(value: Record<string, unknown>) { historyState = value; },
+  },
+} });
 
 registerHooks({ resolve(specifier, context, nextResolve) {
   if (["../design-system", "../components/CardStatisticsTable", "./StatisticsPage.css"].includes(specifier)) {
@@ -17,8 +25,8 @@ registerHooks({ resolve(specifier, context, nextResolve) {
 
 mock.module("react", { namedExports: {
   useState: (value: unknown) => {
-    const target = ["collection", "days", "revision", "data", "error"][stateIndex++];
-    return [value, (next: unknown) => writes.push({ target, value: next })];
+    const target = ["selection", "revision", "response", "error", "loading"][stateIndex++];
+    return [typeof value === "function" ? value() : value, (next: unknown) => writes.push({ target, value: next })];
   },
   useEffect: (effect: () => (() => void) | void) => effects.push(effect),
 } });
@@ -39,7 +47,7 @@ function startRefresh() {
   stateIndex = 0;
   effects = [];
   StatisticsPage({ decks: [], onDecksChange: (value: Deck[]) => writes.push({ target: "catalog", value }) });
-  return effects[0]() as () => void;
+  return effects[1]() as () => void;
 }
 
 test("statistics publish the refreshed catalog with their data and ignore aborted older requests", async () => {
@@ -51,6 +59,7 @@ test("statistics publish the refreshed catalog with their data and ignore aborte
   assert.equal(old[0].signal.aborted, true);
 
   const abortCurrent = startRefresh();
+  assert.equal(writes.some(write => write.target === "response"), false, "refresh keeps previously loaded data mounted");
   const current = requests.splice(0);
   writes = [];
   try {
@@ -64,12 +73,23 @@ test("statistics publish the refreshed catalog with their data and ignore aborte
     await flushPromises();
     assert.deepEqual(writes, [
       { target: "catalog", value: catalog },
-      { target: "data", value: statistics },
+      { target: "response", value: { collection: "", days: 30, data: statistics } },
+      { target: "loading", value: false },
     ]);
 
     old[0].resolve([{ slug: "outdated", fens: ["removed"] }]);
     old[1].resolve({ cards: [] });
     await flushPromises();
-    assert.equal(writes.length, 2, "late aborted responses cannot replace either catalog or statistics");
+    assert.equal(writes.length, 3, "late aborted responses cannot replace either catalog or statistics");
   } finally { abortCurrent(); }
+});
+
+test("statistics restores the history entry selection and preserves navigation state when saving it", () => {
+  const selection = { collection: "woodpecker", days: 90, filter: "new", sort: "position", page: 3 };
+  historyState = { statistics: selection, scroll: { x: 0, y: 400 } };
+  stateIndex = 0;
+  effects = [];
+  StatisticsPage({ decks: [], onDecksChange: () => {} });
+  effects[0]();
+  assert.deepEqual(historyState, { statistics: selection, scroll: { x: 0, y: 400 } });
 });

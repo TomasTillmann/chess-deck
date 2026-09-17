@@ -42,6 +42,7 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
     initialFen,
     game,
     submitState,
+    canRate,
     updateState,
     canUpdateSolution,
     solutionReviewReasons,
@@ -138,7 +139,7 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
               <ReviewPanel
                 deck={deck}
                 fen={initialFen}
-                revealed={submitState.status === "success"}
+                revealed={canRate}
                 onLoadNextReview={onLoadNextReview}
               />
             </div>
@@ -161,6 +162,11 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
               {submitState.status === "success" ? (
                 <StatusMessage className="solution-score" tone="success" aria-live="polite">
                   {submitState.score}% coverage{solutionReviewReasons ? " (provisional)" : ""}
+                </StatusMessage>
+              ) : null}
+              {submitState.status === "ungraded" ? (
+                <StatusMessage className="solution-status" role="status">
+                  No saved solution to compare. Rate your attempt.
                 </StatusMessage>
               ) : null}
               {submitState.status === "error" ? (

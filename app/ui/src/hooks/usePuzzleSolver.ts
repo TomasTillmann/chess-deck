@@ -39,6 +39,7 @@ type SubmitState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success"; score: number }
+  | { status: "ungraded" }
   | { status: "error"; message: string };
 
 type UpdateState =
@@ -345,14 +346,12 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
       const isMissingSolution = error instanceof SolutionFetchError && error.status === 404;
 
       setCanUpdateSolution(isMissingSolution || error instanceof SolutionComparisonError);
-      setSubmitState({
+      setSubmitState(isMissingSolution ? { status: "ungraded" } : {
         status: "error",
         message:
           error instanceof SolutionComparisonError
             ? error.message
-            : isMissingSolution
-            ? "No solution found for this position."
-            : "Could not load the solution. Check that the server is running.",
+            : "Could not load the solution. You can still rate your attempt or submit again to retry.",
       });
     }
   }, [deck.slug, initialFen]);
@@ -388,6 +387,7 @@ export function usePuzzleSolver(deck: Deck, positionIndex: number) {
     initialFen,
     game,
     submitState,
+    canRate: submitState.status !== "idle",
     updateState,
     canUpdateSolution,
     solutionReviewReasons,

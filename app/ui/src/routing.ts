@@ -1,5 +1,13 @@
 import type { Deck } from "./decks";
 
+export function navigationScroll(event: Event, saved: unknown): { top: number; left: number } | undefined {
+  if ((event as CustomEvent<{ preserveScroll?: boolean }>).detail?.preserveScroll) return undefined;
+  const point = saved as { top?: unknown; left?: unknown } | null;
+  return point && typeof point.top === "number" && Number.isFinite(point.top) && point.top >= 0
+    && typeof point.left === "number" && Number.isFinite(point.left) && point.left >= 0
+    ? { top: point.top, left: point.left } : { top: 0, left: 0 };
+}
+
 type Route =
   | { view: "decks" }
   | { view: "views" }
@@ -50,7 +58,7 @@ export function navigateToPosition(deck: Deck, positionIndex: number, preserveSc
   const hash = `#/decks/${encodeURIComponent(deck.slug)}/positions/${positionIndex + 1}`;
   if (preserveScroll) {
     window.history.pushState(null, "", hash);
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.dispatchEvent(new CustomEvent("hashchange", { detail: { preserveScroll: true } }));
   } else window.location.hash = hash;
 }
 
