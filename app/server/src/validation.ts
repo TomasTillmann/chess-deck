@@ -64,6 +64,16 @@ export const practiceQueueSchema = z.object({
     .optional(),
 });
 
+export const deckViewQuerySchema = z.object({ learnerId: idSchema }).strict();
+
+export const deckViewCreateSchema = deckViewQuerySchema.extend({
+  collections: z.array(collectionSchema).min(1).max(1_000),
+});
+
+export const deckViewRenameSchema = deckViewQuerySchema.extend({
+  name: z.string().trim().min(1).max(200),
+});
+
 export const reviewOptionsSchema = reviewQueueSchema.extend({
   fen: z.string().min(1).max(200),
 });

@@ -4,6 +4,7 @@ import { DeckGrid } from "./components/DeckGrid";
 import { DeckPositionGrid } from "./components/DeckPositionGrid";
 import { SolverPage } from "./pages/SolverPage";
 import { PracticePage } from "./pages/PracticePage";
+import { DeckViewPracticePage } from "./pages/DeckViewPracticePage";
 import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
 import { routeFromHash, navigateToDeck, navigateToDecks, navigateToPosition } from "./routing";
@@ -53,7 +54,9 @@ export function App() {
 
   const selectedDeck = route.view === "deck" || route.view === "position" ? decks.find(deck => deck.slug === route.slug) : undefined;
 
-  if (route.view === "practice") return <PracticePage onDecksChange={receiveDecks} />;
+  if (route.view === "practice") return route.viewId
+    ? <DeckViewPracticePage key={route.viewId} viewId={route.viewId} onDecksChange={receiveDecks} />
+    : <PracticePage onDecksChange={receiveDecks} />;
 
   if (isLoadingDecks) {
     return (

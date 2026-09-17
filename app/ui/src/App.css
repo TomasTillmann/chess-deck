@@ -14,6 +14,10 @@
 
 .practice-scope-label {
   margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-muted);
   font-size: var(--text-sm);
 }
@@ -62,6 +66,61 @@
 
 .library-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.deck-selection-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+.deck-selection-actions > span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.deck-selection-error {
+  width: min(100%, var(--page-width));
+  margin: 0 auto var(--space-4);
+}
+
+.library-deck {
+  position: relative;
+  min-width: 0;
+}
+
+.library-deck .deck-card {
+  width: 100%;
+  height: 100%;
+}
+
+.library-deck .deck-card-copy {
+  padding-right: var(--space-5);
+}
+
+.library-deck.is-selected .deck-card {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.deck-selection-control {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.deck-selection-control input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: inherit;
 }
 
 .ui-button.deck-card {
@@ -260,6 +319,11 @@
   align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-5);
+}
+
+.position-nav > .ui-button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .position-nav .deck-back-button {
@@ -616,5 +680,147 @@
   }
   .solution-submit-row > .solution-submit-button, .ui-button.review-rating {
     font-size: 0.8rem;
+  }
+}
+
+.deck-views {
+  width: min(100%, var(--page-width));
+  margin: var(--space-7) auto 0;
+}
+
+.deck-views > h2 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-xl);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.deck-views-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.deck-view-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deck-view-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--border);
+}
+
+.deck-view-copy {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.deck-view-copy h3 {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.deck-view-copy p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.deck-view-actions, .deck-view-feedback, .deck-view-rename-controls, .view-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.deck-view-actions {
+  flex-shrink: 0;
+}
+
+.deck-view-rename {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.deck-view-rename label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.deck-view-rename-controls {
+  flex-wrap: wrap;
+}
+
+.deck-view-rename input {
+  flex: 1 1 200px;
+  min-width: 0;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  caret-color: var(--accent);
+  font: inherit;
+  font-size: var(--text-base);
+}
+
+.view-dialog {
+  width: min(440px, calc(100% - 36px));
+  max-height: calc(100% - 36px);
+  padding: var(--space-6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.view-dialog::backdrop {
+  background: color-mix(in srgb, var(--canvas) 70%, transparent);
+}
+
+.view-dialog h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 650;
+}
+
+.view-dialog p {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.view-dialog .ui-status {
+  display: block;
+  margin-top: var(--space-3);
+}
+
+.view-dialog-actions {
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+}
+
+@media (max-width: 760px) {
+  .deck-view-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .deck-view-actions {
+    flex-wrap: wrap;
   }
 }

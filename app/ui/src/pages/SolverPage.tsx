@@ -93,7 +93,7 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, na
           >
             <Icon name="chevron-right" />
           </Button>
-          {practiceLabel ? <span className="practice-scope-label">{practiceLabel}</span> : null}
+          {practiceLabel ? <span className="practice-scope-label" title={practiceLabel}>{practiceLabel}</span> : null}
         </div>
         <div className="play-layout">
           <section className="board-stage" aria-labelledby="position-title">

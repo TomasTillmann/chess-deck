@@ -15,6 +15,7 @@ type PracticeSession = {
 
 type PracticePageProps = {
   collections?: readonly string[];
+  title?: string;
   onDecksChange: (decks: Deck[]) => void;
 };
 
@@ -23,11 +24,11 @@ export function PracticePage(props: PracticePageProps) {
 }
 
 // A scope is only a view: every position keeps its source deck and review identity.
-function PracticeScope({ collections, onDecksChange }: PracticePageProps) {
+function PracticeScope({ collections, title: viewTitle, onDecksChange }: PracticePageProps) {
   const [session, setSession] = useState<PracticeSession>();
   const [error, setError] = useState(false);
   const requestVersion = useRef(0);
-  const title = collections ? "Practice selected decks" : "Practice All";
+  const title = viewTitle ?? (collections ? "Practice selected decks" : "Practice All");
 
   const loadNext = useCallback(async () => {
     const version = ++requestVersion.current;

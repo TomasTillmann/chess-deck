@@ -2,8 +2,10 @@ import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
 import { ReviewRepository, ReviewConflictError, ReviewPositionNotFoundError } from "./reviewRepository.js";
+import { DeckViewRepository, DeckViewCollectionsError } from "./deckViewRepository.js";
 import {
   CollectionRepository,
+  collectionName,
   RecordRepository,
   SolutionRepository,
   type SolutionInput,
@@ -12,6 +14,10 @@ import {
   RequestValidationError,
   readJsonBody,
   parseQuery,
+  idSchema,
+  deckViewQuerySchema,
+  deckViewCreateSchema,
+  deckViewRenameSchema,
   reviewQueueSchema,
   practiceQueueSchema,
   reviewOptionsSchema,
@@ -39,6 +45,7 @@ export type AppContext = {
   readonly records: RecordRepository;
   readonly solutions: SolutionRepository;
   readonly reviews: ReviewRepository;
+  readonly deckViews: DeckViewRepository;
 };
 
 export function createApp(config: ServerConfig, db: Db): http.Server {
@@ -49,6 +56,7 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
     records: new RecordRepository(db),
     solutions: new SolutionRepository(db),
     reviews: new ReviewRepository(db),
+    deckViews: new DeckViewRepository(db),
   };
 
   return http.createServer((request, response) => {
@@ -81,18 +89,46 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && url.pathname === "/v1/collections") {
-      const names: Record<string, string> = {
-        woodpecker: "Woodpecker",
-        encyclopedia: "Encyclopedia of Chess Combinations",
-      };
       sendJson(response, 200, {
         collections: context.collections.listSlugs().map(slug => {
-          const name = Object.hasOwn(names, slug) ? names[slug]
-            : slug.replace(/[-_]+/g, " ").replace(/\b\w/g, letter => letter.toUpperCase());
+          const name = collectionName(slug);
           const fens = context.collections.listFens(slug);
           return { slug, name, description: `${fens.length} positions loaded from the ${name} deck.`, fens };
         }),
       });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/deck-views") {
+      const query = parseQuery(url.searchParams, deckViewQuerySchema);
+      sendJson(response, 200, { views: context.deckViews.list(query.learnerId) });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/deck-views") {
+      const body = await readJsonBody(request, deckViewCreateSchema, 100_000);
+      sendJson(response, 200, context.deckViews.create(body.learnerId, body.collections));
+      return;
+    }
+
+    const deckViewRoute = /^\/v1\/deck-views\/([^/]+)$/.exec(url.pathname);
+    if (deckViewRoute && ["GET", "PATCH", "DELETE"].includes(request.method ?? "")) {
+      const id = idSchema.safeParse(deckViewRoute[1]);
+      if (!id.success) throw new RequestValidationError(["Invalid deck view ID"]);
+      if (request.method === "PATCH") {
+        const body = await readJsonBody(request, deckViewRenameSchema, 4_096);
+        const view = context.deckViews.rename(body.learnerId, id.data, body.name);
+        sendJson(response, view ? 200 : 404, view ?? { error: "Deck view not found" });
+      } else {
+        const query = parseQuery(url.searchParams, deckViewQuerySchema);
+        if (request.method === "DELETE") {
+          const deleted = context.deckViews.delete(query.learnerId, id.data);
+          sendJson(response, deleted ? 204 : 404, deleted ? null : { error: "Deck view not found" });
+        } else {
+          const view = context.deckViews.find(query.learnerId, id.data);
+          sendJson(response, view ? 200 : 404, view ?? { error: "Deck view not found" });
+        }
+      }
       return;
     }
 
@@ -156,6 +192,11 @@ async function handleRequest(
 
     sendJson(response, 404, { error: "Not found" });
   } catch (error) {
+    if (error instanceof DeckViewCollectionsError) {
+      sendJson(response, 400, { error: error.message });
+      return;
+    }
+
     if (error instanceof RequestValidationError) {
       sendJson(response, 400, { error: error.message, issues: error.issues });
       return;
@@ -199,7 +240,7 @@ function checkDatabaseHealth(db: Db): DatabaseHealth {
 function sendJson(response: ServerResponse, statusCode: number, body: JsonValue): void {
   response.writeHead(statusCode, {
     "access-control-allow-headers": "content-type",
-    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "access-control-allow-origin": "*",
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",

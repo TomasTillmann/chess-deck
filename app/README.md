@@ -85,12 +85,34 @@ and `fen`, or null; `recommendedFen` remains available for existing clients.
 The draw is uniform across eligible cards, not across decks. Identical FENs
 in different decks remain separate cards with their existing source schedules.
 
-Practice views have no database records, copied cards, or separate progress.
+Practice scopes have no copied cards or separate progress.
 Reviews still target the source collection through `POST /v1/reviews`. Deck
 additions, position changes, and removals appear on the next queue request;
 orphaned historical reviews are never included. `GET /v1/collections` likewise
 discovers the current decks from the collections table, retaining known names
 and deriving readable names from other slugs. Empty scopes return no cards.
+
+Saved Deck Views store only a UUID, anonymous learner UUID, name, selected source
+deck slugs, and timestamps in `deck_views`. Each learner has at most one view per
+canonical selection (sorted, unique slugs). Starting the same selection reuses
+its existing view, including a renamed name. New views default to source deck
+names joined with ` + `. Saved views retain their selection when a source deck
+is removed; the existing practice queue simply returns the surviving cards.
+Deleting a view does not delete decks or review history. Practice All continues
+to include every live deck without saving a view.
+
+- `GET /v1/deck-views?learnerId=UUID` returns `{views: [...]}`.
+- `GET /v1/deck-views/ID?learnerId=UUID` returns one view.
+- `POST /v1/deck-views` accepts `{learnerId, collections: [slug, ...]}` and returns
+  the created or existing view (200). New selections require existing decks.
+- `PATCH /v1/deck-views/ID` accepts `{learnerId, name}`. Names are trimmed and must
+  contain 1–200 characters; generated default names retain all selected names.
+- `DELETE /v1/deck-views/ID?learnerId=UUID` removes only that view (204).
+
+Each view response is `{id, name, collections, createdAt, updatedAt}`. All reads
+and mutations are scoped to the learner UUID; a missing or other learner's view
+returns 404. This uses the same anonymous profile model as reviews, not account
+authentication.
 
 `GET /v1/review-options?learnerId=UUID&collection=slug&fen=FEN` previews the same
 backend transitions used by `POST /v1/reviews`. POST accepts `learnerId`,

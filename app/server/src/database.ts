@@ -66,6 +66,18 @@ function migrate(db: Db): void {
       result TEXT NOT NULL CHECK (json_valid(result)),
       PRIMARY KEY (learner_id, review_id)
     );
+
+    CREATE TABLE IF NOT EXISTS deck_views (
+      id TEXT PRIMARY KEY,
+      learner_id TEXT NOT NULL,
+      name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+      collections TEXT NOT NULL CHECK (
+        json_valid(collections) AND json_type(collections) = 'array' AND json_array_length(collections) > 0
+      ),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE (learner_id, collections)
+    );
   `);
 
   migrateSolutionsFenColumn(db);

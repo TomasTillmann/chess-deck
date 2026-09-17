@@ -1,3 +1,5 @@
+import { learnerId } from "./learnerIdentity";
+
 export type ReviewRating = "easy" | "hard" | "again";
 
 export type ReviewOption = {
@@ -34,16 +36,6 @@ export type PracticeQueue = Omit<ReviewQueue, "cards"> & {
 };
 
 const serverBaseUrl = import.meta.env.VITE_SERVER_URL ?? "http://127.0.0.1:3001";
-const learnerKey = "woodpecker.learnerId";
-
-function learnerId(): string {
-  // Only the anonymous identity lives here; reviews and scheduling live in SQLite.
-  const stored = localStorage.getItem(learnerKey);
-  if (stored && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(stored)) return stored;
-  const id = crypto.randomUUID();
-  localStorage.setItem(learnerKey, id);
-  return id;
-}
 
 export async function fetchReviewQueue(collection: string): Promise<ReviewQueue> {
   const url = new URL("/v1/review-queue", serverBaseUrl);

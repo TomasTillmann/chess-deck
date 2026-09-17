@@ -40,6 +40,15 @@ type CollectionRow = {
   fen: string;
 };
 
+export function collectionName(slug: string): string {
+  const names: Record<string, string> = {
+    woodpecker: "Woodpecker",
+    encyclopedia: "Encyclopedia of Chess Combinations",
+  };
+  return Object.hasOwn(names, slug) ? names[slug]
+    : slug.replace(/[-_]+/g, " ").replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
 export class RecordRepository {
   constructor(private readonly db: Db) {}
 
