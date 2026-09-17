@@ -3,6 +3,7 @@ import type { ServerConfig } from "./config.js";
 import type { Db } from "./database.js";
 import { ReviewRepository, ReviewConflictError, ReviewPositionNotFoundError } from "./reviewRepository.js";
 import { DeckViewRepository, DeckViewCollectionsError } from "./deckViewRepository.js";
+import { StatisticsRepository } from "./statisticsRepository.js";
 import {
   CollectionRepository,
   collectionName,
@@ -19,6 +20,7 @@ import {
   deckViewRenameSchema,
   reviewQueueSchema,
   practiceQueueSchema,
+  statisticsQuerySchema,
   reviewOptionsSchema,
   reviewCreateSchema,
   solutionExistingBatchSchema,
@@ -44,6 +46,7 @@ export type AppContext = {
   readonly solutions: SolutionRepository;
   readonly reviews: ReviewRepository;
   readonly deckViews: DeckViewRepository;
+  readonly statistics: StatisticsRepository;
 };
 
 export function createApp(config: ServerConfig, db: Db): http.Server {
@@ -54,6 +57,7 @@ export function createApp(config: ServerConfig, db: Db): http.Server {
     solutions: new SolutionRepository(db),
     reviews: new ReviewRepository(db),
     deckViews: new DeckViewRepository(db),
+    statistics: new StatisticsRepository(db),
   };
 
   return http.createServer((request, response) => {
@@ -132,6 +136,12 @@ async function handleRequest(
     if (request.method === "GET" && url.pathname === "/v1/review-queue") {
       const query = parseQuery(url.searchParams, reviewQueueSchema);
       sendJson(response, 200, context.reviews.queue(query.learnerId, query.collection));
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/statistics") {
+      const query = parseQuery(url.searchParams, statisticsQuerySchema);
+      sendJson(response, 200, context.statistics.get(query.learnerId, query.collection, query.days, query.timeZone));
       return;
     }
 

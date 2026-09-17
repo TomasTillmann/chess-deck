@@ -6,6 +6,7 @@ import { DeckViews } from "./components/DeckViews";
 import { SolverPage } from "./pages/SolverPage";
 import { PracticePage } from "./pages/PracticePage";
 import { DeckViewPracticePage } from "./pages/DeckViewPracticePage";
+import { StatisticsPage } from "./pages/StatisticsPage";
 import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
 import { fetchReviewQueue } from "./reviewClient";
@@ -69,6 +70,7 @@ export function App() {
     : <PracticePage onDecksChange={receiveDecks} />;
 
   if (route.view === "views") return <DeckViews decks={decks} onPractice={view => navigateToDeckView(view.id)} />;
+  if (route.view === "statistics") return <StatisticsPage decks={decks} onDecksChange={receiveDecks} />;
 
   if (isLoadingDecks) {
     return (

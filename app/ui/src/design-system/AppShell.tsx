@@ -30,8 +30,9 @@ export function AppShell({ children, theme }: ThemeProps & { children: ReactNode
         <span className="wordmark">Chess Deck<span className="wordmark-dot" aria-hidden="true" /></span>
       </div>
       <nav id={menuId} ref={menu} className="workspace-navigation" aria-label="Main navigation" popover="auto" onToggle={event => setOpen(event.newState === "open")}>
-        <a href="#/" aria-current={!inViews ? "page" : undefined} onClick={() => menu.current?.hidePopover()}>Decks</a>
+        <a href="#/" aria-current={!inViews && route.view !== "statistics" ? "page" : undefined} onClick={() => menu.current?.hidePopover()}>Decks</a>
         <a href="#/views" aria-current={inViews ? "page" : undefined} onClick={() => menu.current?.hidePopover()}>Deck Views</a>
+        <a href="#/statistics" aria-current={route.view === "statistics" ? "page" : undefined} onClick={() => menu.current?.hidePopover()}>Statistics</a>
       </nav>
       <ThemeSelector />
     </header>

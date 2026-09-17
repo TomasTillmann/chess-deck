@@ -260,6 +260,9 @@ To add a theme:
 | `StatusMessage` | Native span props and `tone="muted\|success\|warning\|danger\|info"`; defaults to muted. The caller supplies live-region semantics where needed. |
 | `AppShell` | Application navigation, wordmark, theme selector, and children. |
 | `ThemeSelector` | Labeled native select for the provider's current theme, with a fixed width and decorative chevron. Supporting browsers use a themed `base-select` picker anchored below the control; other browsers retain their native menu. |
+| `MetricStrip` | `items` of label, value, and optional detail. A semantic definition list with divided columns, tabular values, and two columns on narrow screens. |
+| `BarChart` | `label`, count-valued `points` with period labels and optional `shortLabel` for the axis, optional `tone="accent\|warning"` and `emptyMessage`. Native SVG with integer axes, sparse date labels, and an expandable data table. Zero values remain zero; an empty chart explains its state. |
+| `RatingBreakdown` | `items` of label, count, and `tone="success\|warning\|danger"`. A proportional horizontal bar with persistent label, count, and percentage legend; labels carry meaning independently of color. |
 
 Buttons have a shared minimum height of 38px, explicit hover/active states, and a disabled state. Icon buttons are square; compact buttons reduce height and padding. Color/border transitions use `motion-fast` and `ease-out`; reduced-motion preferences disable CSS transitions. All focusable controls receive a visible focus outline.
 
@@ -285,16 +288,20 @@ import { Button, Icon, PageHeader, StatusMessage } from "./design-system";
 
 `PracticePage` reuses `SolverPage` for an ephemeral view over current source decks. Its optional `collections?: readonly string[]` limits the scope for future multiselect; omission means all decks. Each next-review request refreshes the catalog and asks the backend for a uniformly random due card across the scope, falling back to a new card. Reviews retain their source deck and FEN identity and share the same persistence as individual-deck practice; the view creates no deck or separate review state. Source editing stays in individual decks, with Save solution hidden in this view. When no eligible card remains, the page shows the next due time and refreshes on focus or when a card becomes due.
 
+`StatisticsPage` lives at `#/statistics` in the shared navigation. It combines a compact metric strip, review activity and upcoming-review bar charts, rating proportions, and deck/card history tables. The deck and 30/90/365-day filters apply to history; schedule counts remain current and history tables are explicitly all-time. Charts expose their counts through native disclosures. Dense tables scroll within their region on narrow screens, and card history uses pagination. The page refreshes its catalog together with statistics so puzzle links retain the correct source position.
+
 ### Source responsibilities
 
 | Source | Responsibility |
 | --- | --- |
 | `src/design-system/tokens.css` | Both palettes; typography, spacing, radius, size, and motion tokens. |
 | `src/design-system/components.css` | Global base styles, shared controls, header, focus, and reduced motion. |
+| `src/design-system/Statistics.tsx`, `src/design-system/Statistics.css` | Reusable statistical displays using native SVG, accessible tables, and the existing semantic palette. |
 | `src/design-system/*.tsx` | Small visual primitives and global theme selection. |
 | `src/App.css` | Deck, solver, board, notation, rating, and responsive layout styles using tokens. |
 | `src/components/`, `src/pages/SolverPage.tsx` | Feature presentation and user interaction wiring. |
 | `src/pages/PracticePage.tsx` | Temporary all/selected-deck practice scope, catalog refresh, and progression using source-card review identities. |
+| `src/pages/StatisticsPage.tsx`, `src/components/CardStatisticsTable.tsx`, `src/statisticsClient.ts` | Statistics loading and filters, per-card history, and the read-only statistics API boundary. |
 | `src/hooks/usePuzzleSolver.ts` | Chess state, move-tree edits, submission, comparison, and solution updates. |
 | `src/hooks/useReviewQueue.ts` | Schedule loading, focus/time refresh, derived counts, and recommendation. |
 | `src/App.tsx`, `src/routing.ts` | Deck loading and hash-route selection/navigation. |

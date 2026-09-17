@@ -29,6 +29,7 @@ test("valid encoded deck slugs retain their decoded value and position", () => {
 
 test("other supported routes and unknown route fallback are unchanged", () => {
   assert.deepEqual(parseHash("#/views"), { view: "views" });
+  assert.deepEqual(parseHash("#/statistics"), { view: "statistics" });
   assert.deepEqual(parseHash("#/practice"), { view: "practice" });
   assert.deepEqual(parseHash("#/views/abc-123/practice"), { view: "practice", viewId: "abc-123" });
   assert.deepEqual(parseHash("#/unknown/%"), { view: "decks" });

@@ -90,7 +90,7 @@ test("navigation supports keyboard, Escape and outside dismissal without shiftin
   await expect(trigger).toBeFocused();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await trigger.click();
-  await heading.click();
+  await page.getByText("Chess Deck", { exact: true }).click();
   await expect(menu).toBeHidden();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   expect(await heading.boundingBox()).toEqual(headingBox);

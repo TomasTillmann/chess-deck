@@ -5,3 +5,4 @@ export { PageHeader } from "./PageHeader";
 export { StatusMessage } from "./StatusMessage";
 export { ThemeSelector } from "./ThemeSelector";
 export { AppShell } from "./AppShell";
+export { MetricStrip, BarChart, RatingBreakdown } from "./Statistics";

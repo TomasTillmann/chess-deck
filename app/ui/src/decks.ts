@@ -70,8 +70,8 @@ function mapCollection(value: unknown): Deck | undefined {
   };
 }
 
-export async function fetchDecks(): Promise<Deck[]> {
-  const response = await fetch(collectionsUrl);
+export async function fetchDecks(signal?: AbortSignal): Promise<Deck[]> {
+  const response = await fetch(collectionsUrl, { signal });
   if (!response.ok) throw new Error(`Failed to load collections: HTTP ${response.status}`);
 
   const body = (await response.json()) as CollectionResponse;

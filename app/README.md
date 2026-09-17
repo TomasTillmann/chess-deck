@@ -124,3 +124,22 @@ by a client are rejected. Missing collection positions return 404.
 
 Run backend checks with `cd server && npm ci && npm test && npm run build`.
 Review tests use temporary or in-memory databases, never the application data.
+
+## Statistics
+
+The navigation menu opens `#/statistics`, with all-deck and individual-deck
+filters. `GET /v1/statistics?learnerId=UUID` reads existing review events and
+schedules; it creates no counters or additional persistence. Optional parameters
+are `collection=slug`, `days=30|90|365` (default 30), and an IANA `timeZone`
+(default UTC; the UI supplies the browser's zone).
+
+Review totals, distinct practiced cards, practice days, activity and ratings use
+the selected period including today. Each saved rating counts as one review;
+these are not session counts or solution-accuracy percentages. Deck and card
+history show all-time totals. The 14-day forecast counts each card's next
+scheduled review; overdue cards appear separately in Due now.
+
+Statistics share the learner and source-card identities used by practice.
+Duplicate source rows count once; removed source cards are excluded without
+deleting their history. All-deck and Deck View practice contributes to the same
+source-deck totals. Calendar grouping respects local dates and daylight saving.

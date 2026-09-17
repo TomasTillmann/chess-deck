@@ -62,6 +62,17 @@ export const practiceQueueSchema = z.object({
     .optional(),
 });
 
+export const statisticsQuerySchema = z.object({
+  learnerId: idSchema,
+  collection: collectionSchema.optional(),
+  days: z.enum(["30", "90", "365"]).default("30").transform(Number),
+  timeZone: z.string().min(1).max(100).refine(value => {
+    if (/^[+-]/.test(value)) return false;
+    try { new Intl.DateTimeFormat("en", { timeZone: value }); return true; }
+    catch { return false; }
+  }, "Time zone must be a valid IANA identifier").default("UTC"),
+}).strict();
+
 export const deckViewQuerySchema = z.object({ learnerId: idSchema }).strict();
 
 export const deckViewCreateSchema = deckViewQuerySchema.extend({
