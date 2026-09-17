@@ -2,10 +2,12 @@ import type { Deck } from "./decks";
 
 type Route =
   | { view: "decks" }
+  | { view: "practice" }
   | { view: "deck"; slug: string }
   | { view: "position"; slug: string; positionIndex: number };
 
 export function routeFromHash(): Route {
+  if (window.location.hash === "#/practice") return { view: "practice" };
   const positionMatch = window.location.hash.match(/^#\/decks\/([^/]+)\/positions\/(\d+)$/);
 
   if (positionMatch) {
@@ -20,6 +22,10 @@ export function routeFromHash(): Route {
   if (deckMatch) return { view: "deck", slug: decodeURIComponent(deckMatch[1]) };
 
   return { view: "decks" };
+}
+
+export function navigateToPractice() {
+  window.location.hash = "/practice";
 }
 
 export function navigateToDeck(deck: Deck) {

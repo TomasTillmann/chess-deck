@@ -27,9 +27,14 @@ type SolverPageProps = ThemeProps & {
   positionIndex: number;
   onGoToDeck: () => void;
   onGoToPosition: (positionIndex: number, preserveScroll?: boolean) => void;
+  navigation?: { previous?: () => void; next?: () => void };
+  backLabel?: string;
+  practiceLabel?: string;
+  onLoadNextReview?: () => Promise<void>;
+  allowSolutionEditing?: boolean;
 };
 
-export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, theme }: SolverPageProps) {
+export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, navigation, backLabel = "Go to deck", practiceLabel, onLoadNextReview, allowSolutionEditing = true, theme }: SolverPageProps) {
   const {
     initialFen,
     game,
@@ -53,6 +58,8 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, th
   } = usePuzzleSolver(deck, positionIndex);
   const previousPositionIndex = positionIndex - 1;
   const nextPositionIndex = positionIndex + 1;
+  const previous = navigation ? navigation.previous : previousPositionIndex >= 0 ? () => onGoToPosition(previousPositionIndex) : undefined;
+  const next = navigation ? navigation.next : nextPositionIndex < deck.fens.length ? () => onGoToPosition(nextPositionIndex) : undefined;
 
   return (
     <main className="app-shell solver-shell" data-theme={theme}>
@@ -60,7 +67,7 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, th
         <div className="position-nav">
           <Button variant="ghost" className="deck-back-button" type="button" onClick={onGoToDeck}>
             <Icon name="arrow-left" />
-            Go to deck
+            {backLabel}
           </Button>
           <Button
             variant="ghost"
@@ -69,8 +76,8 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, th
             type="button"
             aria-label="Previous position"
             title="Previous position"
-            disabled={previousPositionIndex < 0}
-            onClick={() => onGoToPosition(previousPositionIndex)}
+            disabled={!previous}
+            onClick={previous}
           >
             <Icon name="chevron-left" />
           </Button>
@@ -81,11 +88,12 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, th
             type="button"
             aria-label="Next position"
             title="Next position"
-            disabled={nextPositionIndex >= deck.fens.length}
-            onClick={() => onGoToPosition(nextPositionIndex)}
+            disabled={!next}
+            onClick={next}
           >
             <Icon name="chevron-right" />
           </Button>
+          {practiceLabel ? <span className="practice-scope-label">{practiceLabel}</span> : null}
         </div>
         <div className="play-layout">
           <section className="board-stage" aria-labelledby="position-title">
@@ -119,10 +127,11 @@ export function SolverPage({ deck, positionIndex, onGoToDeck, onGoToPosition, th
                 fen={initialFen}
                 revealed={submitState.status === "success"}
                 onGoToPosition={index => onGoToPosition(index, true)}
+                onLoadNextReview={onLoadNextReview}
               />
             </div>
             <div className="solution-result-row">
-              {canUpdateSolution ? (
+              {allowSolutionEditing && canUpdateSolution ? (
                 <Button
                   className="solution-update-button"
                   type="button"

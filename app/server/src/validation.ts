@@ -57,6 +57,13 @@ export const reviewQueueSchema = z.object({
   collection: collectionSchema,
 });
 
+export const practiceQueueSchema = z.object({
+  learnerId: idSchema,
+  collection: z.union([collectionSchema, z.array(collectionSchema).max(1_000)])
+    .transform(value => [...new Set(typeof value === "string" ? [value] : value)])
+    .optional(),
+});
+
 export const reviewOptionsSchema = reviewQueueSchema.extend({
   fen: z.string().min(1).max(200),
 });
@@ -70,7 +77,11 @@ export function parseQuery<TSchema extends z.ZodTypeAny>(
   query: URLSearchParams,
   schema: TSchema,
 ): z.infer<TSchema> {
-  const result = schema.safeParse(Object.fromEntries(query));
+  const values = Object.fromEntries([...query.keys()].map(key => {
+    const entries = query.getAll(key);
+    return [key, entries.length === 1 ? entries[0] : entries];
+  }));
+  const result = schema.safeParse(values);
   if (!result.success) {
     throw new RequestValidationError(result.error.issues.map(issue => issue.message));
   }

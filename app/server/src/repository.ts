@@ -142,6 +142,13 @@ export class RecordRepository {
 export class CollectionRepository {
   constructor(private readonly db: Db) {}
 
+  listSlugs(): string[] {
+    const rows = this.db.prepare(`
+      SELECT collection FROM collections GROUP BY collection ORDER BY MIN(id)
+    `).all() as { collection: string }[];
+    return rows.map(row => row.collection);
+  }
+
   listFens(collection = "woodpecker"): string[] {
     const rows = this.db
       .prepare("SELECT id, collection, fen FROM collections WHERE collection = ? ORDER BY id")

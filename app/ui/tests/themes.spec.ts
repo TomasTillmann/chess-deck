@@ -134,6 +134,41 @@ test("invalid stored themes fall back to Light and the selector works by keyboar
   await expect(page.locator(".theme-root")).toHaveAttribute("data-theme", "dark");
 });
 
+test("theme menu opens below its control without shifting the header", async ({ page }) => {
+  await mockPractice(page);
+  await page.goto("/");
+  const selector = page.getByRole("combobox", { name: "Theme", exact: true });
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const theme of ["light", "dark"]) {
+      await selector.selectOption(theme);
+      const control = await selector.boundingBox();
+      const header = await page.getByRole("banner").boundingBox();
+      if (!control) throw new Error("Expected theme selector");
+      await selector.click();
+      for (const label of ["Light", "Dark"]) {
+        const option = page.getByRole("option", { name: label, exact: true });
+        await expect(option).toBeVisible();
+        const box = await option.boundingBox();
+        if (!box) throw new Error("Expected visible theme option");
+        expect(box.y).toBeGreaterThan(control.y + control.height);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+      }
+      expect(await selector.boundingBox()).toEqual(control);
+      expect(await page.getByRole("banner").boundingBox()).toEqual(header);
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("option", { name: "Light", exact: true })).toBeHidden();
+      await expect(selector).toBeFocused();
+      await expect(selector).toHaveValue(theme);
+      await selector.click();
+      await page.getByRole("option", { name: theme === "light" ? "Dark" : "Light", exact: true }).click();
+      await expect(selector).toHaveValue(theme === "light" ? "dark" : "light");
+      expect(await selector.boundingBox()).toEqual(control);
+    }
+  }
+});
+
 test("blocked storage does not prevent theme selection", async ({ page }) => {
   await mockPractice(page);
   await page.addInitScript(() => {

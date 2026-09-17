@@ -77,6 +77,21 @@ and the recommendation is null when all cards are scheduled. `nextDueAt` is
 the earliest future review. Each card is keyed by collection and exact FEN,
 so deck ordering and duplicate collection rows do not change its history.
 
+`GET /v1/practice-queue?learnerId=UUID` applies that same selection across all
+current decks. Optional repeated `collection=slug` parameters restrict the
+view to those decks (duplicates are ignored). Both queue endpoints include
+each card's source `collection` and a `recommendedCard` containing `collection`
+and `fen`, or null; `recommendedFen` remains available for existing clients.
+The draw is uniform across eligible cards, not across decks. Identical FENs
+in different decks remain separate cards with their existing source schedules.
+
+Practice views have no database records, copied cards, or separate progress.
+Reviews still target the source collection through `POST /v1/reviews`. Deck
+additions, position changes, and removals appear on the next queue request;
+orphaned historical reviews are never included. `GET /v1/collections` likewise
+discovers the current decks from the collections table, retaining known names
+and deriving readable names from other slugs. Empty scopes return no cards.
+
 `GET /v1/review-options?learnerId=UUID&collection=slug&fen=FEN` previews the same
 backend transitions used by `POST /v1/reviews`. POST accepts `learnerId`,
 `reviewId` (one UUID per submitted attempt), `collection`, `fen`, and `rating`

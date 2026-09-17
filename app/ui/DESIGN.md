@@ -202,6 +202,8 @@ The type scale in the frontmatter records existing roles. Keep chess notation re
 
 Deck pages use a centered maximum width of 1120px. The library has two columns, with preview and copy arranged horizontally inside cards; below 1000px cards stack internally. At 560px and below, the library becomes one column and each library card returns to a compact horizontal arrangement. Position grids fill available width with columns of at least 180px, then use two columns at the mobile breakpoint.
 
+The library places a **Practice All** action above the Decks heading. It opens the shared solver at `#/practice`; it is not presented as another deck card.
+
 The solver places a square board beside a 220–280px analysis panel, separated by 24px. The board is capped at 720px and desktop sizing responds to viewport height. At 900px and below, analysis moves beneath the board with a 220px panel height. At 560px and below, page gutters are 18px and the header is 58px high instead of 68px.
 
 Use the shared spacing scale for repeated gaps and padding. The submit/rating row reserves the rating group before reveal with `visibility: hidden`; its three equal rating columns remain in place. Feedback has a reserved row below it.
@@ -249,7 +251,7 @@ To add a theme:
 | `PageHeader` | Required `title`, optional description as `children`, optional `actions`. Provides the deck-page heading arrangement. |
 | `StatusMessage` | Native span props and `tone="muted\|success\|warning\|danger\|info"`; defaults to muted. The caller supplies live-region semantics where needed. |
 | `AppShell` | Application wordmark, theme selector, and children. |
-| `ThemeSelector` | Labeled native select for the provider's current theme, with a positioned decorative chevron and space reserved for it. |
+| `ThemeSelector` | Labeled native select for the provider's current theme, with a fixed width and decorative chevron. Supporting browsers use a themed `base-select` picker anchored below the control; other browsers retain their native menu. |
 
 Buttons have a shared minimum height of 38px, explicit hover/active states, and a disabled state. Icon buttons are square; compact buttons reduce height and padding. Color/border transitions use `motion-fast` and `ease-out`; reduced-motion preferences disable CSS transitions. All focusable controls receive a visible focus outline.
 
@@ -273,6 +275,8 @@ import { Button, Icon, PageHeader, StatusMessage } from "./design-system";
 
 `ReviewPanel` renders Easy, Hard, and Didn’t solve using success, warning, and danger button variants. It retains its save/retry and next-position flow while reserving layout space before a solution is revealed. `SolverPage` composes these pieces and renders loading, coverage, save, and provisional-solution feedback.
 
+`PracticePage` reuses `SolverPage` for an ephemeral view over current source decks. Its optional `collections?: readonly string[]` limits the scope for future multiselect; omission means all decks. Each next-review request refreshes the catalog and asks the backend for a uniformly random due card across the scope, falling back to a new card. Reviews retain their source deck and FEN identity and share the same persistence as individual-deck practice; the view creates no deck or separate review state. Source editing stays in individual decks, with Save solution hidden in this view. When no eligible card remains, the page shows the next due time and refreshes on focus or when a card becomes due.
+
 ### Source responsibilities
 
 | Source | Responsibility |
@@ -282,6 +286,7 @@ import { Button, Icon, PageHeader, StatusMessage } from "./design-system";
 | `src/design-system/*.tsx` | Small visual primitives and global theme selection. |
 | `src/App.css` | Deck, solver, board, notation, rating, and responsive layout styles using tokens. |
 | `src/components/`, `src/pages/SolverPage.tsx` | Feature presentation and user interaction wiring. |
+| `src/pages/PracticePage.tsx` | Temporary all/selected-deck practice scope, catalog refresh, and progression using source-card review identities. |
 | `src/hooks/usePuzzleSolver.ts` | Chess state, move-tree edits, submission, comparison, and solution updates. |
 | `src/hooks/useReviewQueue.ts` | Schedule loading, focus/time refresh, derived counts, and recommendation. |
 | `src/App.tsx`, `src/routing.ts` | Deck loading and hash-route selection/navigation. |

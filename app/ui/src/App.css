@@ -7,6 +7,22 @@
   min-height: calc(100vh - 68px);
 }
 
+.library-practice {
+  width: min(100%, var(--page-width));
+  margin: 0 auto var(--space-6);
+}
+
+.practice-scope-label {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.practice-status {
+  width: min(100%, var(--page-width));
+  margin: 0 auto;
+}
+
 .deck-page-header {
   display: flex;
   align-items: center;
@@ -160,6 +176,36 @@
 
 .chess-board.cg-wrap coords {
   opacity: 1;
+  font-size: var(--text-xs);
+  line-height: 1.2;
+}
+
+/* Anchor labels to their square instead of Chessground's fixed-size offsets. */
+.chess-board.cg-wrap coords.ranks {
+  top: 0;
+  left: 0;
+  width: 12.5%;
+}
+
+.chess-board.cg-wrap coords.files {
+  bottom: 0;
+  left: 0;
+  height: 12.5%;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.chess-board.cg-wrap coords coord {
+  flex: 0 0 12.5%;
+}
+
+.chess-board.cg-wrap coords.ranks coord {
+  padding: 2px 4px;
+  transform: none;
+}
+
+.chess-board.cg-wrap coords.files coord {
+  padding: 0 4px 2px;
 }
 
 .chess-board coords coord {

@@ -21,6 +21,7 @@ export type ReviewResult = {
 };
 
 type QueueCard = {
+  readonly collection: string;
   readonly fen: string;
   readonly status: "due" | "new" | "scheduled";
   readonly dueAt: string | null;
@@ -37,28 +38,34 @@ export class ReviewConflictError extends Error {
 export class ReviewRepository {
   constructor(private readonly db: Db) {}
 
-  queue(learnerId: string, collection: string, now = Date.now()) {
+  queue(learnerId: string, collections?: string | readonly string[], now = Date.now()) {
     const serverNow = new Date(now).toISOString();
+    const scope = typeof collections === "string" ? [collections] : collections;
+    const collectionFilter = scope === undefined
+      ? ""
+      : `WHERE c.collection IN (${scope.map(() => "?").join(", ")})`;
     const cards = this.db.prepare(`
-      SELECT c.fen, r.due_at AS dueAt,
+      SELECT c.collection, c.fen, r.due_at AS dueAt,
         CASE WHEN r.fen IS NULL THEN 'new'
-          WHEN r.due_at <= @serverNow THEN 'due' ELSE 'scheduled' END AS status
+          WHEN r.due_at <= ? THEN 'due' ELSE 'scheduled' END AS status
       FROM collections c
       LEFT JOIN review_cards r
-        ON r.learner_id = @learnerId AND r.collection = c.collection AND r.fen = c.fen
-      WHERE c.collection = @collection
-      GROUP BY c.fen
+        ON r.learner_id = ? AND r.collection = c.collection AND r.fen = c.fen
+      ${collectionFilter}
+      GROUP BY c.collection, c.fen
       ORDER BY CASE status WHEN 'due' THEN 0 WHEN 'new' THEN 1 ELSE 2 END,
         r.due_at, MIN(c.id)
-    `).all({ learnerId, collection, serverNow }) as QueueCard[];
+    `).all(serverNow, learnerId, ...(scope ?? [])) as QueueCard[];
 
     const dueCards = cards.filter(card => card.status === "due");
     const candidates = dueCards.length > 0 ? dueCards : cards.filter(card => card.status === "new");
+    const recommended = candidates.length > 0 ? candidates[crypto.randomInt(candidates.length)] : null;
 
     return {
       serverNow,
       cards,
-      recommendedFen: candidates.length > 0 ? candidates[crypto.randomInt(candidates.length)].fen : null,
+      recommendedCard: recommended ? { collection: recommended.collection, fen: recommended.fen } : null,
+      recommendedFen: recommended?.fen ?? null,
       nextDueAt: cards.find(card => card.status === "scheduled")?.dueAt ?? null,
     };
   }

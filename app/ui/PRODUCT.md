@@ -2,6 +2,10 @@
 
 Chess Deck is a web workspace for practicing chess positions from decks. Its main flow is to choose a deck and position, analyze legal moves and variations on a board, submit the analysis for solution coverage, and record a review rating.
 
+The library also offers **Practice All** above the Decks heading. It opens `#/practice`, a temporary view over the current source decks rather than a saved deck. The backend chooses uniformly among due cards across the view, then among new cards when none are due. Ratings use each card's existing source-deck review record; the view stores no separate progress. The catalog and queue refresh when advancing, so additions, updates, and removals are reflected in practice. Editing remains available through individual decks, and Save solution is hidden in the combined view. Single-deck practice is unchanged.
+
+The same scope accepts selected deck identifiers for future multiselect practice; the current interface exposes Practice All only.
+
 The existing product includes deck and position previews, review recommendations and due states, move-tree navigation and editing, solution comparison, manual solution saving where available, provisional-solution explanations, review save/retry handling, and progression to the next recommended position. Decks, solutions, and review schedules are supplied by the existing server APIs.
 
 The interface supports desktop and narrow screens. Light and dark appearance are selectable and persisted locally. Preserve chess behavior, review behavior, route URLs, and server contracts when changing presentation.

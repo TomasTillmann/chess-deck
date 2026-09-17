@@ -26,6 +26,13 @@ export type ReviewQueue = {
   nextDueAt: string | null;
 };
 
+export type PracticeCard = { collection: string; fen: string };
+
+export type PracticeQueue = Omit<ReviewQueue, "cards"> & {
+  cards: (ReviewCard & PracticeCard)[];
+  recommendedCard: PracticeCard | null;
+};
+
 const serverBaseUrl = import.meta.env.VITE_SERVER_URL ?? "http://127.0.0.1:3001";
 const learnerKey = "woodpecker.learnerId";
 
@@ -45,6 +52,16 @@ export async function fetchReviewQueue(collection: string): Promise<ReviewQueue>
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Review request failed: HTTP ${response.status}`);
   return response.json() as Promise<ReviewQueue>;
+}
+
+export async function fetchPracticeQueue(collections?: readonly string[]): Promise<PracticeQueue> {
+  if (collections?.length === 0) throw new Error("Select at least one deck");
+  const url = new URL("/v1/practice-queue", serverBaseUrl);
+  url.searchParams.set("learnerId", learnerId());
+  collections?.forEach(collection => url.searchParams.append("collection", collection));
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Practice request failed: HTTP ${response.status}`);
+  return response.json() as Promise<PracticeQueue>;
 }
 
 export async function saveReview(collection: string, fen: string, reviewId: string, rating: ReviewRating): Promise<ReviewResult> {

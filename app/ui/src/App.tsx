@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { DeckGrid } from "./components/DeckGrid";
 import { DeckPositionGrid } from "./components/DeckPositionGrid";
 import { SolverPage } from "./pages/SolverPage";
+import { PracticePage } from "./pages/PracticePage";
 import { PageHeader } from "./design-system";
 import { fetchDecks, type Deck } from "./decks";
 import { routeFromHash, navigateToDeck, navigateToDecks, navigateToPosition } from "./routing";
@@ -13,28 +14,35 @@ export function App() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoadingDecks, setIsLoadingDecks] = useState(true);
   const [deckLoadError, setDeckLoadError] = useState<string | undefined>();
+  const catalogVersion = useRef(0);
+
+  const receiveDecks = useCallback((loadedDecks: Deck[]) => {
+    catalogVersion.current++;
+    setDecks(loadedDecks);
+    setDeckLoadError(undefined);
+    setIsLoadingDecks(false);
+  }, []);
 
   useEffect(() => {
-    let isCurrent = true;
+    const version = ++catalogVersion.current;
 
     fetchDecks()
       .then(loadedDecks => {
-        if (!isCurrent) return;
-        setDecks(loadedDecks);
-        setDeckLoadError(undefined);
+        if (version !== catalogVersion.current) return;
+        receiveDecks(loadedDecks);
       })
       .catch(error => {
-        if (!isCurrent) return;
+        if (version !== catalogVersion.current) return;
         setDeckLoadError(error instanceof Error ? error.message : "Failed to load collections");
       })
       .finally(() => {
-        if (isCurrent) setIsLoadingDecks(false);
+        if (version === catalogVersion.current) setIsLoadingDecks(false);
       });
 
     return () => {
-      isCurrent = false;
+      catalogVersion.current++;
     };
-  }, []);
+  }, [receiveDecks]);
 
   useEffect(() => {
     const handleHashChange = () => setRoute(routeFromHash());
@@ -43,7 +51,9 @@ export function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  const selectedDeck = route.view === "decks" ? undefined : decks.find(deck => deck.slug === route.slug);
+  const selectedDeck = route.view === "deck" || route.view === "position" ? decks.find(deck => deck.slug === route.slug) : undefined;
+
+  if (route.view === "practice") return <PracticePage onDecksChange={receiveDecks} />;
 
   if (isLoadingDecks) {
     return (

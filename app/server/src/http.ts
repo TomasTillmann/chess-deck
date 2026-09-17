@@ -13,6 +13,7 @@ import {
   readJsonBody,
   parseQuery,
   reviewQueueSchema,
+  practiceQueueSchema,
   reviewOptionsSchema,
   reviewCreateSchema,
   solutionExistingBatchSchema,
@@ -80,11 +81,14 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && url.pathname === "/v1/collections") {
+      const names: Record<string, string> = {
+        woodpecker: "Woodpecker",
+        encyclopedia: "Encyclopedia of Chess Combinations",
+      };
       sendJson(response, 200, {
-        collections: [
-          ["woodpecker", "Woodpecker"],
-          ["encyclopedia", "Encyclopedia of Chess Combinations"],
-        ].map(([slug, name]) => {
+        collections: context.collections.listSlugs().map(slug => {
+          const name = Object.hasOwn(names, slug) ? names[slug]
+            : slug.replace(/[-_]+/g, " ").replace(/\b\w/g, letter => letter.toUpperCase());
           const fens = context.collections.listFens(slug);
           return { slug, name, description: `${fens.length} positions loaded from the ${name} deck.`, fens };
         }),
@@ -94,6 +98,12 @@ async function handleRequest(
 
     if (request.method === "GET" && url.pathname === "/v1/review-queue") {
       const query = parseQuery(url.searchParams, reviewQueueSchema);
+      sendJson(response, 200, context.reviews.queue(query.learnerId, query.collection));
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/practice-queue") {
+      const query = parseQuery(url.searchParams, practiceQueueSchema);
       sendJson(response, 200, context.reviews.queue(query.learnerId, query.collection));
       return;
     }

@@ -74,6 +74,7 @@ button, select, summary {
 
 .theme-selector select {
   appearance: none;
+  width: 88px;
   height: 34px;
   padding: 0 34px 0 var(--space-3);
   border: 1px solid var(--border);
@@ -82,6 +83,65 @@ button, select, summary {
   color: var(--text);
   font-size: var(--text-sm);
   cursor: pointer;
+}
+
+.theme-selector select:focus-visible {
+  outline-offset: 2px;
+}
+
+@supports (appearance: base-select) {
+  .theme-selector select,
+  .theme-selector select::picker(select) {
+    appearance: base-select;
+  }
+
+  .theme-selector select {
+    align-items: center;
+  }
+
+  .theme-selector select::picker-icon {
+    display: none;
+  }
+
+  .theme-selector select::picker(select) {
+    inset: auto;
+    top: calc(anchor(bottom) + var(--space-2));
+    right: anchor(right);
+    margin: 0;
+    width: anchor-size(width);
+    box-sizing: border-box;
+    padding: var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+  }
+
+  .theme-selector option {
+    min-height: 34px;
+    padding: var(--space-1) var(--space-2);
+    gap: var(--space-2);
+    border-radius: var(--radius-control);
+    cursor: pointer;
+  }
+
+  .theme-selector option:checked {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  .theme-selector option:hover {
+    background: var(--surface-hover);
+  }
+
+  .theme-selector option:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .theme-selector option::checkmark {
+    color: var(--accent);
+  }
 }
 
 .theme-select > .ui-icon {

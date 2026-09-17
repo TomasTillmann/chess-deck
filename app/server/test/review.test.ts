@@ -191,6 +191,148 @@ test("review writes are atomic, durable, idempotent, and return the original res
   }
 });
 
+test("practice scopes share source schedules and immediately reflect deck changes without storing a view", () => {
+  const db = openDatabase(":memory:");
+  try {
+    const repository = new ReviewRepository(db);
+    assert.equal(repository.queue(learnerId, undefined, now).recommendedCard, null);
+    seed(db);
+    const saved = repository.save(review(), now);
+    const all = repository.queue(learnerId, undefined, now);
+    assert.equal(all.cards.length, 4); // Duplicate rows collapse only within their source deck.
+    assert.deepEqual(all.cards.find(card => card.collection === "woodpecker" && card.fen === fen),
+      repository.queue(learnerId, "woodpecker", now).cards.find(card => card.fen === fen));
+    assert.equal(all.cards.find(card => card.collection === "encyclopedia")?.status, "new");
+    assert.equal(all.nextDueAt, saved.dueAt);
+    assert.deepEqual(repository.queue(learnerId, ["woodpecker", "woodpecker"], now).cards,
+      repository.queue(learnerId, "woodpecker", now).cards);
+    assert.deepEqual(repository.queue(learnerId, [], now).cards, []);
+
+    const chosen = repository.queue(learnerId, ["encyclopedia"], now).recommendedCard!;
+    assert.deepEqual(chosen, { collection: "encyclopedia", fen });
+    repository.save(review({ ...chosen, rating: "hard" }), now);
+    assert.equal(repository.queue(learnerId, "encyclopedia", now).recommendedCard, null);
+    assert.equal(repository.queue(learnerId, undefined, now).cards
+      .find(card => card.collection === chosen.collection)?.status, "scheduled");
+    assert.equal(repository.options(learnerId, "woodpecker", fen, now).dueAt, saved.dueAt);
+
+    db.prepare("INSERT INTO collections (collection, fen) VALUES (?, ?)").run("new-deck", thirdFen);
+    assert.equal(repository.queue(learnerId, undefined, now).cards.length, 5);
+    assert.equal(repository.queue(learnerId, ["woodpecker", "encyclopedia"], now).cards.length, 4);
+    db.prepare("UPDATE collections SET fen = ? WHERE collection = ?").run(secondFen, "new-deck");
+    assert.deepEqual(repository.queue(learnerId, "new-deck", now).recommendedCard,
+      { collection: "new-deck", fen: secondFen });
+    db.prepare("DELETE FROM collections WHERE collection = ?").run("encyclopedia");
+    assert.ok(repository.queue(learnerId, undefined, now).cards.every(card => card.collection !== "encyclopedia"));
+    db.exec("DELETE FROM collections");
+    assert.deepEqual(repository.queue(learnerId, undefined, now).cards, []);
+    assert.equal(repository.queue(learnerId, undefined, now).nextDueAt, null);
+
+    for (const table of ["review_cards", "review_events"]) {
+      assert.deepEqual(db.prepare(`SELECT collection FROM ${table} ORDER BY collection`).all(),
+        [{ collection: "encyclopedia" }, { collection: "woodpecker" }]);
+    }
+  } finally { db.close(); }
+});
+
+test("practice draws uniformly from the global due or new pool, with no deck weighting", context => {
+  const db = openDatabase(":memory:");
+  try {
+    seed(db);
+    const repository = new ReviewRepository(db);
+    let selectedIndex = 0;
+    let candidateCount = 4;
+    context.mock.method(crypto, "randomInt", (maximum: number) => {
+      assert.equal(maximum, candidateCount);
+      return selectedIndex;
+    });
+    for (const expected of [
+      { collection: "woodpecker", fen },
+      { collection: "woodpecker", fen: secondFen },
+      { collection: "woodpecker", fen: thirdFen },
+      { collection: "encyclopedia", fen },
+    ]) {
+      assert.deepEqual(repository.queue(learnerId, undefined, now).recommendedCard, expected);
+      selectedIndex += 1;
+    }
+
+    repository.save(review({ rating: "hard" }), now - 2 * day);
+    repository.save(review({ collection: "encyclopedia", rating: "hard" }), now - day);
+    candidateCount = 2;
+    selectedIndex = 0;
+    for (const collection of ["woodpecker", "encyclopedia"]) {
+      assert.deepEqual(repository.queue(learnerId, undefined, now).recommendedCard, { collection, fen });
+      selectedIndex += 1;
+    }
+    candidateCount = 1;
+    selectedIndex = 0;
+    assert.deepEqual(repository.queue(learnerId, ["encyclopedia"], now).recommendedCard,
+      { collection: "encyclopedia", fen });
+  } finally { db.close(); }
+});
+
+test("practice API validates scopes, preserves single-deck responses, and discovers live collections", async () => {
+  const db = openDatabase(":memory:");
+  seed(db);
+  const server = createApp({ host: "127.0.0.1", port: 0, databasePath: ":memory:" }, db);
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  type Queue = ReturnType<ReviewRepository["queue"]>;
+  const getQueue = async (filters = "") => {
+    const response = await fetch(`${baseUrl}/v1/practice-queue?learnerId=${learnerId}${filters}`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    return await response.json() as Queue;
+  };
+  const listCollections = async () => (await (await fetch(`${baseUrl}/v1/collections`)).json() as {
+    collections: Array<{ slug: string; name: string; fens: string[] }>;
+  }).collections;
+  try {
+    assert.equal((await getQueue()).cards.length, 4);
+    assert.equal((await getQueue("&collection=encyclopedia&collection=woodpecker")).cards.length, 4);
+    const filtered = await getQueue("&collection=encyclopedia&collection=encyclopedia");
+    assert.deepEqual(filtered.cards, [{ collection: "encyclopedia", fen, status: "new", dueAt: null }]);
+    assert.deepEqual(filtered.recommendedCard, { collection: "encyclopedia", fen });
+    assert.equal(filtered.recommendedFen, fen);
+    const singleResponse = await fetch(`${baseUrl}/v1/review-queue?learnerId=${learnerId}&collection=encyclopedia`);
+    assert.equal(singleResponse.status, 200);
+    const single = await singleResponse.json() as Queue;
+    assert.deepEqual(single.cards, filtered.cards);
+    assert.equal(single.recommendedFen, filtered.recommendedFen);
+    assert.deepEqual((await getQueue("&collection=removed-deck")).cards, []);
+
+    for (const query of [
+      "", "?learnerId=bad", `?learnerId=${learnerId}&learnerId=${learnerId}`,
+      `?learnerId=${learnerId}&collection=`, `?learnerId=${learnerId}&collection=../bad`,
+      `?learnerId=${learnerId}&collection=woodpecker&collection=bad/name`,
+      `?learnerId=${learnerId}&collection=${"a".repeat(65)}`,
+    ]) assert.equal((await fetch(`${baseUrl}/v1/practice-queue${query}`)).status, 400);
+
+    assert.deepEqual((await listCollections()).map(deck => [deck.slug, deck.name]), [
+      ["woodpecker", "Woodpecker"], ["encyclopedia", "Encyclopedia of Chess Combinations"],
+    ]);
+    db.prepare("INSERT INTO collections (collection, fen) VALUES (?, ?)").run("endgame-basics", thirdFen);
+    assert.deepEqual((await listCollections()).at(-1), {
+      slug: "endgame-basics", name: "Endgame Basics", fens: [thirdFen],
+      description: "1 positions loaded from the Endgame Basics deck.",
+    });
+    assert.equal((await getQueue()).cards.length, 5);
+    db.prepare("UPDATE collections SET fen = ? WHERE collection = ?").run(secondFen, "endgame-basics");
+    assert.deepEqual((await listCollections()).at(-1)?.fens, [secondFen]);
+    assert.deepEqual((await getQueue("&collection=endgame-basics")).recommendedCard,
+      { collection: "endgame-basics", fen: secondFen });
+    db.prepare("DELETE FROM collections WHERE collection = ?").run("endgame-basics");
+    assert.equal((await listCollections()).length, 2);
+    assert.equal((await getQueue()).cards.length, 4);
+    db.exec("DELETE FROM collections");
+    assert.deepEqual(await listCollections(), []);
+    assert.equal((await getQueue()).recommendedCard, null);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    db.close();
+  }
+});
+
 test("review API validates requests, previews server intervals, persists and safely retries ratings", async () => {
   const db = openDatabase(":memory:");
   seed(db);
