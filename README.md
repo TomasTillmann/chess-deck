@@ -13,6 +13,9 @@ docker compose up --build
 The UI is served at `http://localhost:5174` and the API at
 `http://localhost:3001`.
 
+Generated puzzle solutions are stored in Git LFS. See
+[saved solutions](solutions/README.md) for download, import, and refresh commands.
+
 The current parser targets Quality Chess-style PDFs where diagrams are embedded as chess-font
 glyphs. That is more deterministic than image OCR for The Woodpecker Method, but the package is
 kept small so image recognizers can be added for scanned books later.
